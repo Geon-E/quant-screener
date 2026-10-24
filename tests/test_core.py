@@ -564,3 +564,53 @@ def test_update_recent_adds_new_and_refetches_amended(tmp_path, monkeypatch):
     assert r["new_reports"] == 1 and r["amended"] == 1 and r["fs_refetched"] == 1
     assert ("fnlttSinglAcntAll.json", "CFS") in calls                      # 정정본 재무 다시 받음
     assert len(U.load_l0(U.dart_path("list", f"{cc}.json.gz"))["payload"]) == 3
+
+
+# ── 백테스트 (2단계) ──
+from qs import backtest as BT
+
+
+def test_rebalance_days_rule_and_calendar_edge():
+    days = [f"2025{m:02d}{d:02d}" for m in range(3, 12) for d in range(1, 29) if dt.date(2025, m, d).weekday() < 5]
+    r = BT.rebalance_days(days, "2025-01-01", "2025-12-31")
+    assert r[0] == "20250407"            # 3/31 이후 5번째 거래일 (4/1,2,3,4,7)
+    assert all(x > "20250315" for x in r)
+    late = [d for d in days if d >= "20250901"]
+    assert "20250905" not in BT.rebalance_days(late, "2025-01-01", "2025-12-31")   # 기한(8/14)이 달력 밖 → 제외
+
+
+def test_sell_tax_by_date_and_costs():
+    c = BT.load_costs()
+    assert BT.sell_tax(c, "20180102", "KOSPI") == 0.0030
+    assert BT.sell_tax(c, "20250102", "KOSDAQ") == 0.0015
+    assert BT.sell_tax(c, "20260102", "KOSPI") == 0.0020
+    buy = BT.trade_cost(c, "base", "buy", "20250102", "KOSPI", 2e12, 1e6, None)
+    sell = BT.trade_cost(c, "base", "sell", "20250102", "KOSPI", 2e12, 1e6, None)
+    assert abs(buy - 1e6 * (0.00015 + 0.0005)) < 1e-6
+    assert abs(sell - buy - 1e6 * 0.0015) < 1e-6
+    assert BT.trade_cost(c, "conservative", "buy", "20250102", "KOSPI", 1e10, 1e6, 1e8) > BT.trade_cost(c, "base", "buy", "20250102", "KOSPI", 1e10, 1e6, 1e8)
+
+
+def test_select_buffer_cap_and_untradable():
+    ranked = [{"stock_code": f"{i:06d}", "rank": i, "group_id": "G1" if i <= 5 else f"G{i}"} for i in range(1, 41)]
+    sel = BT.select(ranked, prev=[], n=5, cap=3)
+    assert sel == ["000001", "000002", "000003", "000006", "000007"]          # G1은 3종목까지
+    sel2 = BT.select(ranked, prev=["000025", "000035"], n=5, cap=3)
+    assert "000025" in sel2 and "000035" not in sel2                         # 30위 안 보유 유지, 밖은 교체
+    sel3 = BT.select(ranked, prev=["999999"], n=5, cap=3, untradable={"999999"})
+    assert sel3[0] == "999999"                                               # 매매 불가는 계속 보유
+
+
+def test_perf_and_spearman():
+    p = BT.perf([1.0, 1.1, 0.88, 1.21], ["20200101", "20200102", "20200103", "20210101"])
+    assert abs(p["mdd"] - (0.88 / 1.1 - 1)) < 1e-12 and abs(p["total_return"] - 0.21) < 1e-12
+    assert abs(BT.spearman(list(range(12)), list(range(12))) - 1) < 1e-12
+    assert abs(BT.spearman(list(range(12)), list(range(12))[::-1]) + 1) < 1e-12
+    assert BT.spearman([1, 2], [1, 2]) is None
+
+
+def test_dev_mode_refuses_validation_window():
+    with pytest.raises(ValueError):
+        BT.run(start="2022-04-01", end="2023-01-01", mode="dev")
+    with pytest.raises(ValueError):
+        BT.run(start="2022-04-01", end="2023-01-01", mode="validation")      # 전략 frozen 전
