@@ -1,0 +1,448 @@
+{
+ "command": "phase1",
+ "started": "2026-10-24T23:03:51.581888+09:00",
+ "finished": "2026-10-24T23:04:55.648156+09:00",
+ "ok": true,
+ "secret_scan_hits": [],
+ "results": {
+  "cmd_krx": {
+   "start": "2025-09-01",
+   "end": "2026-10-24",
+   "saved": 12,
+   "skipped": 1150,
+   "trading_days_touched": 278,
+   "stopped": null,
+   "calls": 12,
+   "errors": 0,
+   "budget": 3000
+  },
+  "cmd_dart": {
+   "companies_done": 28,
+   "of": 28,
+   "stopped": null,
+   "per_company": [
+    {
+     "corp_code": "00126380",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 0,
+     "xbrl_ok": 0,
+     "name": "삼성전자"
+    },
+    {
+     "corp_code": "00164779",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 6,
+     "xbrl_ok": 6,
+     "name": "SK하이닉스"
+    },
+    {
+     "corp_code": "00164742",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 9,
+     "xbrl_ok": 9,
+     "name": "현대자동차"
+    },
+    {
+     "corp_code": "00266961",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 6,
+     "xbrl_ok": 6,
+     "name": "NAVER"
+    },
+    {
+     "corp_code": "00356361",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 5,
+     "xbrl_ok": 5,
+     "name": "LG화학"
+    },
+    {
+     "corp_code": "00258801",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 16,
+     "xbrl_ok": 15,
+     "name": "카카오"
+    },
+    {
+     "corp_code": "00120021",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 1,
+     "xbrl_ok": 1,
+     "name": "LG"
+    },
+    {
+     "corp_code": "00181712",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 6,
+     "xbrl_ok": 6,
+     "name": "SK"
+    },
+    {
+     "corp_code": "00156600",
+     "acc_mt": "12",
+     "reports": 17,
+     "fs_ok": 15,
+     "fs_none": 2,
+     "amended": 7,
+     "xbrl_ok": 6,
+     "name": "한주라이트메탈"
+    },
+    {
+     "corp_code": "00217947",
+     "acc_mt": "12",
+     "reports": 45,
+     "fs_ok": 41,
+     "fs_none": 4,
+     "amended": 5,
+     "xbrl_ok": 5,
+     "name": "신세계건설"
+    },
+    {
+     "corp_code": "01596656",
+     "acc_mt": "12",
+     "reports": 19,
+     "fs_ok": 15,
+     "fs_none": 4,
+     "amended": 2,
+     "xbrl_ok": 2,
+     "name": "메쎄이상"
+    },
+    {
+     "corp_code": "00150536",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 4,
+     "xbrl_ok": 4,
+     "name": "진양제약"
+    },
+    {
+     "corp_code": "00120562",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 37,
+     "fs_none": 10,
+     "amended": 5,
+     "xbrl_ok": 4,
+     "name": "롯데지주"
+    },
+    {
+     "corp_code": "01725160",
+     "acc_mt": "12",
+     "reports": 10,
+     "fs_ok": 10,
+     "fs_none": 0,
+     "amended": 0,
+     "xbrl_ok": 0,
+     "name": "한화플러스제4호스팩"
+    },
+    {
+     "corp_code": "00133991",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 4,
+     "xbrl_ok": 4,
+     "name": "세아특수강"
+    },
+    {
+     "corp_code": "00205687",
+     "acc_mt": "12",
+     "reports": 50,
+     "fs_ok": 43,
+     "fs_none": 7,
+     "amended": 17,
+     "xbrl_ok": 17,
+     "name": "더라미"
+    },
+    {
+     "corp_code": "00390408",
+     "acc_mt": "12",
+     "reports": 49,
+     "fs_ok": 43,
+     "fs_none": 6,
+     "amended": 6,
+     "xbrl_ok": 6,
+     "name": "인크레더블버즈"
+    },
+    {
+     "corp_code": "01109070",
+     "acc_mt": "12",
+     "reports": 31,
+     "fs_ok": 31,
+     "fs_none": 0,
+     "amended": 3,
+     "xbrl_ok": 3,
+     "name": "비피도"
+    },
+    {
+     "corp_code": "00101044",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 9,
+     "xbrl_ok": 9,
+     "name": "에이프로젠바이오로직스"
+    },
+    {
+     "corp_code": "00141246",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 4,
+     "xbrl_ok": 4,
+     "name": "SGC E&C"
+    },
+    {
+     "corp_code": "01264872",
+     "acc_mt": "12",
+     "reports": 21,
+     "fs_ok": 21,
+     "fs_none": 0,
+     "amended": 1,
+     "xbrl_ok": 1,
+     "name": "이노뎁"
+    },
+    {
+     "corp_code": "01012987",
+     "acc_mt": "12",
+     "reports": 21,
+     "fs_ok": 21,
+     "fs_none": 0,
+     "amended": 1,
+     "xbrl_ok": 1,
+     "name": "아모센스"
+    },
+    {
+     "corp_code": "00301112",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 1,
+     "xbrl_ok": 1,
+     "name": "삼화네트웍스"
+    },
+    {
+     "corp_code": "01566248",
+     "acc_mt": "12",
+     "reports": 21,
+     "fs_ok": 21,
+     "fs_none": 0,
+     "amended": 3,
+     "xbrl_ok": 3,
+     "name": "에코프로에이치엔"
+    },
+    {
+     "corp_code": "00268251",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 7,
+     "xbrl_ok": 7,
+     "name": "다산네트웍스"
+    },
+    {
+     "corp_code": "00367871",
+     "acc_mt": "12",
+     "reports": 23,
+     "fs_ok": 23,
+     "fs_none": 0,
+     "amended": 2,
+     "xbrl_ok": 2,
+     "name": "인바이오"
+    },
+    {
+     "corp_code": "00877174",
+     "acc_mt": "06",
+     "reports": 0,
+     "fs_ok": 25,
+     "fs_none": 23,
+     "amended": 0,
+     "xbrl_ok": 0,
+     "name": "엠브레인"
+    },
+    {
+     "corp_code": "00441243",
+     "acc_mt": "06",
+     "reports": 0,
+     "fs_ok": 40,
+     "fs_none": 8,
+     "amended": 0,
+     "xbrl_ok": 0,
+     "name": "형지엘리트"
+    }
+   ],
+   "calls": 28,
+   "errors": 0,
+   "budget": 15000
+  },
+  "cmd_inventory": {
+   "fs_files": 1034,
+   "companies": 74,
+   "distinct_accounts": 1423
+  },
+  "cmd_evaluate": {
+   "companies": 28,
+   "l2_sha256": "385009c5f544caccdb4dfc84986706b4ca13ccc38396371bd4ba97df7f39b200",
+   "coverage": {
+    "E/P": {
+     "valid": 25,
+     "rate": 1.0,
+     "invalid_reasons": {}
+    },
+    "B/P": {
+     "valid": 25,
+     "rate": 1.0,
+     "invalid_reasons": {}
+    },
+    "EBIT/EV": {
+     "valid": 24,
+     "rate": 0.96,
+     "invalid_reasons": {
+      "EV 비정상": 1
+     }
+    },
+    "EBITDA/EV": {
+     "valid": 3,
+     "rate": 0.12,
+     "invalid_reasons": {
+      "EBITDA 구성 계정 없음": 22
+     }
+    },
+    "ROE": {
+     "valid": 25,
+     "rate": 1.0,
+     "invalid_reasons": {}
+    },
+    "GP/A": {
+     "valid": 22,
+     "rate": 0.88,
+     "invalid_reasons": {
+      "데이터 없음": 3
+     }
+    },
+    "CFO/NI": {
+     "valid": 14,
+     "rate": 0.56,
+     "invalid_reasons": {
+      "순이익 ≤ 0": 11
+     }
+    },
+    "이자보상배율": {
+     "valid": 25,
+     "rate": 1.0,
+     "invalid_reasons": {}
+    },
+    "영업이익증가율": {
+     "valid": 17,
+     "rate": 0.68,
+     "invalid_reasons": {
+      "값 없음": 8
+     }
+    },
+    "12-1모멘텀": {
+     "valid": 0,
+     "rate": 0.0,
+     "invalid_reasons": {
+      "수정주가 미검증": 25
+     }
+    }
+   }
+  },
+  "cmd_determinism": {
+   "run1": "385009c5f544caccdb4dfc84986706b4ca13ccc38396371bd4ba97df7f39b200",
+   "run2": "385009c5f544caccdb4dfc84986706b4ca13ccc38396371bd4ba97df7f39b200",
+   "identical": true
+  }
+ },
+ "log": [
+  "[23:04:09] KRX 백필 결과: {'start': '2025-09-01', 'end': '2026-10-24', 'saved': 12, 'skipped': 1150, 'trading_days_touched': 278, 'stopped': None, 'calls': 12, 'errors': 0, 'budget': 3000}",
+  "[23:04:10] DART 삼성전자: 보고서 47, 재무 43/47, 정정 0 (XBRL 0)",
+  "[23:04:11] DART SK하이닉스: 보고서 47, 재무 43/47, 정정 6 (XBRL 6)",
+  "[23:04:12] DART 현대자동차: 보고서 47, 재무 43/47, 정정 9 (XBRL 9)",
+  "[23:04:13] DART NAVER: 보고서 47, 재무 43/47, 정정 6 (XBRL 6)",
+  "[23:04:14] DART LG화학: 보고서 47, 재무 43/47, 정정 5 (XBRL 5)",
+  "[23:04:15] DART 카카오: 보고서 47, 재무 43/47, 정정 16 (XBRL 15)",
+  "[23:04:16] DART LG: 보고서 47, 재무 43/47, 정정 1 (XBRL 1)",
+  "[23:04:17] DART SK: 보고서 47, 재무 43/47, 정정 6 (XBRL 6)",
+  "[23:04:17] DART 한주라이트메탈: 보고서 17, 재무 15/17, 정정 7 (XBRL 6)",
+  "[23:04:18] DART 신세계건설: 보고서 45, 재무 41/45, 정정 5 (XBRL 5)",
+  "[23:04:19] DART 메쎄이상: 보고서 19, 재무 15/19, 정정 2 (XBRL 2)",
+  "[23:04:19] DART 진양제약: 보고서 47, 재무 43/47, 정정 4 (XBRL 4)",
+  "[23:04:20] DART 롯데지주: 보고서 47, 재무 37/47, 정정 5 (XBRL 4)",
+  "[23:04:21] DART 한화플러스제4호스팩: 보고서 10, 재무 10/10, 정정 0 (XBRL 0)",
+  "[23:04:22] DART 세아특수강: 보고서 47, 재무 43/47, 정정 4 (XBRL 4)",
+  "[23:04:22] DART 더라미: 보고서 50, 재무 43/50, 정정 17 (XBRL 17)",
+  "[23:04:23] DART 인크레더블버즈: 보고서 49, 재무 43/49, 정정 6 (XBRL 6)",
+  "[23:04:24] DART 비피도: 보고서 31, 재무 31/31, 정정 3 (XBRL 3)",
+  "[23:04:25] DART 에이프로젠바이오로직스: 보고서 47, 재무 43/47, 정정 9 (XBRL 9)",
+  "[23:04:25] DART SGC E&C: 보고서 47, 재무 43/47, 정정 4 (XBRL 4)",
+  "[23:04:26] DART 이노뎁: 보고서 21, 재무 21/21, 정정 1 (XBRL 1)",
+  "[23:04:27] DART 아모센스: 보고서 21, 재무 21/21, 정정 1 (XBRL 1)",
+  "[23:04:28] DART 삼화네트웍스: 보고서 47, 재무 43/47, 정정 1 (XBRL 1)",
+  "[23:04:28] DART 에코프로에이치엔: 보고서 21, 재무 21/21, 정정 3 (XBRL 3)",
+  "[23:04:29] DART 다산네트웍스: 보고서 47, 재무 43/47, 정정 7 (XBRL 7)",
+  "[23:04:30] DART 인바이오: 보고서 23, 재무 23/23, 정정 2 (XBRL 2)",
+  "[23:04:31] DART 엠브레인: 보고서 0, 재무 25/48, 정정 0 (XBRL 0)",
+  "[23:04:31] DART 형지엘리트: 보고서 0, 재무 40/48, 정정 0 (XBRL 0)",
+  "[23:04:34] 계정 인벤토리: {'fs_files': 1034, 'companies': 74, 'distinct_accounts': 1423}",
+  "[23:04:35] 평가 삼성전자: ok 2026Q2 []",
+  "[23:04:35] 평가 SK하이닉스: ok 2026Q2 []",
+  "[23:04:35] 평가 현대자동차: ok 2026Q2 []",
+  "[23:04:35] 평가 NAVER: ok 2026Q2 []",
+  "[23:04:36] 평가 LG화학: ok 2026Q2 []",
+  "[23:04:36] 평가 카카오: ok 2026Q2 []",
+  "[23:04:36] 평가 LG: ok 2026Q2 []",
+  "[23:04:36] 평가 SK: ok 2026Q2 []",
+  "[23:04:36] 평가 한주라이트메탈: ok 2026Q2 []",
+  "[23:04:39] 평가 신세계건설: no_price  ['KRX 백필 기간에 시세 없음']",
+  "[23:04:39] 평가 메쎄이상: ok 2026Q2 []",
+  "[23:04:39] 평가 진양제약: ok 2026Q2 []",
+  "[23:04:39] 평가 롯데지주: ok 2026Q2 []",
+  "[23:04:39] 평가 한화플러스제4호스팩: ok 2025Q4 ['상장폐지/거래정지 — 마지막 거래일 20260414 기준 평가']",
+  "[23:04:39] 평가 세아특수강: ok 2025Q3 ['상장폐지/거래정지 — 마지막 거래일 20260211 기준 평가']",
+  "[23:04:39] 평가 더라미: ok 2026Q2 []",
+  "[23:04:39] 평가 인크레더블버즈: ok 2026Q2 []",
+  "[23:04:39] 평가 비피도: ok 2026Q2 []",
+  "[23:04:40] 평가 에이프로젠바이오로직스: ok 2026Q2 []",
+  "[23:04:40] 평가 SGC E&C: ok 2026Q2 []",
+  "[23:04:40] 평가 이노뎁: ok 2026Q2 []",
+  "[23:04:40] 평가 아모센스: ok 2026Q2 []",
+  "[23:04:40] 평가 삼화네트웍스: ok 2026Q2 []",
+  "[23:04:40] 평가 에코프로에이치엔: ok 2026Q2 []",
+  "[23:04:40] 평가 다산네트웍스: ok 2026Q2 []",
+  "[23:04:40] 평가 인바이오: ok 2026Q2 []",
+  "[23:04:40] 평가 엠브레인: excluded_non_dec  ['12월 외 결산 → 1단계 TTM 무효 (DESIGN 4.3)']",
+  "[23:04:40] 평가 형지엘리트: excluded_non_dec  ['12월 외 결산 → 1단계 TTM 무효 (DESIGN 4.3)']"
+ ]
+}
