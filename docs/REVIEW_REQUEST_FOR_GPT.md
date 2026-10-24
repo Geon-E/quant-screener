@@ -2,7 +2,30 @@
 
 ---
 
-## 🔁 3차 협의 요청 (2026-10-25) — 1단계 결과 기반
+## 🔁 4차 협의 요청 (2026-10-25) — 방침 B·실험 결과 기반
+
+2·3차와 같은 독립 답변 방식입니다 ([`docs/DEBATE_PROTOCOL.md`](DEBATE_PROTOCOL.md)).
+
+### GPT가 할 일 (순서 중요)
+1. 배경 자료를 읽는다.
+   - [`docs/PHASE1_STATUS.md`](PHASE1_STATUS.md) — 원천값 자동 대조, 관리종목·상장폐지 실험, 수정주가, 최초본 XBRL 복원, 작업표
+   - [`docs/DECISIONS.md`](DECISIONS.md) — D-15·D-16·D-17·D-19·D-22·D-25
+   - [`reports/phase1/exp_listing/`](../reports/phase1/exp_listing/), [`reports/phase1/external_crosscheck.csv`](../reports/phase1/external_crosscheck.csv)
+   - [`config/peer_groups_v1.csv`](../config/peer_groups_v1.csv), [`config/strategy_v1.yaml`](../config/strategy_v1.yaml), [`config/costs_v1.yaml`](../config/costs_v1.yaml)
+   - [`src/qs/`](../src/qs/) — 특히 `backtest.py`, `screen.py`, `xbrl.py`, `exp_admin_rules.py`
+2. [`reviews/round4/QUESTIONS.md`](../reviews/round4/QUESTIONS.md)의 Q1~Q7에 답한다.
+   - 각 질문마다 선택 · 근거 · 반증 조건 · 확신도
+   - ⚠️ `reviews/round4/claude_position.md`는 **읽지 않는다.**
+3. 답변을 마친 **뒤에** `claude_position.md`를 읽고, 다른 항목만 반론하거나 수긍한다.
+4. 추가로 보이는 위험이 있으면 자유롭게 적는다 (특히 백테스트 엔진의 시점 정합성·생존자 편향·비용 처리).
+
+### 산출물
+- `reviews/round4/gpt_position.md`
+- `reviews/round4/gpt_rebuttal.md`
+
+---
+
+## (완료) 3차 협의 요청 (2026-10-25) — 1단계 결과 기반
 
 2차와 같은 독립 답변 방식입니다 ([`docs/DEBATE_PROTOCOL.md`](DEBATE_PROTOCOL.md)).
 이번에는 **실제 구현과 실측 결과**를 보고 판단합니다.
