@@ -67,8 +67,8 @@ def build_view(results: list[dict], summary: dict, out_dir: Path) -> None:
     write_text(out_dir / "screen.json", json.dumps(summary, ensure_ascii=False, indent=1, default=str))
     page = TEMPLATE.replace("/*__DATA__*/null", js.replace("</", "<\\/"))
     write_text(out_dir / "screener.html", page)
-    # 배포용 완전한 문서 (Vercel 정적 사이트 — 매일 GitHub Actions가 배포)
-    write_text(out_dir / "site" / "index.html",
+    # 배포용 완전한 문서: 저장소의 site/index.html → Vercel이 GitHub 연동으로 자동 배포 (다른 앱들과 같은 방식, 토큰 불필요)
+    write_text(out_dir.parent.parent / "site" / "index.html",
                '<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n'
                '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
                '<meta name="robots" content="noindex">\n</head>\n<body>\n' + page + '\n</body>\n</html>\n')
