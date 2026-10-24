@@ -385,9 +385,13 @@ def list_all(params, max_pages=10):
 @safe
 def dart_amendment_behavior():
     """D2(핵심): 정정공시가 있을 때 fnlttSinglAcntAll이 어떤 접수번호(최초/정정)의 값을 주는가."""
-    items, st, msg = list_all({"bgn_de": "20250401", "end_de": "20251231", "pblntf_ty": "A",
-                               "pblntf_detail_ty": "A001", "last_reprt_at": "N"}, max_pages=8)
-    log(f"D2b list.json 사업보고서 검색: {len(items)}건 (status {st})")
+    # 회사 지정 없는 검색은 기간 3개월 이내 제한 → 구간 분할
+    items, st = [], "000"
+    for bgn, end in [("20250401", "20250630"), ("20250701", "20250930"), ("20251001", "20251231")]:
+        part, st, msg = list_all({"bgn_de": bgn, "end_de": end, "pblntf_ty": "A",
+                                  "pblntf_detail_ty": "A001", "last_reprt_at": "N"}, max_pages=10)
+        items += part
+        log(f"D2b list.json {bgn}~{end}: {len(part)}건 (status {st} {msg})")
     amended = [i for i in items if "정정" in (i.get("report_nm") or "") and i.get("stock_code")
                and "2024.12" in (i.get("report_nm") or "")]
     samples = []
@@ -550,12 +554,24 @@ def write_report(R):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--mode", choices=["full", "timing"], default="full")
+    ap.add_argument("--mode", choices=["full", "timing", "amend"], default="full")
     args = ap.parse_args()
     if not KRX_KEY or not DART_KEY:
         log(f"키 확인: KRX {'있음' if KRX_KEY else '없음'} / DART {'있음' if DART_KEY else '없음'}")
     if args.mode == "timing":
         timing_probe()
+        return
+    if args.mode == "amend":
+        # 정정공시 점검만 재실행 → 기존 raw에 병합
+        raw_f = OUT / "phase0_raw.json"
+        R = json.loads(raw_f.read_text(encoding="utf-8")) if raw_f.exists() else {}
+        dart_corpcode()
+        R["dart_amendment"] = dart_amendment_behavior()
+        R["dart_xbrl_original"] = dart_xbrl_original(R["dart_amendment"])
+        R["amend_rerun_at"] = now_kst().isoformat()
+        R["calls_amend"] = dict(CALLS)
+        write_report(R)
+        log(f"정정 점검 완료. 호출 수 {CALLS}")
         return
 
     R = {"run_at": now_kst().isoformat()}

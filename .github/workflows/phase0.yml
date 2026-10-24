@@ -9,10 +9,10 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "full = 전체 점검, timing = 제공 시각 1회 측정"
+        description: "full = 전체 점검, timing = 제공 시각 1회 측정, amend = 정정공시 점검만"
         default: full
         type: choice
-        options: [full, timing]
+        options: [full, timing, amend]
   schedule:
     # KST 15:40 / 16:40 / 17:40 / 18:40 / 20:40 (월~금), 다음날 08:10 (화~토)
     - cron: "40 6,7,8,9,11 * * 1-5"
