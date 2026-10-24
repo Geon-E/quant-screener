@@ -11,6 +11,7 @@
 외부 사이트(FnGuide·네이버)는 자동 수집을 막아 두어 쓰지 않는다 (robots 차단).
 
 판정: 차이 ≤ 단위 반올림 → 정확 일치 / ≤ 1% → 1% 이내 / 그 외 → 불일치 (원인 조사 대상)
+      배당 항목은 회사마다 기재 방식이 달라, 단위 표기 오류·전체 순이익 기재로 설명되는 경우를 '설명됨'으로 따로 분류
 """
 from __future__ import annotations
 
@@ -70,16 +71,44 @@ def parse_main(rows: list[dict], fs_div: str) -> dict[str, float | None]:
 
 
 def parse_dividend_ni(rows: list[dict], fs_div: str) -> tuple[float | None, float, str | None]:
-    """배당 항목 → (당기순이익(원), 단위(원), 원문 구분명). 연결 회사는 '(연결)', 별도 회사는 '(별도)'."""
-    tag = "(연결)" if fs_div == "CFS" else "(별도)"
-    for r in rows:
-        se = re.sub(r"\s", "", r.get("se") or "")
-        if se.startswith(tag) and "당기순이익" in se:
-            m = re.search(r"\(([^()]*원)\)$", se)
-            unit = UNIT.get(m.group(1), 1e6) if m else 1e6
-            v = to_num(r.get("thstrm"))
-            return (None if v is None else v * unit), unit, r.get("se")
+    """배당 항목 → (당기순이익(원), 단위(원), 원문 구분명). 연결 회사는 '(연결)', 별도 회사는 '(별도)'.
+    별도재무제표만 내는 회사가 '(별도)' 칸을 비우고 '(연결)' 칸에 적는 경우가 있다 (더라미·인바이오) → 보조로 읽는다."""
+    tags = ["(연결)"] if fs_div == "CFS" else ["(별도)", "(연결)"]
+    for tag in tags:
+        for r in rows:
+            se = re.sub(r"\s", "", r.get("se") or "")
+            if se.startswith(tag) and "당기순이익" in se:
+                m = re.search(r"\(([^()]*원)\)$", se)
+                unit = UNIT.get(m.group(1), 1e6) if m else 1e6
+                v = to_num(r.get("thstrm"))
+                if v is not None:
+                    return v * unit, unit, r.get("se") + ("" if tag == tags[0] else " (별도 칸 비어 연결 칸 사용)")
     return None, 1e6, None
+
+
+def explain_dividend_mismatch(row: dict, ni_total: float | None, unit: float) -> None:
+    """배당 항목 불일치 중 회사 기재 방식으로 설명되는 경우를 분류 (우리 값 오류와 구분).
+      - 단위 표기 오류: 외부값 ÷ 단위가 우리 값과 일치 (원 단위 금액을 백만원 칸에 기재)
+      - 전체 순이익 기재: 외부값이 지배+비지배 합계(당기순이익 전체)와 일치
+    """
+    if row["status"] != "불일치" or row["ours"] is None or row["external"] is None:
+        return
+    if compare(row["ours"], row["external"] / unit, 0.5)[0] == "정확 일치":
+        row["status"], row["note"] = "설명됨: 회사 단위 표기 오류", "배당 항목에 원 단위 금액을 백만원 칸에 기재 — 우리 값과 원 단위로 정확히 일치"
+    elif ni_total is not None and compare(ni_total, row["external"], unit)[0] == "정확 일치":
+        row["status"], row["note"] = "설명됨: 회사가 전체 순이익 기재", \
+            f"배당 항목 값이 지배+비지배 합계(당기순이익 {ni_total:,.0f})와 일치 — 지배 귀속분이 아님"
+
+
+def nci_from_source(cc: str, y: int, q: int, div: str) -> float | None:
+    """원천 재무(L0)의 비지배지분 잔액. 없으면 None."""
+    p = dart_path("fs", cc, f"{y}_{REPRT_OF_Q[q]}_{div}.json.gz")
+    if not exists(p):
+        return None
+    for r in load_l0(p)["payload"].get("list") or []:
+        if r.get("sj_div") == "BS" and re.sub(r"^ifrs(-full)?_", "", r.get("account_id") or "") == "NoncontrollingInterests":
+            return to_num(r.get("thstrm_amount"))
+    return None
 
 
 class Fetcher:
@@ -135,23 +164,24 @@ def check_company(r: dict, fetch: Fetcher) -> list[dict]:
 
         # 지배주주 자본: 외부 출처에 지배 귀속 자본이 없으므로
         #  - 우리가 '지배=전체' 규칙(no_nci·separate_only)을 쓴 경우 → 외부 자본총계와 직접 비교
-        #  - 그 외 → 지배 ≤ 자본총계(외부) 범위 확인만
-        eo, et = vals.get("equity_owners"), ext.get("equity_total")
+        #  - 그 외 → 지배(우리) + 비지배(원천 행) = 자본총계(외부) 합계 대조
+        #    (비지배지분은 음수일 수 있다 — SGC E&C 사례. '지배 ≤ 총계' 범위 확인은 틀린 규칙이라 폐기)
         if conf.get("equity_owners") in ("no_nci", "separate_only"):
-            add("equity_owners", et, "DART 주요계정 자본총계 (지배=전체 규칙 검증)", 0.5)
+            add("equity_owners", ext.get("equity_total"), "DART 주요계정 자본총계 (지배=전체 규칙 검증)", 0.5)
         else:
-            ok = None if eo is None or et is None else (0 < eo <= et * 1.0001 if et > 0 else eo <= et)
-            rows.append({**base, "item": "equity_owners", "ours": eo, "external": et,
-                         "source": "범위 확인 (지배 ≤ 자본총계)", "status": {True: "범위 정상", False: "범위 이상", None: "외부값 없음"}[ok],
-                         "diff_pct": None, "our_confidence": conf.get("equity_owners"),
-                         "our_accounts": " | ".join(f"{a}:{n}" for a, n in (src.get("equity_owners") or [])[:3]),
-                         "note": "외부 출처에 지배 귀속 자본 없음 → 독립 대조 불가, 범위만 확인"})
+            nci = nci_from_source(cc, y, q, div)
+            eo = vals.get("equity_owners")
+            ours_sum = None if eo is None or nci is None else eo + nci
+            add("equity_owners", ext.get("equity_total"), "DART 주요계정 자본총계 vs 지배(우리)+비지배(원천)", 0.5,
+                ours=ours_sum, note=f"비지배지분 {nci:,.0f}" if nci is not None else "원천에 비지배지분 행 없음")
+            rows[-1]["ours_raw"] = eo
 
         if q == 4:
             dj = fetch.dividend(cc, y)
             ni, unit, se = parse_dividend_ni(dj.get("list") or [], div) if dj.get("status") == "000" else (None, 1e6, None)
             add("ni_owners", ni, f"사업보고서 배당 항목 {se or ''}".strip(), unit,
                 note="" if dj.get("status") == "000" else f"배당 항목 응답 status {dj.get('status')}")
+            explain_dividend_mismatch(rows[-1], vals.get("ni_total"), unit)
     return rows
 
 
@@ -181,7 +211,7 @@ def run(dart) -> dict:
         by_item.setdefault(x.get("item", "-"), Counter())[x["status"]] += 1
     flagged = [{k: x.get(k) for k in ("name", "period", "item", "ours", "external", "diff_pct", "status",
                                       "our_confidence", "our_accounts", "source", "note")}
-               for x in rows if x["status"] in ("불일치", "범위 이상", "우리값 없음", "오류")]
+               for x in rows if x["status"] in ("불일치", "우리값 없음", "오류") or x["status"].startswith("설명됨")]
     summary = {"rows": len(rows), "status": dict(Counter(x["status"] for x in rows)),
                "by_item": {k: dict(v) for k, v in by_item.items()}, "flagged": flagged, **dart.http.stats()}
     log(f"원천값 대조: {summary['status']}")

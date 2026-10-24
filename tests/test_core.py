@@ -411,3 +411,23 @@ def test_parse_dividend_ni_unit_and_basis():
     assert parse_dividend_ni(rows, "CFS")[:2] == (1_234_000_000.0, 1e6)
     assert parse_dividend_ni(rows, "OFS")[0] == 200_000_000.0
     assert parse_dividend_ni([{"se": "현금배당금총액(백만원)", "thstrm": "5"}], "CFS")[0] is None
+
+
+def test_explain_dividend_mismatch():
+    from qs.xcheck import explain_dividend_mismatch
+    r = {"status": "불일치", "ours": -2_741_692_510.0, "external": -2_741_692_510.0 * 1e6, "note": ""}
+    explain_dividend_mismatch(r, -2_741_692_510.0, 1e6)
+    assert r["status"] == "설명됨: 회사 단위 표기 오류"
+    r = {"status": "불일치", "ours": -7_170_811_062.0, "external": 4_191_000_000.0, "note": ""}
+    explain_dividend_mismatch(r, 4_191_427_824.0, 1e6)
+    assert r["status"] == "설명됨: 회사가 전체 순이익 기재"
+    r = {"status": "불일치", "ours": 100.0, "external": 5e6, "note": ""}
+    explain_dividend_mismatch(r, 7e6, 1e6)
+    assert r["status"] == "불일치"      # 설명 안 되면 그대로
+
+
+def test_parse_dividend_ni_ofs_fallback_to_consolidated_cell():
+    rows = [{"se": "(연결)당기순이익(백만원)", "thstrm": "-4,646"}, {"se": "(별도)당기순이익(백만원)", "thstrm": "-"}]
+    v, unit, se = parse_dividend_ni(rows, "OFS")
+    assert v == -4_646_000_000.0 and "연결 칸 사용" in se
+    assert parse_dividend_ni([{"se": "(연결)당기순이익(백만원)", "thstrm": "-"}], "CFS")[0] is None
