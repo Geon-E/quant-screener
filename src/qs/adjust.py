@@ -23,7 +23,7 @@ import datetime as dt
 import re
 from collections import defaultdict
 
-from .storage import L0, L1, load_l0
+from .storage import L0, L1, dart_path, exists, load_l0, save_l0
 from .util import REPORTS, log, to_num, write_gz_json
 
 MINOR = 1e-3        # 기준가 끝전 조정 수준
@@ -116,8 +116,14 @@ def confirm_with_dart(events: list[dict], dart, corp_by_stock: dict[str, str]) -
             e["dart_note"] = "고유번호 없음"
             continue
         d = dt.datetime.strptime(e["date"], "%Y%m%d").date()
-        js = dart._json("list.json", {"corp_code": cc, "bgn_de": f"{d - dt.timedelta(days=120):%Y%m%d}",
-                                      "end_de": f"{d:%Y%m%d}", "page_count": 100})
+        cpath = dart_path("adj_confirm", f"{e['code']}_{e['date']}.json.gz")   # 사건별 1회만 조회 (전 종목 일일 실행)
+        if exists(cpath):
+            js = load_l0(cpath)["payload"]
+        else:
+            js = dart._json("list.json", {"corp_code": cc, "bgn_de": f"{d - dt.timedelta(days=120):%Y%m%d}",
+                                          "end_de": f"{d:%Y%m%d}", "page_count": 100})
+            if js.get("status") in ("000", "013"):
+                save_l0(cpath, source={"provider": "DART", "api": "list.json", "corp_code": cc, "event": e["date"]}, payload=js)
         hits = [x for x in (js.get("list") or []) if DART_PAT.search(x.get("report_nm", ""))]
         if hits:
             e["confirmed_by"] = "DART 공시"

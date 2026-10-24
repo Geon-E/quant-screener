@@ -495,3 +495,46 @@ def test_parse_robots_rejects_firewall_page():
     assert parse_robots(200, "text/plain", "User-agent: *\nDisallow:\n", "/investwarn/adminissue.do")[0] is True
     assert parse_robots(404, "", "", "/x")[0] is True
     assert parse_robots(403, "", "", "/x")[0] is None
+
+
+# ── 스크리너 (방침 B) ──
+from qs.screen import group_of, load_groups, pbr_roe_residuals, reliability, score_group
+
+
+def test_group_longest_prefix_and_holding_company():
+    g = load_groups()
+    assert group_of("261", g)[0] == "G12"          # 반도체
+    assert group_of("26110", g)[0] == "G12"
+    assert group_of("262", g)[0] == "G13"          # 전자부품
+    assert group_of("64992", g)[0] == "G30"        # 지주회사는 금융업(64)에서 분리
+    assert group_of("66121", g)[0] == "EX"         # 증권 → 금융업 제외
+    assert group_of("5821", g)[0] == "G27" and group_of("581", g)[0] == "G26"
+    assert group_of(None, g) == (None, None)
+    assert [reliability(n) for n in (20, 12, 3)] == ["높음", "보통", "낮음"]
+
+
+def _sr(code, **m):
+    base = {k: None for k in ["E/P", "B/P", "EBIT/EV", "ROE", "GP/A", "CFO/NI", "12-1모멘텀", "영업이익증가율", "이자보상배율"]}
+    base.update(m)
+    return {"stock_code": code, "metrics": base, "exclude": []}
+
+
+def test_score_group_minimums_and_no_fill():
+    rows = [_sr("A", **{"E/P": .1, "B/P": .5, "ROE": .1, "GP/A": .2, "12-1모멘텀": .1, "이자보상배율": 5}),
+            _sr("B", **{"E/P": .05, "B/P": .3, "ROE": .05, "GP/A": .1, "12-1모멘텀": -.1, "이자보상배율": 2}),
+            _sr("C", **{"EBIT/EV": .1, "ROE": .2, "GP/A": .3, "12-1모멘텀": .2, "이자보상배율": 9})]   # E/P·B/P 모두 없음
+    score_group(rows)
+    a, b, c = rows
+    assert a["composite"] is not None and a["composite"] > b["composite"]
+    assert c["composite"] is None and any("가치" in x for x in c["exclude"])   # 가치 최소조건 미충족 → 순위 제외
+    assert a["pct"]["CFO/NI"] is None                                        # 결측은 결측 (50점 채움 없음)
+
+
+def test_pbr_roe_residual_needs_15():
+    rows = [_sr(str(i), **{"B/P": 1 / (1 + i * .1), "ROE": .02 * i}) for i in range(10)]
+    assert all(v is None for v in pbr_roe_residuals(rows).values())
+    # log(PBR) = 0.2 + 3·ROE ± 0.1 (홀수 = 예상보다 비쌈)
+    rows = [_sr(str(i), **{"B/P": 1 / math.exp(0.2 + 3 * .01 * i + (0.1 if i % 2 else -0.1)), "ROE": .01 * i}) for i in range(20)]
+    res = pbr_roe_residuals(rows)
+    assert sum(v is not None for v in res.values()) == 20
+    assert res["1"] < 0 < res["2"]        # 예상보다 PBR 높음(비쌈) → 음수, 낮음(쌈) → 양수

@@ -35,6 +35,9 @@ class Prices:
         self.dir_q = L0 / "krx" / "sto_ksq_bydd_trd"
         self.days = sorted(p.name[:8] for p in self.dir_k.glob("*.json.gz") if load_l0(p)["meta"].get("rows"))
         self._cache = {}
+        self._base = {}
+        self._mcap = {}
+        self._last = None
 
     def day(self, bd: str) -> list[dict]:
         if bd not in self._cache:
@@ -47,6 +50,8 @@ class Prices:
         return self._cache[bd]
 
     def base_info(self, bd: str) -> list[dict]:
+        if bd in self._base:
+            return self._base[bd]
         rows = []
         for api in ("sto_stk_isu_base_info", "sto_ksq_isu_base_info"):
             files = sorted(p.name[:8] for p in (L0 / "krx" / api).glob("*.json.gz") if p.name[:8] <= bd)
@@ -55,13 +60,22 @@ class Prices:
                 if rec["meta"].get("rows"):
                     rows += rec["payload"]
                     break
+        self._base[bd] = rows
         return rows
 
+    def mcap_map(self, bd: str) -> dict:
+        """보통주 코드 → 시총(우선주 합산). 날짜별 1회 계산 (전 종목 평가 속도)."""
+        if bd not in self._mcap:
+            self._mcap[bd] = merge_preferred_mcap(self.day(bd), self.base_info(bd))
+        return self._mcap[bd]
+
     def last_trading_day_of(self, code: str) -> str | None:
-        for bd in reversed(self.days):
-            if any(r["ISU_CD"] == code for r in self.day(bd)):
-                return bd
-        return None
+        if self._last is None:   # 종목별 마지막 거래일 색인 (전 종목 평가 속도)
+            self._last = {}
+            for bd in self.days:
+                for r in self.day(bd):
+                    self._last[r["ISU_CD"]] = bd
+        return self._last.get(code)
 
 
 # ── 수정주가·모멘텀 (D-16) ──
@@ -195,7 +209,7 @@ def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
 
     # 시가총액 (보통주 + 우선주)
     day_rows = px.day(last_bd)
-    mc = merge_preferred_mcap(day_rows, px.base_info(last_bd)).get(code)
+    mc = px.mcap_map(last_bd).get(code)
     pr = next((r for r in day_rows if r["ISU_CD"] == code), {})
     mcap = mc["mcap_total"] if mc else None
     out.update({"close": pr.get("TDD_CLSPRC"), "mcap_common": mc and mc["mcap_common"], "mcap_pref": mc and mc["mcap_pref"],

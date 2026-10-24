@@ -11,7 +11,7 @@ on:
         description: "phase1 | evaluate | determinism | krx-backfill | sample | dart-sample | inventory | collect-all"
         default: phase1
         type: choice
-        options: [phase1, universe, exp-listing, xcheck, adjust, evaluate, determinism, collect-all, krx-backfill, sample, dart-sample, inventory]
+        options: [phase1, universe, screen, exp-listing, xcheck, adjust, evaluate, determinism, collect-all, krx-backfill, sample, dart-sample, inventory]
       extra:
         description: "추가 인자 (예: --reselect, --start 2025-09-01)"
         default: ""
@@ -85,13 +85,17 @@ jobs:
             tar -czf /tmp/derived.tar.gz -C data $layers
             gh release upload data-store /tmp/derived.tar.gz --clobber
           fi
+          # 스크리너 화면(데이터 내장 HTML)은 저장소에 커밋하지 않고 릴리스 파일로 교체 (매일 수 MB 누적 방지)
+          if [ -f reports/screen/screener.html ] && [ "${{ steps.run.outputs.code }}" = "0" ]; then
+            gh release upload data-store reports/screen/screener.html --clobber
+          fi
 
       - name: Commit reports
         if: steps.run.outputs.code != '2'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/phase1 config/sample_v1.csv 2>/dev/null || true
+          git add reports/phase1 reports/screen/screen.json config/sample_v1.csv 2>/dev/null || true
           if git diff --cached --quiet; then echo "no changes"; exit 0; fi
           git commit -m "1단계 실행 결과 (${{ github.event.inputs.command || 'phase1(일일)' }}, $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST)"
           # 체크아웃 시점 이후 다른 실행이 보고서를 커밋했을 수 있음 → 충돌 시 이번 실행 결과를 우선(-X theirs = 재적용되는 쪽)
