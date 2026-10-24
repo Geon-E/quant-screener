@@ -123,8 +123,8 @@ COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [c
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="qs")
     ap.add_argument("command", choices=sorted(COMMANDS))
-    ap.add_argument("--start", default="2025-09-01")
-    ap.add_argument("--krx-budget", type=int, default=3000)
+    ap.add_argument("--start", default="2017-01-01")      # 백테스트(2018-04~)와 12-1 모멘텀용 13개월 이전 시세
+    ap.add_argument("--krx-budget", type=int, default=6000)
     ap.add_argument("--dart-budget", type=int, default=15000)
     ap.add_argument("--universe-budget", type=int, default=16000)   # DART 일 한도 2만 − 표본·실험 몫
     ap.add_argument("--reselect", action="store_true")

@@ -19,10 +19,10 @@ import time
 from .collect.dart import DART, report_versions
 from .http import BudgetExceeded
 from .storage import L0, L1, dart_path, exists, load_l0, save_l0
-from .util import log, today_kst, write_gz_json
+from .util import elapsed_min, log, today_kst, write_gz_json
 
 SINCE_YEAR = 2024
-TIME_LIMIT_S = 80 * 60   # 워크플로 제한(120분) 안에서 저장 단계까지 끝나도록 수집은 80분에서 끊는다
+COLLECT_UNTIL_MIN = 95   # 프로세스 시작 후 95분이 지나면 중단 → 평가·화면·저장까지 워크플로 제한(150분) 안에 끝냄
 
 
 def _latest(api: str) -> tuple[str, list[dict]]:
@@ -165,8 +165,8 @@ def run(d: DART) -> dict:
     try:
         recent = update_recent(d, {corp[u["stock_code"]] for u in uni if u["stock_code"] in corp})
         for u in uni:
-            if time.monotonic() - t0 > TIME_LIMIT_S:
-                stopped = f"시간 제한 {TIME_LIMIT_S // 60}분 — 다음 실행에서 이어받음"
+            if elapsed_min() > COLLECT_UNTIL_MIN:
+                stopped = f"시간 예산 {COLLECT_UNTIL_MIN}분 — 다음 실행에서 이어받음"
                 break
             cc = corp.get(u["stock_code"])
             if not cc:

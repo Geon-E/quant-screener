@@ -16,11 +16,12 @@ import os
 
 from ..http import BudgetExceeded, Client
 from ..storage import exists, krx_path, load_l0, save_l0
-from ..util import log, today_kst
+from ..util import elapsed_min, log, today_kst
 
 BASE = "https://data-dbg.krx.co.kr/svc/apis"
 DAILY_APIS = ["sto/stk_bydd_trd", "sto/ksq_bydd_trd", "idx/kospi_dd_trd", "idx/kosdaq_dd_trd"]
 BASE_INFO_APIS = ["sto/stk_isu_base_info", "sto/ksq_isu_base_info"]
+KRX_UNTIL_MIN = 45   # 과거 시세 백필은 실행당 45분까지 (재무 수집 시간 확보)
 
 
 def _rows(js):
@@ -101,6 +102,9 @@ def run_backfill(start: dt.date, end: dt.date | None = None, budget: int = 3000)
         # 최신일부터 거꾸로 → 예산이 모자라도 최근 데이터가 먼저 채워진다
         for d in sorted(weekdays(start, end), reverse=True):
             bd = d.strftime("%Y%m%d")
+            if elapsed_min() > KRX_UNTIL_MIN and bd not in recent:
+                stopped = f"시간 예산 {KRX_UNTIL_MIN}분 — 과거 시세 백필은 다음 실행에서 이어받음"
+                break
             force = bd in recent or suspicious_empty(bd)
             n = k.collect("sto/stk_bydd_trd", bd, force=force)
             if n == 0 and not suspicious_empty(bd):

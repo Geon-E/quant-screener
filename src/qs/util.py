@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import time as _time
 import gzip
 import hashlib
 import json
@@ -101,3 +102,11 @@ def to_num(v):
     except ValueError:
         return None
     return -n if neg else n
+
+
+# ── 실행 시간 예산 (워크플로 제한 안에서 저장 단계까지 끝나도록 수집 단계들이 나눠 쓴다) ──
+PROCESS_T0 = _time.monotonic()
+
+
+def elapsed_min() -> float:
+    return (_time.monotonic() - PROCESS_T0) / 60

@@ -31,11 +31,23 @@ INVERSE_TOL = 0.01  # 주식수 비율 × 조정계수 ≈ 1 허용오차
 DART_PAT = re.compile(r"주식분할|주식병합|무상증자|유상증자|감자|분할|합병|권리락|주식배당|액면|주식교환|주식이전")
 
 
-def load_series() -> dict[str, list[dict]]:
-    """종목코드 → 날짜순 [{d, close, cmp, fluc, shares, name, mkt}]."""
+RECENT_DAYS = 450   # 현재 시점 평가용 창 (12-1 모멘텀 13개월 + 여유). 백테스트는 별도 압축 로더로 전체 기간을 다룬다
+
+
+def _window_files(api: str, days: int | None):
+    fs = sorted((L0 / "krx" / api).glob("*.json.gz"))
+    if days is None or not fs:
+        return fs
+    last = dt.datetime.strptime(fs[-1].name[:8], "%Y%m%d").date()
+    cut = f"{last - dt.timedelta(days=days):%Y%m%d}"
+    return [p for p in fs if p.name[:8] >= cut]
+
+
+def load_series(days: int | None = RECENT_DAYS) -> dict[str, list[dict]]:
+    """종목코드 → 날짜순 [{d, close, cmp, fluc, shares, name, mkt}]. 기본은 최근 450일 (메모리: 전 기간 전 종목은 수백만 행)."""
     out: dict[str, list[dict]] = defaultdict(list)
     for api in ("sto_stk_bydd_trd", "sto_ksq_bydd_trd"):
-        for p in sorted((L0 / "krx" / api).glob("*.json.gz")):
+        for p in _window_files(api, days):
             rec = load_l0(p)
             if not rec["meta"].get("rows"):
                 continue

@@ -33,7 +33,8 @@ class Prices:
     def __init__(self):
         self.dir_k = L0 / "krx" / "sto_stk_bydd_trd"
         self.dir_q = L0 / "krx" / "sto_ksq_bydd_trd"
-        self.days = sorted(p.name[:8] for p in self.dir_k.glob("*.json.gz") if load_l0(p)["meta"].get("rows"))
+        from .adjust import RECENT_DAYS, _window_files   # 현재 시점 평가는 최근 창만 (메모리·속도)
+        self.days = sorted(p.name[:8] for p in _window_files("sto_stk_bydd_trd", RECENT_DAYS) if load_l0(p)["meta"].get("rows"))
         self._cache = {}
         self._base = {}
         self._mcap = {}
@@ -72,9 +73,12 @@ class Prices:
     def last_trading_day_of(self, code: str) -> str | None:
         if self._last is None:   # 종목별 마지막 거래일 색인 (전 종목 평가 속도)
             self._last = {}
-            for bd in self.days:
-                for r in self.day(bd):
-                    self._last[r["ISU_CD"]] = bd
+            for bd in self.days:   # 색인만 만들고 행은 캐시하지 않음 (메모리)
+                for d in (self.dir_k, self.dir_q):
+                    p = d / f"{bd}.json.gz"
+                    if p.exists():
+                        for r in load_l0(p)["payload"]:
+                            self._last[r["ISU_CD"]] = bd
         return self._last.get(code)
 
 
