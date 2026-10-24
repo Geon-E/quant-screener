@@ -1,0 +1,1088 @@
+{
+ "run_at": "2026-10-24T21:44:19.039592+09:00",
+ "krx_access": {
+  "ok": true,
+  "sto/stk_bydd_trd": {
+   "latest_day_with_data": "2026-10-23",
+   "rows": 940,
+   "attempts": [
+    {
+     "basDd": "20261023",
+     "rows": 940,
+     "status": 200,
+     "note": null
+    }
+   ],
+   "fields": [
+    "BAS_DD",
+    "ISU_CD",
+    "ISU_NM",
+    "MKT_NM",
+    "SECT_TP_NM",
+    "TDD_CLSPRC",
+    "CMPPREVDD_PRC",
+    "FLUC_RT",
+    "TDD_OPNPRC",
+    "TDD_HGPRC",
+    "TDD_LWPRC",
+    "ACC_TRDVOL",
+    "ACC_TRDVAL",
+    "MKTCAP",
+    "LIST_SHRS"
+   ],
+   "sample": [
+    {
+     "BAS_DD": "20261023",
+     "ISU_CD": "095570",
+     "ISU_NM": "AJ네트웍스",
+     "MKT_NM": "KOSPI",
+     "SECT_TP_NM": "",
+     "TDD_CLSPRC": "4095",
+     "CMPPREVDD_PRC": "45",
+     "FLUC_RT": "1.11",
+     "TDD_OPNPRC": "4020",
+     "TDD_HGPRC": "4150",
+     "TDD_LWPRC": "3985",
+     "ACC_TRDVOL": "127266",
+     "ACC_TRDVAL": "513645355",
+     "MKTCAP": "185310048105",
+     "LIST_SHRS": "45252759"
+    },
+    {
+     "BAS_DD": "20261023",
+     "ISU_CD": "006840",
+     "ISU_NM": "AK홀딩스",
+     "MKT_NM": "KOSPI",
+     "SECT_TP_NM": "",
+     "TDD_CLSPRC": "6630",
+     "CMPPREVDD_PRC": "0",
+     "FLUC_RT": "0.00",
+     "TDD_OPNPRC": "6650",
+     "TDD_HGPRC": "6690",
+     "TDD_LWPRC": "6530",
+     "ACC_TRDVOL": "7853",
+     "ACC_TRDVAL": "52106770",
+     "MKTCAP": "87831329430",
+     "LIST_SHRS": "13247561"
+    }
+   ]
+  },
+  "sto/ksq_bydd_trd": {
+   "latest_day_with_data": "2026-10-23",
+   "rows": 1824,
+   "attempts": [
+    {
+     "basDd": "20261023",
+     "rows": 1824,
+     "status": 200,
+     "note": null
+    }
+   ],
+   "fields": [
+    "BAS_DD",
+    "ISU_CD",
+    "ISU_NM",
+    "MKT_NM",
+    "SECT_TP_NM",
+    "TDD_CLSPRC",
+    "CMPPREVDD_PRC",
+    "FLUC_RT",
+    "TDD_OPNPRC",
+    "TDD_HGPRC",
+    "TDD_LWPRC",
+    "ACC_TRDVOL",
+    "ACC_TRDVAL",
+    "MKTCAP",
+    "LIST_SHRS"
+   ],
+   "sample": [
+    {
+     "BAS_DD": "20261023",
+     "ISU_CD": "060310",
+     "ISU_NM": "3S",
+     "MKT_NM": "KOSDAQ",
+     "SECT_TP_NM": "벤처기업부",
+     "TDD_CLSPRC": "1290",
+     "CMPPREVDD_PRC": "-7",
+     "FLUC_RT": "-0.54",
+     "TDD_OPNPRC": "1234",
+     "TDD_HGPRC": "1308",
+     "TDD_LWPRC": "1230",
+     "ACC_TRDVOL": "103121",
+     "ACC_TRDVAL": "128904667",
+     "MKTCAP": "68446161600",
+     "LIST_SHRS": "53059040"
+    },
+    {
+     "BAS_DD": "20261023",
+     "ISU_CD": "054620",
+     "ISU_NM": "APS",
+     "MKT_NM": "KOSDAQ",
+     "SECT_TP_NM": "중견기업부",
+     "TDD_CLSPRC": "3405",
+     "CMPPREVDD_PRC": "-60",
+     "FLUC_RT": "-1.73",
+     "TDD_OPNPRC": "3465",
+     "TDD_HGPRC": "3470",
+     "TDD_LWPRC": "3335",
+     "ACC_TRDVOL": "18950",
+     "ACC_TRDVAL": "63710055",
+     "MKTCAP": "62632322505",
+     "LIST_SHRS": "18394221"
+    }
+   ]
+  },
+  "sto/stk_isu_base_info": {
+   "latest_day_with_data": "2026-10-23",
+   "rows": 940,
+   "attempts": [
+    {
+     "basDd": "20261023",
+     "rows": 940,
+     "status": 200,
+     "note": null
+    }
+   ],
+   "fields": [
+    "ISU_CD",
+    "ISU_SRT_CD",
+    "ISU_NM",
+    "ISU_ABBRV",
+    "ISU_ENG_NM",
+    "LIST_DD",
+    "MKT_TP_NM",
+    "SECUGRP_NM",
+    "SECT_TP_NM",
+    "KIND_STKCERT_TP_NM",
+    "PARVAL",
+    "LIST_SHRS"
+   ],
+   "sample": [
+    {
+     "ISU_CD": "KR7095570008",
+     "ISU_SRT_CD": "095570",
+     "ISU_NM": "AJ네트웍스보통주",
+     "ISU_ABBRV": "AJ네트웍스",
+     "ISU_ENG_NM": "AJ Networks Co.,Ltd.",
+     "LIST_DD": "20150821",
+     "MKT_TP_NM": "KOSPI",
+     "SECUGRP_NM": "주권",
+     "SECT_TP_NM": "",
+     "KIND_STKCERT_TP_NM": "보통주",
+     "PARVAL": "1000",
+     "LIST_SHRS": "45252759"
+    },
+    {
+     "ISU_CD": "KR7006840003",
+     "ISU_SRT_CD": "006840",
+     "ISU_NM": "AK홀딩스보통주",
+     "ISU_ABBRV": "AK홀딩스",
+     "ISU_ENG_NM": "AK Holdings, Inc.",
+     "LIST_DD": "19990811",
+     "MKT_TP_NM": "KOSPI",
+     "SECUGRP_NM": "주권",
+     "SECT_TP_NM": "",
+     "KIND_STKCERT_TP_NM": "보통주",
+     "PARVAL": "5000",
+     "LIST_SHRS": "13247561"
+    }
+   ]
+  },
+  "sto/ksq_isu_base_info": {
+   "latest_day_with_data": "2026-10-23",
+   "rows": 1824,
+   "attempts": [
+    {
+     "basDd": "20261023",
+     "rows": 1824,
+     "status": 200,
+     "note": null
+    }
+   ],
+   "fields": [
+    "ISU_CD",
+    "ISU_SRT_CD",
+    "ISU_NM",
+    "ISU_ABBRV",
+    "ISU_ENG_NM",
+    "LIST_DD",
+    "MKT_TP_NM",
+    "SECUGRP_NM",
+    "SECT_TP_NM",
+    "KIND_STKCERT_TP_NM",
+    "PARVAL",
+    "LIST_SHRS"
+   ],
+   "sample": [
+    {
+     "ISU_CD": "KR7098120009",
+     "ISU_SRT_CD": "098120",
+     "ISU_NM": "(주)마이크로컨텍솔루션",
+     "ISU_ABBRV": "마이크로컨텍솔",
+     "ISU_ENG_NM": "Micro Contact Solution Co.,Ltd.",
+     "LIST_DD": "20080923",
+     "MKT_TP_NM": "KOSDAQ",
+     "SECUGRP_NM": "주권",
+     "SECT_TP_NM": "우량기업부",
+     "KIND_STKCERT_TP_NM": "보통주",
+     "PARVAL": "500",
+     "LIST_SHRS": "8312766"
+    },
+    {
+     "ISU_CD": "KR7009520008",
+     "ISU_SRT_CD": "009520",
+     "ISU_NM": "(주)포스코엠텍",
+     "ISU_ABBRV": "포스코엠텍",
+     "ISU_ENG_NM": "POSCO M-TECH CO.,LTD.",
+     "LIST_DD": "19971110",
+     "MKT_TP_NM": "KOSDAQ",
+     "SECUGRP_NM": "주권",
+     "SECT_TP_NM": "중견기업부",
+     "KIND_STKCERT_TP_NM": "보통주",
+     "PARVAL": "500",
+     "LIST_SHRS": "41642703"
+    }
+   ]
+  },
+  "idx/kospi_dd_trd": {
+   "latest_day_with_data": "2026-10-23",
+   "rows": 54,
+   "attempts": [
+    {
+     "basDd": "20261023",
+     "rows": 54,
+     "status": 200,
+     "note": null
+    }
+   ],
+   "fields": [
+    "BAS_DD",
+    "IDX_CLSS",
+    "IDX_NM",
+    "CLSPRC_IDX",
+    "CMPPREVDD_IDX",
+    "FLUC_RT",
+    "OPNPRC_IDX",
+    "HGPRC_IDX",
+    "LWPRC_IDX",
+    "ACC_TRDVOL",
+    "ACC_TRDVAL",
+    "MKTCAP"
+   ],
+   "sample": [
+    {
+     "BAS_DD": "20261023",
+     "IDX_CLSS": "KOSPI",
+     "IDX_NM": "코스피 (외국주포함)",
+     "CLSPRC_IDX": "",
+     "CMPPREVDD_IDX": "",
+     "FLUC_RT": "",
+     "OPNPRC_IDX": "",
+     "HGPRC_IDX": "",
+     "LWPRC_IDX": "",
+     "ACC_TRDVOL": "249517382",
+     "ACC_TRDVAL": "17374311229081",
+     "MKTCAP": "4582242494652075"
+    },
+    {
+     "BAS_DD": "20261023",
+     "IDX_CLSS": "KOSPI",
+     "IDX_NM": "코스피",
+     "CLSPRC_IDX": "5550.30",
+     "CMPPREVDD_IDX": "16.53",
+     "FLUC_RT": "0.30",
+     "OPNPRC_IDX": "5403.17",
+     "HGPRC_IDX": "5550.30",
+     "LWPRC_IDX": "5305.98",
+     "ACC_TRDVOL": "249107114",
+     "ACC_TRDVAL": "17373741773082",
+     "MKTCAP": "4581733726087925"
+    }
+   ]
+  },
+  "idx/kosdaq_dd_trd": {
+   "latest_day_with_data": "2026-10-23",
+   "rows": 40,
+   "attempts": [
+    {
+     "basDd": "20261023",
+     "rows": 40,
+     "status": 200,
+     "note": null
+    }
+   ],
+   "fields": [
+    "BAS_DD",
+    "IDX_CLSS",
+    "IDX_NM",
+    "CLSPRC_IDX",
+    "CMPPREVDD_IDX",
+    "FLUC_RT",
+    "OPNPRC_IDX",
+    "HGPRC_IDX",
+    "LWPRC_IDX",
+    "ACC_TRDVOL",
+    "ACC_TRDVAL",
+    "MKTCAP"
+   ],
+   "sample": [
+    {
+     "BAS_DD": "20261023",
+     "IDX_CLSS": "KOSDAQ",
+     "IDX_NM": "코스닥 (외국주포함)",
+     "CLSPRC_IDX": "",
+     "CMPPREVDD_IDX": "",
+     "FLUC_RT": "",
+     "OPNPRC_IDX": "",
+     "HGPRC_IDX": "",
+     "LWPRC_IDX": "",
+     "ACC_TRDVOL": "505473770",
+     "ACC_TRDVAL": "5807985178128",
+     "MKTCAP": "425776818110223"
+    },
+    {
+     "BAS_DD": "20261023",
+     "IDX_CLSS": "KOSDAQ",
+     "IDX_NM": "코스닥",
+     "CLSPRC_IDX": "751.69",
+     "CMPPREVDD_IDX": "-12.41",
+     "FLUC_RT": "-1.62",
+     "OPNPRC_IDX": "748.32",
+     "HGPRC_IDX": "753.02",
+     "LWPRC_IDX": "732.87",
+     "ACC_TRDVOL": "503873120",
+     "ACC_TRDVAL": "5795874610111",
+     "MKTCAP": "421867452265548"
+    }
+   ]
+  },
+  "call_style": {
+   "base": "https://data-dbg.krx.co.kr/svc/apis",
+   "auth": "header"
+  }
+ },
+ "krx_history_range": {
+  "ok": true,
+  "by_year": {
+   "1996": {
+    "day": null,
+    "rows": 0
+   },
+   "2000": {
+    "day": null,
+    "rows": 0
+   },
+   "2005": {
+    "day": null,
+    "rows": 0
+   },
+   "2010": {
+    "day": "2010-01-04",
+    "rows": 925
+   },
+   "2013": {
+    "day": "2013-01-02",
+    "rows": 930
+   },
+   "2015": {
+    "day": "2015-01-02",
+    "rows": 899
+   },
+   "2018": {
+    "day": "2018-01-02",
+    "rows": 887
+   },
+   "2021": {
+    "day": "2021-01-04",
+    "rows": 917
+   },
+   "2024": {
+    "day": "2024-01-02",
+    "rows": 953
+   }
+  }
+ },
+ "krx_survivorship": {
+  "ok": true,
+  "now_count": 2764,
+  "2016": {
+   "day": "2016-01-04",
+   "count": 2041,
+   "absent_now": 319,
+   "absent_sample": [
+    {
+     "code": "000030",
+     "name": "우리은행"
+    },
+    {
+     "code": "000060",
+     "name": "메리츠화재"
+    },
+    {
+     "code": "000075",
+     "name": "삼양홀딩스우"
+    },
+    {
+     "code": "000327",
+     "name": "노루홀딩스2우B"
+    },
+    {
+     "code": "000547",
+     "name": "흥국화재2우B"
+    },
+    {
+     "code": "000885",
+     "name": "한화우"
+    },
+    {
+     "code": "000995",
+     "name": "동부하이텍1우"
+    },
+    {
+     "code": "001140",
+     "name": "국보"
+    },
+    {
+     "code": "001529",
+     "name": "동양3우B"
+    },
+    {
+     "code": "001689",
+     "name": "대상3우B"
+    },
+    {
+     "code": "001725",
+     "name": "신영증권우"
+    },
+    {
+     "code": "001745",
+     "name": "SK네트웍스우"
+    },
+    {
+     "code": "001799",
+     "name": "대한제당3우B"
+    },
+    {
+     "code": "001880",
+     "name": "삼호"
+    },
+    {
+     "code": "002000",
+     "name": "한국유리"
+    }
+   ]
+  },
+  "2020": {
+   "day": "2020-01-06",
+   "count": 2323,
+   "absent_now": 251,
+   "absent_sample": [
+    {
+     "code": "000060",
+     "name": "메리츠화재"
+    },
+    {
+     "code": "000075",
+     "name": "삼양홀딩스우"
+    },
+    {
+     "code": "000547",
+     "name": "흥국화재2우B"
+    },
+    {
+     "code": "000885",
+     "name": "한화우"
+    },
+    {
+     "code": "000995",
+     "name": "DB하이텍1우"
+    },
+    {
+     "code": "001140",
+     "name": "카리스국보"
+    },
+    {
+     "code": "001529",
+     "name": "동양3우B"
+    },
+    {
+     "code": "001725",
+     "name": "신영증권우"
+    },
+    {
+     "code": "001745",
+     "name": "SK네트웍스우"
+    },
+    {
+     "code": "001799",
+     "name": "대한제당3우B"
+    },
+    {
+     "code": "001880",
+     "name": "삼호"
+    },
+    {
+     "code": "002270",
+     "name": "롯데푸드"
+    },
+    {
+     "code": "002300",
+     "name": "한국제지"
+    },
+    {
+     "code": "003410",
+     "name": "쌍용양회"
+    },
+    {
+     "code": "003415",
+     "name": "쌍용양회우"
+    }
+   ]
+  }
+ },
+ "krx_adjustment": {
+  "ok": true,
+  "fields": [
+   "BAS_DD",
+   "ISU_CD",
+   "ISU_NM",
+   "MKT_NM",
+   "SECT_TP_NM",
+   "TDD_CLSPRC",
+   "CMPPREVDD_PRC",
+   "FLUC_RT",
+   "TDD_OPNPRC",
+   "TDD_HGPRC",
+   "TDD_LWPRC",
+   "ACC_TRDVOL",
+   "ACC_TRDVAL",
+   "MKTCAP",
+   "LIST_SHRS"
+  ],
+  "adjustment_fields": [],
+  "note": "수정주가 필드가 없으면 기업행위(분할·병합·증자) 정보로 직접 보정 필요"
+ },
+ "krx_base_info": {
+  "ok": true,
+  "sto/stk_isu_base_info": {
+   "day": "2026-10-23",
+   "rows": 940,
+   "fields": [
+    "ISU_CD",
+    "ISU_SRT_CD",
+    "ISU_NM",
+    "ISU_ABBRV",
+    "ISU_ENG_NM",
+    "LIST_DD",
+    "MKT_TP_NM",
+    "SECUGRP_NM",
+    "SECT_TP_NM",
+    "KIND_STKCERT_TP_NM",
+    "PARVAL",
+    "LIST_SHRS"
+   ],
+   "categorical_values": {
+    "SECUGRP_NM": [
+     "부동산투자회사",
+     "사회간접자본투융자회사",
+     "외국주권",
+     "주권",
+     "주식예탁증권",
+     "투자회사"
+    ],
+    "KIND_STKCERT_TP_NM": [
+     "구형우선주",
+     "보통주",
+     "신형우선주",
+     "종류주권"
+    ],
+    "PARVAL": [
+     ".25",
+     "100",
+     "1000",
+     "200",
+     "2500",
+     "500",
+     "5000",
+     "무액면"
+    ]
+   }
+  },
+  "sto/ksq_isu_base_info": {
+   "day": "2026-10-23",
+   "rows": 1824,
+   "fields": [
+    "ISU_CD",
+    "ISU_SRT_CD",
+    "ISU_NM",
+    "ISU_ABBRV",
+    "ISU_ENG_NM",
+    "LIST_DD",
+    "MKT_TP_NM",
+    "SECUGRP_NM",
+    "SECT_TP_NM",
+    "KIND_STKCERT_TP_NM",
+    "PARVAL",
+    "LIST_SHRS"
+   ],
+   "categorical_values": {
+    "SECUGRP_NM": [
+     "외국주권",
+     "주권",
+     "주식예탁증권"
+    ],
+    "SECT_TP_NM": [
+     "SPAC(소속부없음)",
+     "관리종목(소속부없음)",
+     "기술성장기업부",
+     "벤처기업부",
+     "외국기업(소속부없음)",
+     "우량기업부",
+     "중견기업부",
+     "투자주의환기종목(소속부없음)"
+    ],
+    "KIND_STKCERT_TP_NM": [
+     "보통주",
+     "신형우선주",
+     "종류주권"
+    ],
+    "PARVAL": [
+     "0",
+     "1",
+     "100",
+     "1000",
+     "15",
+     "2",
+     "2.5",
+     "200",
+     "2500",
+     "500",
+     "5000",
+     "무액면"
+    ]
+   }
+  }
+ },
+ "dart_corpcode": {
+  "ok": true,
+  "status": 200,
+  "content_type": "application/x-msdownload;charset=UTF-8",
+  "bytes": 3628720,
+  "total": 119737,
+  "with_stock_code": 4003
+ },
+ "dart_fs_structure": {
+  "ok": true,
+  "corp_code": "00126380",
+  "FY2024_사업": {
+   "status": "000",
+   "message": "정상",
+   "rows": 213,
+   "fields": [
+    "rcept_no",
+    "reprt_code",
+    "bsns_year",
+    "corp_code",
+    "sj_div",
+    "sj_nm",
+    "account_id",
+    "account_nm",
+    "account_detail",
+    "thstrm_nm",
+    "thstrm_amount",
+    "frmtrm_nm",
+    "frmtrm_amount",
+    "bfefrmtrm_nm",
+    "bfefrmtrm_amount",
+    "ord",
+    "currency"
+   ],
+   "rcept_no_values": [
+    "20250311001085"
+   ],
+   "sj_div": [
+    "BS",
+    "CF",
+    "CIS",
+    "IS",
+    "SCE"
+   ],
+   "owner_accounts": [
+    {
+     "sj_div": "BS",
+     "account_id": "ifrs-full_EquityAttributableToOwnersOfParent",
+     "account_nm": "지배기업 소유주지분",
+     "thstrm_amount": "391687603000000",
+     "thstrm_add_amount": null
+    },
+    {
+     "sj_div": "IS",
+     "account_id": "ifrs-full_ProfitLossAttributableToOwnersOfParent",
+     "account_nm": "지배기업 소유지분",
+     "thstrm_amount": "33621363000000",
+     "thstrm_add_amount": ""
+    },
+    {
+     "sj_div": "CIS",
+     "account_id": "ifrs-full_ComprehensiveIncomeAttributableToOwnersOfParent",
+     "account_nm": "지배기업 소유주지분",
+     "thstrm_amount": "50048199000000",
+     "thstrm_add_amount": ""
+    }
+   ],
+   "net_income_rows": [
+    {
+     "sj_div": "IS",
+     "account_id": "ifrs-full_ProfitLoss",
+     "account_nm": "당기순이익",
+     "thstrm_nm": "제 56 기",
+     "thstrm_amount": "34451351000000",
+     "thstrm_add_amount": ""
+    },
+    {
+     "sj_div": "CIS",
+     "account_id": "ifrs-full_ProfitLoss",
+     "account_nm": "당기순이익",
+     "thstrm_nm": "제 56 기",
+     "thstrm_amount": "34451351000000",
+     "thstrm_add_amount": ""
+    }
+   ],
+   "has_add_amount": false
+  },
+  "FY2025_3분기": {
+   "status": "000",
+   "message": "정상",
+   "rows": 225,
+   "fields": [
+    "rcept_no",
+    "reprt_code",
+    "bsns_year",
+    "corp_code",
+    "sj_div",
+    "sj_nm",
+    "account_id",
+    "account_nm",
+    "account_detail",
+    "thstrm_nm",
+    "thstrm_amount",
+    "frmtrm_nm",
+    "frmtrm_amount",
+    "ord",
+    "currency"
+   ],
+   "rcept_no_values": [
+    "20251114002447"
+   ],
+   "sj_div": [
+    "BS",
+    "CF",
+    "CIS",
+    "IS",
+    "SCE"
+   ],
+   "owner_accounts": [
+    {
+     "sj_div": "BS",
+     "account_id": "ifrs-full_EquityAttributableToOwnersOfParent",
+     "account_nm": "지배기업 소유주지분",
+     "thstrm_amount": "402001144000000",
+     "thstrm_add_amount": null
+    },
+    {
+     "sj_div": "IS",
+     "account_id": "ifrs-full_ProfitLossAttributableToOwnersOfParent",
+     "account_nm": "지배기업 소유주지분",
+     "thstrm_amount": "12006461000000",
+     "thstrm_add_amount": "24968902000000"
+    },
+    {
+     "sj_div": "CIS",
+     "account_id": "ifrs-full_ComprehensiveIncomeAttributableToOwnersOfParent",
+     "account_nm": "지배기업 소유주지분",
+     "thstrm_amount": "19531056000000",
+     "thstrm_add_amount": "25271574000000"
+    }
+   ],
+   "net_income_rows": [
+    {
+     "sj_div": "IS",
+     "account_id": "ifrs-full_ProfitLoss",
+     "account_nm": "분기순이익",
+     "thstrm_nm": "제 57 기 3분기",
+     "thstrm_amount": "12225747000000",
+     "thstrm_add_amount": "25565060000000"
+    },
+    {
+     "sj_div": "CIS",
+     "account_id": "ifrs-full_ProfitLoss",
+     "account_nm": "분기순이익",
+     "thstrm_nm": "제 57 기 3분기",
+     "thstrm_amount": "12225747000000",
+     "thstrm_add_amount": "25565060000000"
+    }
+   ],
+   "has_add_amount": true
+  },
+  "FY2026_반기": {
+   "status": "000",
+   "message": "정상",
+   "rows": 223,
+   "fields": [
+    "rcept_no",
+    "reprt_code",
+    "bsns_year",
+    "corp_code",
+    "sj_div",
+    "sj_nm",
+    "account_id",
+    "account_nm",
+    "account_detail",
+    "thstrm_nm",
+    "thstrm_amount",
+    "frmtrm_nm",
+    "frmtrm_amount",
+    "ord",
+    "currency"
+   ],
+   "rcept_no_values": [
+    "20260814003699"
+   ],
+   "sj_div": [
+    "BS",
+    "CF",
+    "CIS",
+    "IS",
+    "SCE"
+   ],
+   "owner_accounts": [
+    {
+     "sj_div": "BS",
+     "account_id": "ifrs-full_EquityAttributableToOwnersOfParent",
+     "account_nm": "지배기업 소유주지분",
+     "thstrm_amount": "565064740000000",
+     "thstrm_add_amount": null
+    },
+    {
+     "sj_div": "CIS",
+     "account_id": "ifrs-full_ComprehensiveIncomeAttributableToOwnersOfParent",
+     "account_nm": "지배기업 소유주지분",
+     "thstrm_amount": "84149027000000",
+     "thstrm_add_amount": "143613296000000"
+    }
+   ],
+   "net_income_rows": [
+    {
+     "sj_div": "IS",
+     "account_id": "ifrs-full_ProfitLoss",
+     "account_nm": "반기순이익",
+     "thstrm_nm": "제 58 기 반기",
+     "thstrm_amount": "71624461000000",
+     "thstrm_add_amount": "118849733000000"
+    },
+    {
+     "sj_div": "IS",
+     "account_id": "ifrs-full_ProfitLossAttributableToOwnersOfParent",
+     "account_nm": "지배회사지분 반기순이익",
+     "thstrm_nm": "제 58 기 반기",
+     "thstrm_amount": "71269468000000",
+     "thstrm_add_amount": "118370658000000"
+    },
+    {
+     "sj_div": "CIS",
+     "account_id": "ifrs-full_ProfitLoss",
+     "account_nm": "반기순이익",
+     "thstrm_nm": "제 58 기 반기",
+     "thstrm_amount": "71624461000000",
+     "thstrm_add_amount": "118849733000000"
+    }
+   ],
+   "has_add_amount": true
+  }
+ },
+ "dart_year_range": {
+  "ok": true,
+  "2013": {
+   "status": "013",
+   "message": "조회된 데이타가 없습니다.",
+   "rows": 0
+  },
+  "2014": {
+   "status": "013",
+   "message": "조회된 데이타가 없습니다.",
+   "rows": 0
+  },
+  "2015": {
+   "status": "000",
+   "message": "정상",
+   "rows": 184
+  },
+  "2016": {
+   "status": "000",
+   "message": "정상",
+   "rows": 188
+  }
+ },
+ "dart_company": {
+  "ok": true,
+  "005930": {
+   "status": "000",
+   "corp_name": "삼성전자(주)",
+   "induty_code": "264",
+   "corp_cls": "Y",
+   "acc_mt": "12",
+   "est_dt": "19690113"
+  },
+  "005380": {
+   "status": "000",
+   "corp_name": "현대자동차(주)",
+   "induty_code": "30121",
+   "corp_cls": "Y",
+   "acc_mt": "12",
+   "est_dt": "19671229"
+  },
+  "035720": {
+   "status": "000",
+   "corp_name": "(주)카카오",
+   "induty_code": "63120",
+   "corp_cls": "Y",
+   "acc_mt": "12",
+   "est_dt": "19950216"
+  },
+  "000660": {
+   "status": "000",
+   "corp_name": "에스케이하이닉스(주)",
+   "induty_code": "2612",
+   "corp_cls": "Y",
+   "acc_mt": "12",
+   "est_dt": "19491015"
+  }
+ },
+ "dart_amendment": {
+  "ok": true,
+  "searched": 0,
+  "amended_candidates": 0,
+  "samples": [],
+  "tally": {}
+ },
+ "dart_xbrl_original": {
+  "ok": false,
+  "error": "정정 표본 없음"
+ },
+ "dart_filing_lag": {
+  "ok": true,
+  "total": 2359,
+  "by_rcept_dt": {
+   "20251113": 335,
+   "20251114": 1924,
+   "20251117": 10,
+   "20251118": 3,
+   "20251119": 1,
+   "20251120": 4,
+   "20251121": 5,
+   "20251124": 1,
+   "20251125": 5,
+   "20251126": 3,
+   "20251127": 3,
+   "20251128": 24,
+   "20251201": 16,
+   "20251202": 5,
+   "20251204": 2,
+   "20251205": 1,
+   "20251210": 4,
+   "20251215": 3,
+   "20251217": 1,
+   "20251218": 3,
+   "20251222": 4,
+   "20251229": 1,
+   "20251230": 1
+  }
+ },
+ "delisting": {
+  "ok": true,
+  "fdr_KRX_DELISTING": {
+   "ok": true,
+   "rows": 4211,
+   "columns": [
+    "Symbol",
+    "Name",
+    "Market",
+    "SecuGroup",
+    "Kind",
+    "ListingDate",
+    "DelistingDate",
+    "Reason",
+    "ArrantEnforceDate",
+    "ArrantEndDate",
+    "Industry",
+    "ParValue",
+    "ListingShares",
+    "ToSymbol",
+    "ToName"
+   ],
+   "sample": [
+    {
+     "Symbol": "028740",
+     "Name": "경성전기",
+     "Market": "KOSPI",
+     "SecuGroup": "주권",
+     "Kind": null,
+     "ListingDate": "1956-03-03T00:00:00.000",
+     "DelistingDate": "1961-06-30T00:00:00.000",
+     "Reason": "상장폐지유예기간종료",
+     "ArrantEnforceDate": null,
+     "ArrantEndDate": null,
+     "Industry": null,
+     "ParValue": null,
+     "ListingShares": null,
+     "ToSymbol": null,
+     "ToName": null
+    },
+    {
+     "Symbol": "028730",
+     "Name": "남선전기",
+     "Market": "KOSPI",
+     "SecuGroup": "주권",
+     "Kind": null,
+     "ListingDate": "1956-03-03T00:00:00.000",
+     "DelistingDate": "1961-06-30T00:00:00.000",
+     "Reason": "상장폐지유예기간종료",
+     "ArrantEnforceDate": null,
+     "ArrantEndDate": null,
+     "Industry": null,
+     "ParValue": null,
+     "ListingShares": null,
+     "ToSymbol": null,
+     "ToName": null
+    },
+    {
+     "Symbol": "034380",
+     "Name": "조선맥주",
+     "Market": "KOSPI",
+     "SecuGroup": "주권",
+     "Kind": null,
+     "ListingDate": "1956-10-01T00:00:00.000",
+     "DelistingDate": "1960-11-26T00:00:00.000",
+     "Reason": "상장폐지유예기간종료",
+     "ArrantEnforceDate": null,
+     "ArrantEndDate": null,
+     "Industry": null,
+     "ParValue": null,
+     "ListingShares": null,
+     "ToSymbol": null,
+     "ToName": null
+    }
+   ]
+  },
+  "KIND_delcompany": {
+   "status": 200,
+   "bytes": 84475,
+   "has_table_hint": true
+  }
+ },
+ "calls": {
+  "krx": 36,
+  "dart": 43,
+  "other": 2
+ }
+}
