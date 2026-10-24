@@ -211,6 +211,11 @@ def run() -> dict:
             r["group_rank"] = i
 
     write_gz_json(L2 / "screen.json.gz", out)
+    # 실전 추적 (DESIGN 7.6): 날짜별 점수 기록 — 백테스트와 별개로 실제 사후 성과를 확인하는 근거. 시세 기준일별 1개 파일
+    hist = [{"c": r["stock_code"], "n": r.get("name"), "g": r.get("group_id"), "sc": r.get("composite"), "rk": r.get("rank"),
+             "grk": r.get("group_rank"), "b": r.get("buckets"), "x": r["exclude"], "px": r.get("close"), "mc": r.get("mcap"),
+             "pd": r.get("period")} for r in out]
+    write_gz_json(L2 / "screen_history" / f"{last_bd}.json.gz", {"asof": last_bd, "strategy": "v1", "rows": hist})
     exc = Counter(x for r in out for x in r["exclude"])
     res = {"asof_price": last_bd, "universe_collected": len(uni["rows"]), "universe_total": uni["total"],
            "collection_complete": uni.get("complete"), "evaluated": len(out), "build_status": dict(stat),
