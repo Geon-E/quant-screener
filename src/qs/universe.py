@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from .collect.dart import DART, report_versions
 from .http import BudgetExceeded
@@ -21,6 +23,7 @@ from .storage import L0, L1, dart_path, exists, load_l0, save_l0
 from .util import elapsed_min, log, today_kst, write_gz_json
 
 SINCE_YEAR = 2024
+WORKERS = 6              # DART 응답이 GitHub 러너에서 건당 약 1초 → 회사 단위 병렬 수집 (분당 약 360건 이하)
 COLLECT_UNTIL_MIN = 95   # 프로세스 시작 후 95분이 지나면 중단 → 평가·화면·저장까지 워크플로 제한(150분) 안에 끝냄
 
 
@@ -199,22 +202,46 @@ def history_targets(uni: list[dict]) -> list[str]:
 def collect_history(d: DART, uni: list[dict], corp: dict[str, str]) -> dict:
     targets = history_targets(uni)
     stat, done, stopped = {}, 0, None
-    try:
-        for code in targets:
-            if elapsed_min() > COLLECT_UNTIL_MIN:
-                stopped = f"시간 예산 {COLLECT_UNTIL_MIN}분 — 과거 이력은 다음 실행에서 이어받음"
-                break
-            cc = corp.get(code)
-            r = collect_one(d, cc, since=HISTORY_SINCE) if cc else {"status": "no_corp_code"}
-            stat[r["status"]] = stat.get(r["status"], 0) + 1
-            done += 1
-    except BudgetExceeded as e:
-        stopped = str(e)
+    def one(code):
+        cc = corp.get(code)
+        return collect_one(d, cc, since=HISTORY_SINCE) if cc else {"status": "no_corp_code"}
+    res_list, stopped = _parallel(d, targets, one)
+    for r in res_list:
+        if r is None:
+            continue
+        stat[r["status"]] = stat.get(r["status"], 0) + 1
+        done += 1
     res = {"targets": len(targets), "processed": done, "status": stat, "stopped": stopped,
            "complete": stopped is None and done == len(targets)}
     write_gz_json(L1 / "history_progress.json.gz", {"asof": today_kst().isoformat(), **res})
     log(f"과거 이력 수집: {json.dumps(res, ensure_ascii=False)}")
     return res
+
+
+def _parallel(d: DART, items: list, fn) -> tuple[list, str | None]:
+    """회사 단위 병렬 실행. 시간 예산·호출 예산이 끝나면 새 작업을 시작하지 않고, 진행 중인 것은 마친다. 결과는 입력 순서."""
+    stop = threading.Event()
+    reason: list[str] = []
+
+    def work(x):
+        if stop.is_set():
+            return None
+        if elapsed_min() > COLLECT_UNTIL_MIN:
+            stop.set()
+            reason.append(f"시간 예산 {COLLECT_UNTIL_MIN}분 — 다음 실행에서 이어받음")
+            return None
+        try:
+            return fn(x)
+        except BudgetExceeded as e:
+            stop.set()
+            reason.append(str(e))
+            return None
+        except Exception as e:  # noqa: BLE001 — 한 회사의 오류로 전체를 멈추지 않는다 (해당 회사는 다음 실행에서 재시도)
+            log(f"!! 수집 오류(건너뜀): {type(e).__name__}: {str(e)[:120]}")
+            return {"status": "error", "error": f"{type(e).__name__}: {str(e)[:120]}"}
+    with ThreadPoolExecutor(max_workers=WORKERS) as ex:
+        results = list(ex.map(work, items))
+    return results, (reason[0] if reason else None)
 
 
 def run(d: DART) -> dict:
@@ -223,17 +250,15 @@ def run(d: DART) -> dict:
     rows, stat, stopped, recent = [], {}, None, None
     try:
         recent = update_recent(d, {corp[u["stock_code"]] for u in uni if u["stock_code"] in corp})
-        for u in uni:
-            if elapsed_min() > COLLECT_UNTIL_MIN:
-                stopped = f"시간 예산 {COLLECT_UNTIL_MIN}분 — 다음 실행에서 이어받음"
-                break
+        def one(u):
             cc = corp.get(u["stock_code"])
-            if not cc:
-                r = {"status": "no_corp_code"}
-            else:
-                r = collect_one(d, cc)
+            return {**u, "corp_code": cc, **(collect_one(d, cc) if cc else {"status": "no_corp_code"})}
+        res_list, stopped = _parallel(d, uni, one)
+        for r in res_list:
+            if r is None:
+                continue
             stat[r["status"]] = stat.get(r["status"], 0) + 1
-            rows.append({**u, "corp_code": cc, **r})
+            rows.append(r)
     except BudgetExceeded as e:
         stopped = str(e)
         log(f"전 종목 수집 중단(다음 실행에서 이어받음): {e}")

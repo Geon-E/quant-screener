@@ -738,3 +738,20 @@ def test_snapshot_never_uses_future():
     st._snap = [("20250930", {"A": {}}), ("20251031", {"B": {}})]
     assert st.snapshot("20250901") == {}
     assert "A" in st.snapshot("20251015") and "B" in st.snapshot("20251101")
+
+
+def test_parallel_stops_on_budget_and_isolates_errors():
+    from qs import universe as U
+    from qs.http import BudgetExceeded
+    calls = []
+    def fn(x):
+        calls.append(x)
+        if x == 3:
+            raise ValueError("bad company")
+        if x == 50:
+            raise BudgetExceeded("DART 일일 호출 한도 초과(020)")
+        return {"status": "ok", "x": x}
+    res, reason = U._parallel(None, list(range(200)), fn)
+    assert reason and "한도" in reason
+    assert res[3]["status"] == "error" and res[0]["status"] == "ok"
+    assert len(calls) < 200                     # 한도 이후 새 작업은 시작하지 않음

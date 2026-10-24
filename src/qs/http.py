@@ -1,6 +1,7 @@
 """API 호출 공통: 재시도, 호출 수 집계, 실행당 호출 예산."""
 from __future__ import annotations
 
+import threading
 import time
 
 import requests
@@ -22,17 +23,19 @@ class Client:
         self.errors = 0
         self.min_interval = min_interval
         self._last = 0.0
+        self._lock = threading.Lock()   # 병렬 수집 시 호출 수·간격을 안전하게 관리
 
     def get(self, url: str, *, params=None, headers=None, timeout=60, retries=3) -> requests.Response:
         last_exc = None
         for attempt in range(retries):
-            if self.calls >= self.budget:
-                raise BudgetExceeded(f"{self.name} 호출 예산 {self.budget} 소진")
-            wait = self.min_interval - (time.monotonic() - self._last)
-            if wait > 0:
-                time.sleep(wait)
-            self.calls += 1
-            self._last = time.monotonic()
+            with self._lock:
+                if self.calls >= self.budget:
+                    raise BudgetExceeded(f"{self.name} 호출 예산 {self.budget} 소진")
+                wait = self.min_interval - (time.monotonic() - self._last)
+                if wait > 0:
+                    time.sleep(wait)
+                self.calls += 1
+                self._last = time.monotonic()
             try:
                 r = requests.get(url, params=params, headers={**UA, **(headers or {})}, timeout=timeout)
                 if r.status_code in (429, 500, 502, 503, 504):
@@ -40,7 +43,8 @@ class Client:
                 return r
             except (requests.ConnectionError, requests.Timeout, requests.HTTPError) as e:
                 last_exc = e
-                self.errors += 1
+                with self._lock:
+                    self.errors += 1
                 backoff = 2 ** attempt * 2
                 log(f"{self.name} 재시도 {attempt + 1}/{retries} ({scrub(str(e))[:120]}) {backoff}s 대기")
                 time.sleep(backoff)
