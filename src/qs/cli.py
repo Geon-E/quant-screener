@@ -1,0 +1,105 @@
+"""명령행 진입점: python -m qs.cli <명령>
+
+  krx-backfill   KRX 전 종목 시세·지수 (기본 2025-09-01~오늘) + 월말 종목기본정보
+  sample         검증 표본 30개사 선정 (config/sample_v1.csv, 고정)
+  dart-sample    표본 기업 재무·공시 버전·정정 최초본 XBRL 수집
+  inventory      표본 계정 ID 분포 집계
+  collect-all    위 네 단계를 순서대로
+모든 명령은 실행 보고서(reports/phase1/runs/)와 보안 검사를 남긴다.
+"""
+from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import sys
+import traceback
+
+from . import inventory, sample
+from .collect import krx
+from .collect.dart import DART, collect_company
+from .http import BudgetExceeded
+from .storage import DATA, scan_for_secrets, write_manifest
+from .util import REPORTS, log, log_lines, now_kst, scrub, write_text
+
+
+def cmd_krx(args) -> dict:
+    start = dt.date.fromisoformat(args.start)
+    return krx.run_backfill(start, budget=args.krx_budget)
+
+
+def cmd_sample(args) -> dict:
+    d = DART(budget=args.dart_budget)
+    s = sample.select(d, reselect=args.reselect)
+    by_cat = {}
+    for r in s:
+        by_cat[r["category"]] = by_cat.get(r["category"], 0) + 1
+    return {"count": len(s), "by_category": by_cat, **d.http.stats()}
+
+
+def cmd_dart(args) -> dict:
+    d = DART(budget=args.dart_budget)
+    s = sample.load_sample()
+    if not s:
+        raise RuntimeError("표본 파일이 없습니다. sample을 먼저 실행하세요.")
+    per, stopped = [], None
+    try:
+        for row in s:
+            r = collect_company(d, row["corp_code"])
+            r["name"] = row["name"]
+            per.append(r)
+            log(f"DART {row['name']}: 보고서 {r['reports']}, 재무 {r['fs_ok']}/{r['fs_ok'] + r['fs_none']}, "
+                f"정정 {r['amended']} (XBRL {r['xbrl_ok']})")
+    except BudgetExceeded as e:
+        stopped = str(e)
+        log(f"DART 수집 중단(다음 실행에서 이어받음): {e}")
+    return {"companies_done": len(per), "of": len(s), "stopped": stopped, "per_company": per, **d.http.stats()}
+
+
+def cmd_inventory(args) -> dict:
+    return inventory.run()
+
+
+COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [cmd_dart],
+            "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory]}
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(prog="qs")
+    ap.add_argument("command", choices=sorted(COMMANDS))
+    ap.add_argument("--start", default="2025-09-01")
+    ap.add_argument("--krx-budget", type=int, default=3000)
+    ap.add_argument("--dart-budget", type=int, default=15000)
+    ap.add_argument("--reselect", action="store_true")
+    args = ap.parse_args(argv)
+
+    started = now_kst()
+    results, failed = {}, False
+    for fn in COMMANDS[args.command]:
+        name = fn.__name__
+        try:
+            results[name] = fn(args)
+        except Exception as e:  # noqa: BLE001
+            failed = True
+            results[name] = {"error": scrub(f"{type(e).__name__}: {e}"), "trace": scrub(traceback.format_exc()[-2000:])}
+            log(f"!! {name} 실패: {e}")
+            break
+
+    for sub in ("l0",):
+        if (DATA / sub).exists():
+            write_manifest(DATA / sub)
+    hits = scan_for_secrets(DATA, REPORTS)
+    report = {"command": args.command, "started": started.isoformat(), "finished": now_kst().isoformat(),
+              "ok": not failed and not hits, "secret_scan_hits": hits, "results": results, "log": log_lines()}
+    out = REPORTS / "phase1" / "runs" / f"{started:%Y%m%d_%H%M%S}_{args.command}.json"
+    write_text(out, json.dumps(scrub(report), ensure_ascii=False, indent=1, default=str))
+    write_text(REPORTS / "phase1" / "last_run.json", json.dumps(scrub(report), ensure_ascii=False, indent=1, default=str))
+    if hits:
+        log(f"!! 보안 검사 실패: 키 문자열 발견 {hits}")
+        sys.exit(2)
+    if failed:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

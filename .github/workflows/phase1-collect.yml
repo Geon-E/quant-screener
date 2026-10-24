@@ -1,0 +1,91 @@
+name: phase1-collect
+
+# 1단계 수집: KRX 전 종목 + DART 표본
+# 데이터(L0)는 GitHub Release 'data-store'의 l0.tar.gz 자산으로 보관 (D-12).
+# 실행마다: 자산 내려받기 → 수집(이미 받은 것은 건너뜀) → 매니페스트·보안 검사 → 자산 갱신 → 보고서 커밋
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "krx-backfill | sample | dart-sample | inventory | collect-all"
+        default: collect-all
+        type: choice
+        options: [collect-all, krx-backfill, sample, dart-sample, inventory]
+      extra:
+        description: "추가 인자 (예: --reselect, --start 2025-09-01)"
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-store
+  cancel-in-progress: false
+
+env:
+  GH_TOKEN: ${{ github.token }}
+  PYTHONPATH: src
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install
+        run: pip install -r requirements.txt
+
+      - name: Restore data-store
+        run: |
+          gh release view data-store >/dev/null 2>&1 || gh release create data-store --title "data-store" --notes "파이프라인 데이터 보관소 (L0~L2). 수동 편집 금지." --prerelease
+          mkdir -p data
+          if gh release download data-store -p l0.tar.gz -D /tmp/ds 2>/dev/null; then
+            tar -xzf /tmp/ds/l0.tar.gz -C data
+            python -c "from qs.storage import verify_manifest, L0; b=verify_manifest(L0); print('manifest 불일치', len(b)); print(b[:5])"
+          else
+            echo "기존 L0 없음 — 처음부터 수집"
+          fi
+
+      - name: Run
+        id: run
+        env:
+          KRX_API_KEY: ${{ secrets.KRX_API_KEY }}
+          DART_API_KEY: ${{ secrets.DART_API_KEY }}
+        run: |
+          set +e
+          python -m qs.cli ${{ github.event.inputs.command }} ${{ github.event.inputs.extra }}
+          code=$?
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "exit code $code"
+
+      - name: Save data-store
+        if: steps.run.outputs.code != '2'
+        run: |
+          if [ -d data/l0 ]; then
+            tar -czf /tmp/l0.tar.gz -C data l0
+            ls -lh /tmp/l0.tar.gz
+            gh release upload data-store /tmp/l0.tar.gz --clobber
+          fi
+
+      - name: Commit reports
+        if: steps.run.outputs.code != '2'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add reports/phase1 config/sample_v1.csv 2>/dev/null || true
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "1단계 수집 결과 (${{ github.event.inputs.command }}, $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST)"
+          for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done
+
+      - name: Fail on error
+        if: steps.run.outputs.code != '0'
+        run: |
+          echo "수집 명령이 오류 코드 ${{ steps.run.outputs.code }}로 끝났습니다. reports/phase1/last_run.json 확인."
+          exit 1
