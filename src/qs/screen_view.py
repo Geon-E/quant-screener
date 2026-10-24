@@ -113,6 +113,22 @@ h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balan
 .controls input[type=search]{flex:1 1 200px}
 .controls label{display:flex;gap:6px;align-items:center;color:var(--muted);font-size:13px;cursor:pointer}
 .count{color:var(--muted);font-size:13px;margin-left:auto}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line)}
+.tabs button{font:inherit;background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
+.ghost{font:inherit;font-size:13px;color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+.star{background:none;border:0;cursor:pointer;font-size:15px;color:var(--line);padding:0 4px 0 0;line-height:1}
+.star.on{color:#d39a00}
+table.gt{min-width:760px} .gt tbody tr{cursor:pointer} .gt tbody tr:hover{background:var(--soft)}
+@media (max-width:640px){
+  .tablebox table{min-width:0}
+  td.name{white-space:normal}
+  td.name .cd{display:block;margin-left:22px}
+  #hdr th:nth-child(5),#tb tr.row td:nth-child(5),#hdr th:nth-child(8),#tb tr.row td:nth-child(8),
+  #hdr th:nth-child(9),#tb tr.row td:nth-child(9),#hdr th:nth-child(10),#tb tr.row td:nth-child(10),
+  #hdr th:nth-child(3),#tb tr.row td:nth-child(3){display:none}
+  th,td{padding:7px 6px}
+}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
 table{border-collapse:collapse;width:100%;min-width:980px;font-size:13px}
@@ -172,22 +188,31 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
     <div><strong>점수는 가설입니다.</strong> 가치 40%·퀄리티 30%·추세 20%·안정성 10% 가중치는 과거 성과로 아직 검증되지 않았습니다. 투자 권유가 아닙니다.</div>
     <div id="notice2"></div>
   </div>
-  <div class="controls">
+  <div class="tabs" role="tablist">
+    <button role="tab" id="tab-list" aria-selected="true">종목 순위</button>
+    <button role="tab" id="tab-grp" aria-selected="false">사업군 요약</button>
+  </div>
+  <div class="controls" id="ctl">
     <input type="search" id="q" placeholder="종목명 또는 코드" aria-label="종목 검색">
     <select id="mk" aria-label="시장"><option value="">전체 시장</option><option>KOSPI</option><option>KOSDAQ</option></select>
     <select id="grp" aria-label="사업군"><option value="">전체 사업군</option></select>
     <label><input type="checkbox" id="showx"> 제외 종목 보기</label>
+    <label><input type="checkbox" id="onlyw"> ★ 관심 종목만</label>
+    <button class="ghost" id="csv">CSV로 받기</button>
     <span class="count" id="count"></span>
   </div>
   <div class="legend">
     <span>막대 4개 = 가치·퀄리티·추세·안정성 (사업군 내 백분위, 빗금은 지표 부족)</span>
     <span>PER·PBR은 지배주주 기준, 우선주 시총 합산</span>
   </div>
-  <div class="tablebox">
+  <div class="tablebox" id="listbox">
     <table>
       <thead><tr id="hdr"></tr></thead>
       <tbody id="tb"></tbody>
     </table>
+  </div>
+  <div class="tablebox" id="grpbox" hidden>
+    <table class="gt"><thead><tr><th class="l">사업군</th><th>순위 대상</th><th>신뢰도</th><th>PER 중앙값</th><th>PBR 중앙값</th><th>ROE 중앙값</th><th class="l">1위 종목</th><th>1위 점수</th></tr></thead><tbody id="gtb"></tbody></table>
   </div>
   <button class="more" id="more" hidden>더 보기</button>
   <footer>
@@ -218,6 +243,8 @@ function fmtMetric(k,v){
   return num(v,2)+"배";
 }
 let sortK="rk", sortDir=1, limit=200, openCode=null;
+let WATCH=new Set(); try{WATCH=new Set(JSON.parse(localStorage.getItem("qs-watch")||"[]"));}catch(e){}
+function saveWatch(){try{localStorage.setItem("qs-watch",JSON.stringify([...WATCH]));}catch(e){}}
 const val = (r,k) => k==="roe"?r.m.ROE : k==="mom"?r.m["12-1모멘텀"] : k==="g"?(r.g||"") : k==="n"?(r.n||"") : r[k];
 
 function meta(){
@@ -225,7 +252,8 @@ function meta(){
   const d = S.asof_price; const ds = d ? `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6)}` : "";
   document.getElementById("meta").innerHTML =
     `<span>시세 기준 <b>${ds}</b></span><span>순위 <b>${S.ranked.toLocaleString()}</b>개 종목</span><span>평가 <b>${S.evaluated.toLocaleString()}</b>개사</span><span>${fin}</span>`;
-  document.getElementById("notice2").textContent = "코스피 관리종목은 아직 걸러내지 못합니다(코스닥은 제외 반영). 결측 지표는 빈칸이며 점수를 채워 넣지 않습니다.";
+  const ka=(S.status||{}).kind_admin;
+  document.getElementById("notice2").textContent = (ka ? `관리종목 제외: 코스닥은 KRX 소속부, 코스피는 KIND 현재 목록(${ka.date.slice(0,4)}-${ka.date.slice(4,6)}-${ka.date.slice(6)}, ${ka.count}종목) 기준.` : "코스피 관리종목은 아직 걸러내지 못합니다(코스닥은 제외 반영).") + " 결측 지표는 빈칸이며 점수를 채워 넣지 않습니다.";
   const gs=[...new Set(ROWS.filter(r=>r.g&&r.gid!=="EX").map(r=>r.g))].sort((a,b)=>a.localeCompare(b,"ko"));
   const sel=document.getElementById("grp"); gs.forEach(g=>{const o=document.createElement("option");o.textContent=g;sel.append(o);});
 }
@@ -242,8 +270,8 @@ function header(){
 }
 function filtered(){
   const q=document.getElementById("q").value.trim().toLowerCase(), mk=document.getElementById("mk").value,
-        g=document.getElementById("grp").value, sx=document.getElementById("showx").checked;
-  let rs=ROWS.filter(r=>(sx? r.x.length>0 : r.x.length===0) && (!mk||r.mk===mk) && (!g||r.g===g) &&
+        g=document.getElementById("grp").value, sx=document.getElementById("showx").checked, ow=document.getElementById("onlyw").checked;
+  let rs=ROWS.filter(r=>(ow? WATCH.has(r.c) : (sx? r.x.length>0 : r.x.length===0)) && (!mk||r.mk===mk) && (!g||r.g===g) &&
     (!q || (r.n||"").toLowerCase().includes(q) || r.c.includes(q)));
   rs.sort((a,b)=>{const x=val(a,sortK), y=val(b,sortK);
     if(x==null&&y==null) return 0; if(x==null) return 1; if(y==null) return -1;
@@ -255,7 +283,7 @@ function row(r){
   const flag = r.x.length ? `<span class="chip x" title="${esc(r.x.join(' · '))}">제외 ${r.x.length}</span>` : (r.w.length?`<span class="chip" title="${esc(r.w.join(' · '))}">${r.w.length}</span>`:'');
   return `<tr class="row ${openCode===r.c?'open':''}" data-c="${r.c}" tabindex="0">
     <td>${r.rk??'<span class="dash">–</span>'}</td>
-    <td class="l name"><span class="nm">${esc(r.n)}</span><span class="cd">${r.c} ${r.mk==="KOSPI"?"코스피":"코스닥"}</span></td>
+    <td class="l name"><button class="star ${WATCH.has(r.c)?'on':''}" data-w="${r.c}" aria-label="관심 종목 ${WATCH.has(r.c)?'해제':'추가'}">★</button><span class="nm">${esc(r.n)}</span><span class="cd">${r.c} ${r.mk==="KOSPI"?"코스피":"코스닥"}</span></td>
     <td class="l grp">${esc(r.g||'미배정')}${r.gn?`<small class="rel-${r.rel}">${r.gn}</small>`:''}</td>
     <td class="score">${num(r.sc,1)}</td><td>${bars(r.b)}</td>
     <td>${r.per==null?'<span class="dash">–</span>':num(r.per,1)}</td><td>${r.pbr==null?'<span class="dash">–</span>':num(r.pbr,2)}</td>
@@ -293,10 +321,32 @@ function render(){
 }
 document.getElementById("hdr").addEventListener("click",e=>{const th=e.target.closest("th"); if(!th||th.dataset.ns) return;
   const k=th.dataset.k; if(sortK===k) sortDir=-sortDir; else {sortK=k; sortDir=(k==="rk"||k==="n"||k==="g"||k==="per"||k==="pbr")?1:-1;} render();});
-document.getElementById("tb").addEventListener("click",e=>{const tr=e.target.closest("tr.row"); if(!tr) return; openCode = openCode===tr.dataset.c?null:tr.dataset.c; render();});
+document.getElementById("tb").addEventListener("click",e=>{const st=e.target.closest(".star"); if(st){e.stopPropagation(); const c=st.dataset.w; WATCH.has(c)?WATCH.delete(c):WATCH.add(c); saveWatch(); render(); return;} const tr=e.target.closest("tr.row"); if(!tr) return; openCode = openCode===tr.dataset.c?null:tr.dataset.c; render();});
 document.getElementById("tb").addEventListener("keydown",e=>{if(e.key!=="Enter") return; const tr=e.target.closest("tr.row"); if(!tr) return; openCode=openCode===tr.dataset.c?null:tr.dataset.c; render();});
-["q","mk","grp","showx"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{limit=200; if(id==="showx"){sortK=document.getElementById("showx").checked?"mc":"rk"; sortDir=document.getElementById("showx").checked?-1:1;} render();}));
+["q","mk","grp","showx","onlyw"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{limit=200; if(id==="showx"){sortK=document.getElementById("showx").checked?"mc":"rk"; sortDir=document.getElementById("showx").checked?-1:1;} render();}));
 document.getElementById("more").addEventListener("click",()=>{limit+=300; render();});
+function groupView(){
+  const by={}; ROWS.filter(r=>!r.x.length&&r.g).forEach(r=>(by[r.g]=by[r.g]||[]).push(r));
+  const med=a=>{a=a.filter(v=>v!=null).sort((x,y)=>x-y); if(!a.length) return null; const m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2;};
+  const rows=Object.entries(by).map(([g,rs])=>{rs.sort((a,b)=>(a.rk??1e9)-(b.rk??1e9)); return {g,n:rs.length,rel:rs[0].rel,per:med(rs.map(r=>r.per)),pbr:med(rs.map(r=>r.pbr)),roe:med(rs.map(r=>r.m.ROE)),top:rs[0]};})
+    .sort((a,b)=>b.n-a.n);
+  document.getElementById("gtb").innerHTML=rows.map(x=>`<tr data-g="${esc(x.g)}"><td class="l" style="font-family:var(--font-body)">${esc(x.g)}</td><td>${x.n}</td><td class="rel-${x.rel}" style="font-family:var(--font-body)">${x.rel||''}</td><td>${x.per==null?'–':num(x.per,1)}</td><td>${x.pbr==null?'–':num(x.pbr,2)}</td><td>${pct(x.roe)}</td><td class="l" style="font-family:var(--font-body)">${esc(x.top.n)}</td><td class="score">${num(x.top.sc,1)}</td></tr>`).join("")||'<tr><td colspan="8" class="l dash">순위 대상 종목이 없습니다.</td></tr>';
+}
+function tab(which){
+  const list=which==="list";
+  document.getElementById("tab-list").setAttribute("aria-selected",list); document.getElementById("tab-grp").setAttribute("aria-selected",!list);
+  document.getElementById("listbox").hidden=!list; document.getElementById("ctl").hidden=!list; document.getElementById("more").hidden=!list||document.getElementById("more").hidden;
+  document.getElementById("grpbox").hidden=list; if(!list) groupView(); else render();
+}
+document.getElementById("tab-list").addEventListener("click",()=>tab("list"));
+document.getElementById("tab-grp").addEventListener("click",()=>tab("grp"));
+document.getElementById("gtb").addEventListener("click",e=>{const tr=e.target.closest("tr[data-g]"); if(!tr) return; document.getElementById("grp").value=tr.dataset.g; tab("list");});
+document.getElementById("csv").addEventListener("click",()=>{
+  const head=["순위","종목코드","종목명","시장","사업군","종합","가치","퀄리티","추세","안정성","PER","PBR","ROE","12-1모멘텀","시총(억)","제외사유","경고"];
+  const lines=[head].concat(filtered().map(r=>[r.rk??"",r.c,r.n,r.mk,r.g||"",r.sc??"",...r.b.map(v=>v??""),r.per??"",r.pbr??"",r.m.ROE??"",r.m["12-1모멘텀"]??"",r.mc?Math.round(r.mc/1e8):"",r.x.join(" / "),r.w.join(" / ")]));
+  const csv="\ufeff"+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+  try{const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`screener_${S.asof_price}.csv`; a.click();}catch(e){}
+});
 meta(); status(); render();
 </script>
 """

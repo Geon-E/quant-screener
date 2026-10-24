@@ -232,7 +232,13 @@ def run() -> dict:
             r = {**row, "status": "error", "error": f"{type(e).__name__}: {str(e)[:150]}"}
         stat[r.get("status")] += 1
         evals.append(r)
-    meta = {u["stock_code"]: u for u in targets}
+    meta = {u["stock_code"]: dict(u) for u in targets}
+    # 코스피 관리종목: KIND 현재 목록(하루 1회 스냅샷)으로 표시 — 코스닥은 KRX 소속부에 이미 있음 (4차 Q1)
+    from .collect.kind import latest as kind_latest
+    kind_date, kind_admin = kind_latest()
+    for c, u in meta.items():
+        if c in kind_admin and "관리종목" not in (u.get("sect") or ""):
+            u["sect"] = (u.get("sect") or "") + " 관리종목(KIND)"
     out, ranked, by_g = filter_and_score(evals, meta, asof, tv, halted, groups)
 
     write_gz_json(L2 / "screen.json.gz", out)
@@ -261,7 +267,8 @@ def run() -> dict:
         hist = {"processed": hp.get("processed"), "targets": hp.get("targets"), "complete": hp.get("complete")}
     except FileNotFoundError:
         hist = None
-    res["status"] = {"built_at": now_kst().isoformat(timespec="minutes"), "warnings": warn, "history": hist}
+    res["status"] = {"built_at": now_kst().isoformat(timespec="minutes"), "warnings": warn, "history": hist,
+                     "kind_admin": {"date": kind_date, "count": len(kind_admin)} if kind_date else None}
     log(f"스크리너: 순위 {len(ranked)} / 평가 {len(out)}")
     from .screen_view import build_view
     build_view(out, res, REPORTS / "screen")

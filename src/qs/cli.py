@@ -143,6 +143,11 @@ def cmd_bt_robust(args) -> dict:
     return backtest.run_robustness(start=args.bt_start or backtest.DEV[0], end=args.bt_end or backtest.DEV[1], mode="dev")
 
 
+def cmd_kind(args) -> dict:
+    from .collect import kind
+    return kind.snapshot()
+
+
 def cmd_determinism(args) -> dict:
     from . import pipeline
     return pipeline.determinism_check()
@@ -152,8 +157,8 @@ COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [c
             "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory],
             "evaluate": [cmd_evaluate], "determinism": [cmd_determinism], "adjust": [cmd_adjust],
             "xcheck": [cmd_xcheck], "exp-listing": [cmd_exp_listing],
-            "universe": [cmd_universe], "screen": [cmd_screen], "backtest": [cmd_backtest], "bt-variants": [cmd_bt_variants], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
-            "phase1": [cmd_krx, cmd_dart, cmd_universe, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_xcheck,
+            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "backtest": [cmd_backtest], "bt-variants": [cmd_bt_variants], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
+            "phase1": [cmd_krx, cmd_kind, cmd_dart, cmd_universe, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_xcheck,
                        cmd_screen, cmd_determinism]}
 
 

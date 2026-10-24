@@ -755,3 +755,8 @@ def test_parallel_stops_on_budget_and_isolates_errors():
     assert reason and "한도" in reason
     assert res[3]["status"] == "error" and res[0]["status"] == "ok"
     assert len(calls) < 200                     # 한도 이후 새 작업은 시작하지 않음
+
+
+def test_kind_source_policy_recorded():
+    from qs.collect import kind
+    assert kind.allowed() is True     # config/sources.yaml: robots.txt 없음(사용자 확인), 관리종목 경로만, 하루 1회
