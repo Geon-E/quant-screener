@@ -675,7 +675,7 @@ def test_summarize_benchmarks_beta_and_yearly():
     k = {d: 100 * (1.001 ** i) for i, d in enumerate(days)}
     nav = [1.002 ** i for i in range(len(days))]
     sim = {"nav": nav, "nav_days": days, "ic": [{"ic": .1}, {"ic": .2}], "hit": [True, False, True], "holdings": [{"turnover": .5, "cost": .001}],
-           "bench_ew": [("a", "b", .05), ("b", "c", .02)]}
+           "bench_ew": [("a", "b", .05), ("b", "c", .02)], "structure": []}
     r = BT.summarize(sim, {"index": {"KOSPI": k, "KOSDAQ": {}}})
     assert abs(r["benchmark_universe_ew"]["total_return"] - (1.05 * 1.02 - 1)) < 1e-12
     assert abs(r["hit_rate"] - 2 / 3) < 1e-12 and r["ic"]["n"] == 2
@@ -689,3 +689,52 @@ def test_audit_opinion_parse():
     assert audit_opinion({"status": "000", "list": [{"bsns_year": "제10기(당기)", "adt_opinion": "의견거절"}]})[1] is False
     assert audit_opinion({"status": "000", "list": [{"bsns_year": "당기", "adt_opinion": "한정의견"}]})[1] is False
     assert audit_opinion({"status": "013"}) == (None, None)
+
+
+# ── 4차 협의 백테스트 통과 조건 ──
+def _flat_cost(rate):
+    return lambda c, side, notional: notional * rate
+
+
+def test_rebalance_step_entry_conserves_value():
+    """현금 1.0, 2종목 진입, 편도 1% → 투자금 + 비용 = 1.0, 동일 비중."""
+    st = BT.rebalance_step({}, 1.0, {"A": 10.0, "B": 20.0}, {}, ["A", "B"], set(), _flat_cost(0.01))
+    inv = st["units"]["A"] * 10 + st["units"]["B"] * 20
+    assert abs(inv + st["cost"] + st["cash"] - 1.0) < 1e-12
+    assert abs(st["units"]["A"] * 10 - st["units"]["B"] * 20) < 1e-12
+    assert abs(st["cost"] - 0.01 * inv) < 1e-9 and abs(st["cash"]) < 1e-9
+
+
+def test_rebalance_step_swap_hold_and_halt():
+    """A 유지, B 매도 → C 매수, H는 거래정지(매매 불가)로 계속 보유. 비용 0이면 총가치 보존."""
+    units = {"A": 0.025, "B": 0.0125, "H": 0.01}       # A=0.25, B=0.25, H=0.1 (평가가)
+    st = BT.rebalance_step(units, 0.0, {"A": 10.0, "B": 20.0, "C": 5.0}, {"H": 10.0}, ["A", "C"], {"H"}, _flat_cost(0.0))
+    assert "B" not in st["units"] and st["units"]["H"] == 0.01
+    total = st["units"]["A"] * 10 + st["units"]["C"] * 5 + st["units"]["H"] * 10 + st["cash"]
+    assert abs(total - 0.6) < 1e-12 and abs(st["units"]["A"] * 10 - 0.25) < 1e-12   # (0.6-0.1)/2
+
+
+def test_rebalance_step_liquidity_cap_leaves_cash():
+    st = BT.rebalance_step({}, 1.0, {"A": 1.0, "B": 1.0}, {}, ["A", "B"], set(), _flat_cost(0.0), {"A": 0.1})
+    assert abs(st["units"]["A"] - 0.1) < 1e-12 and abs(st["units"]["B"] - 0.5) < 1e-12
+    assert abs(st["cash"] - 0.4) < 1e-12 and st["capped"] == ["A"]
+
+
+def test_rebalance_step_full_exit():
+    st = BT.rebalance_step({"A": 0.1}, 0.0, {"A": 10.0}, {}, [], set(), _flat_cost(0.002))
+    assert st["units"] == {} and abs(st["cash"] - (1.0 - 0.002)) < 1e-12
+
+
+def test_delist_proceeds_rules():
+    assert BT.delist_proceeds({"Reason": "피흡수합병(스팩소멸합병)"}, "20250102", 5000.0)[0] == 5000.0
+    assert BT.delist_proceeds({"Reason": "감사의견 거절", "ArrantEnforceDate": "2025-01-02"}, "20250110", 50.0)[0] == 50.0  # 정리매매 관측
+    assert BT.delist_proceeds({"Reason": "감사의견 거절", "ArrantEnforceDate": "2025-02-01"}, "20250110", 50.0)[0] == 0.0
+    assert BT.delist_proceeds(None, "20250110", 50.0)[0] == 0.0
+    assert BT.delist_proceeds(None, "20250110", 50.0, policy="last")[0] == 50.0
+
+
+def test_snapshot_never_uses_future():
+    st = BT.PriceStore.__new__(BT.PriceStore)
+    st._snap = [("20250930", {"A": {}}), ("20251031", {"B": {}})]
+    assert st.snapshot("20250901") == {}
+    assert "A" in st.snapshot("20251015") and "B" in st.snapshot("20251101")

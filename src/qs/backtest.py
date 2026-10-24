@@ -154,7 +154,7 @@ class PriceStore:
                 best = s
             else:
                 break
-        return best or (self._snap[0][1] if self._snap else {})
+        return best   # 기준일 이전 스냅샷이 없으면 빈 값 — 미래 스냅샷으로 대체하지 않는다 (4차 협의 통과 조건 1)
 
     # 수정주가 조정계수 (adjust.py와 같은 정의)
     def adjustment(self, policy: str = "confirmed_only") -> tuple[np.ndarray, np.ndarray]:
@@ -379,15 +379,52 @@ def guard(mode: str, start: str, end: str) -> dict:
     return strat
 
 
+def load_delisting() -> dict[str, dict]:
+    """KRX 상장폐지종목 현황 (FinanceDataReader 공개 캐시) — 하루 1회 L0에 저장, 캐시 중단 시 마지막 저장본 (4차 Q2)."""
+    import io
+    import requests
+    from .exp_listing import FDR_CACHE
+    from .http import UA
+    from .storage import exists, save_l0
+    from .util import today_kst
+    d0 = L0 / "krx" / "delisting_cache"
+    today = f"{today_kst():%Y%m%d}"
+    path = d0 / f"{today}.json.gz"
+    if not exists(path):
+        rows, src = None, None
+        for back in range(0, 15):
+            d = today_kst() - dt.timedelta(days=back)
+            try:
+                r = requests.get(FDR_CACHE.format(d=f"{d:%Y-%m-%d}"), headers=UA, timeout=60)
+            except Exception:  # noqa: BLE001
+                break
+            if r.status_code == 200:
+                import pandas as pd
+                df = pd.read_csv(io.StringIO(r.text), index_col=0, dtype={"Symbol": str, "ToSymbol": str})
+                rows, src = df.astype(str).to_dict("records"), f"{d:%Y-%m-%d}"
+                break
+        if rows is not None:
+            save_l0(path, source={"provider": "FinanceDataReader cache of KRX MDCSTAT23801", "file_date": src, "count": len(rows)},
+                    payload=rows)
+    files = sorted(d0.glob("*.json.gz")) if d0.exists() else []
+    if not files:
+        return {}
+    return {str(r.get("Symbol", "")).zfill(6): r for r in load_l0(files[-1])["payload"]}
+
+
 def prepare(start: str, end: str, adj_policy: str = "confirmed_only") -> dict:
-    """리밸런싱일마다 전 종목 평가를 1회만 계산해 둔다 (변형 실험이 공유)."""
+    """리밸런싱일마다 전 종목 평가를 1회만 계산해 둔다 (변형 실험이 공유).
+    수정주가는 두 정책을 모두 만들어 둔다: confirmed_only(확인된 사건만 — 기본) / all(전부 — 4차 Q3 민감도)."""
     store = PriceStore()
-    cum, unver = store.adjustment(adj_policy)
-    adj_close, adj_open = store.close * cum, store.open * cum
+    cum_c, unver = store.adjustment("confirmed_only")
+    cum_a, _ = store.adjustment("all")
+    adj = {"confirmed_only": (store.close * cum_c, store.open * cum_c), "all": (store.close * cum_a, store.open * cum_a)}
+    adj_close, adj_open = adj[adj_policy]
     cal = TradingCalendar.from_l0()
     from .collect.dart import DART
     corp = {c["stock_code"]: c["corp_code"] for c in DART(budget=1).corpcode() if c["stock_code"]}
     period_cache: dict[str, tuple] = {}
+    last_total = store.last_valid[-1]
     rdays = rebalance_days(store.days, start, end)
     log(f"백테스트 준비: 리밸런싱 {len(rdays)}회 {rdays[:2]}…")
     signals = []
@@ -396,26 +433,35 @@ def prepare(start: str, end: str, adj_policy: str = "confirmed_only") -> dict:
         if i + 1 >= len(store.days):
             break
         snap = store.snapshot(R)
+        if not snap:
+            # 기준일 이전 종목기본정보 스냅샷이 없음 → 그 회차는 미지원 (미래 스냅샷 대체 금지)
+            signals.append({"R": R, "i": i, "evals": [], "meta": {}, "tv": {}, "halted": set(), "missing_fin": 0,
+                            "no_snapshot": True})
+            continue
         ctx = AsOf(store, i, adj_close, unver)
-        evals, meta, miss = [], {}, 0
+        evals, meta, miss_dead, miss_alive = [], {}, 0, 0
         for code, b in snap.items():
             if b.get("KIND_STKCERT_TP_NM") != "보통주" or b.get("SECUGRP_NM") != "주권" or "SPAC" in (b.get("SECT_TP_NM") or ""):
                 continue
             j = store.codes.get(code)
             if j is None or np.isnan(store.close[i, j]):
                 continue
+            later_delisted = last_total[j] < len(store.days) - 1
             cc = corp.get(code)
-            if not cc:
-                miss += 1
-                continue
-            if cc not in period_cache:
-                try:
-                    period_cache[cc] = company_periods({"corp_code": cc, "stock_code": code, "name": b.get("ISU_ABBRV"), "category": ""}, cal)
-                except FileNotFoundError:
-                    period_cache[cc] = (None, None)
-            base, periods = period_cache[cc]
+            base, periods = (None, None)
+            if cc:
+                if cc not in period_cache:
+                    try:
+                        period_cache[cc] = company_periods({"corp_code": cc, "stock_code": code, "name": b.get("ISU_ABBRV"), "category": ""}, cal)
+                    except FileNotFoundError:
+                        period_cache[cc] = (None, None)
+                base, periods = period_cache[cc]
             if base is None:
-                miss += 1
+                # 재무 미매핑·미수집 — 이후 상장폐지 종목인지 따로 센다 (생존자 편향 점검, 4차 통과 조건 3)
+                if later_delisted:
+                    miss_dead += 1
+                else:
+                    miss_alive += 1
                 continue
             try:
                 ev = dict(base) if periods is None else evaluate_company(base, periods, ctx)
@@ -426,17 +472,86 @@ def prepare(start: str, end: str, adj_policy: str = "confirmed_only") -> dict:
                           "sect": {1: "관리종목", 2: "투자주의환기종목"}.get(int(store.admin[i, j]), "")}
         tv = {c: [x for x in store.tv[max(0, i - 19): i + 1, store.codes[c]] if not np.isnan(x)] for c in meta}
         halted = {c for c, v in tv.items() if len(v) >= 5 and all(x == 0 for x in v[-5:])}
-        signals.append({"R": R, "i": i, "evals": evals, "meta": meta, "tv": tv, "halted": halted, "missing_fin": miss})
-    return {"store": store, "adj_close": adj_close, "adj_open": adj_open, "signals": signals, "start": start, "end": end,
-            "adj_policy": adj_policy, "index": _index_series(store)}
+        signals.append({"R": R, "i": i, "evals": evals, "meta": meta, "tv": tv, "halted": halted,
+                        "missing_fin": miss_dead + miss_alive, "missing_fin_delisted_later": miss_dead, "missing_fin_alive": miss_alive})
+    return {"store": store, "adj_close": adj_close, "adj_open": adj_open, "adj": adj, "unver": unver, "signals": signals,
+            "start": start, "end": end, "adj_policy": adj_policy, "index": _index_series(store), "delist": load_delisting()}
 
 
-def simulate(P: dict, opts: dict, scenario: str = "base") -> dict:
-    store, adj_close, adj_open = P["store"], P["adj_close"], P["adj_open"]
+MERGER_PAT = ("합병", "이전상장", "완전자회사", "주식교환", "주식이전", "지주회사", "스팩소멸", "유가증권시장 상장")
+
+
+def delist_proceeds(info: dict | None, last_obs_day: str, last_price: float, policy: str = "design") -> tuple[float, str]:
+    """상장폐지 회수금액 (DESIGN 6.2). 반환: (회수가격, 근거).
+    - 합병·이전상장·완전자회사화 등 → 마지막 관측가 (대가가 지급되는 유형)
+    - 정리매매가 관측됨(마지막 관측일 ≥ 정리매매 시작일) → 정리매매 최종가 = 마지막 관측가
+    - 그 외(정리매매 미관측·사유 미확보) → 0 (−100%, 보수적). policy='last'면 마지막 관측가(민감도)"""
+    if policy == "last":
+        return last_price, "민감도: 마지막 관측가"
+    if info:
+        reason = str(info.get("Reason") or "")
+        if any(k in reason for k in MERGER_PAT):
+            return last_price, f"대가 지급형({reason[:20]})"
+        arr = str(info.get("ArrantEnforceDate") or "")[:10].replace("-", "")
+        if arr and arr != "nan" and last_obs_day >= arr:
+            return last_price, "정리매매 최종가"
+        return 0.0, f"정리매매 미관측({reason[:20]})"
+    return 0.0, "폐지 정보 미확보(−100%)"
+
+
+def rebalance_step(units: dict[str, float], cash: float, p_open: dict[str, float], p_hold: dict[str, float],
+                   targets: list[str], untradable: set[str], cost_fn, cap_notional: dict[str, float] | None = None) -> dict:
+    """한 번의 리밸런싱. 순수 함수 (테스트용).
+    units: 보유 수량, p_open: 체결가(시가), p_hold: 매매 불가 종목 평가가, targets: 목표 종목(매매 가능),
+    cost_fn(code, side, notional) → 비용, cap_notional: 종목별 최대 보유 금액(유동성 한도).
+    동일 비중 목표, 한도에 걸리면 그 종목만 줄이고 남는 금액은 현금."""
+    cap_notional = cap_notional or {}
+    value = cash + sum(u * (p_hold[c] if c in untradable else p_open[c]) for c, u in units.items())
+    held = {c: units[c] for c in untradable if c in units}
+    held_val = sum(u * p_hold[c] for c, u in held.items())
+    budget = value - held_val
+    cost = 0.0
+    tgt: dict[str, float] = {}
+    prev_cost = -1.0
+    for _ in range(60):       # 비용이 투자 가능 금액을 줄이므로 수렴할 때까지 반복 (비율 비용이면 기하급수적으로 수렴)
+        if abs(cost - prev_cost) < 1e-15:
+            break
+        prev_cost = cost
+        w = (budget - cost) / len(targets) if targets else 0.0
+        tgt = {c: max(0.0, min(w, cap_notional.get(c, float("inf")))) for c in targets}
+        cost = 0.0
+        for c, u in units.items():
+            if c in held:
+                continue
+            cur = u * p_open[c]
+            delta = tgt.get(c, 0.0) - cur
+            if abs(delta) > 1e-12:
+                cost += cost_fn(c, "buy" if delta > 0 else "sell", abs(delta))
+        for c in targets:
+            if c not in units and tgt[c] > 1e-12:
+                cost += cost_fn(c, "buy", tgt[c])
+    turnover = (sum(abs(tgt.get(c, 0.0) - units.get(c, 0.0) * p_open[c]) for c in set(targets) | (set(units) - set(held)))
+                / max(value, 1e-12))
+    new_units = dict(held)
+    for c, v in tgt.items():
+        if v > 0:
+            new_units[c] = v / p_open[c]
+    new_cash = budget - cost - sum(tgt.values())
+    return {"units": new_units, "cash": new_cash, "cost": cost, "value": value, "turnover": turnover,
+            "capped": [c for c in targets if tgt[c] < (budget - cost) / len(targets) - 1e-9] if targets else []}
+
+
+def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None = None,
+             delist_policy: str = "design", unver_hold: str = "price") -> dict:
+    """unver_hold: price(관측 가격 그대로 — 4차 Q3 Claude A) / freeze(잔여 미확인 사건이 걸린 보유 기간은 진입가로 고정 — GPT B 근사)."""
+    store, adj_close, adj_open, unver = P["store"], P["adj_close"], P["adj_open"], P["unver"]
     groups, costs = load_groups(), load_costs()
+    capital = float(capital or costs["capital_krw"])
     end = P["end"]
     end_i = max(x for x in range(len(store.days)) if store.days[x] <= end.replace("-", ""))
+    last_total = store.last_valid[-1]          # 종목별 전체 데이터의 마지막 관측 행
     nav_days, nav, holdings_log, ic_log, struct, bench, hit, expo = [], [], [], [], [], [], [], []
+    delist_log, unver_log = [], []
     units: dict[str, float] = {}
     cash, prev = 1.0, []
     sig = P["signals"]
@@ -445,62 +560,72 @@ def simulate(P: dict, opts: dict, scenario: str = "base") -> dict:
         evals = [{**r, "metrics": dict(r.get("metrics") or {})} for r in S["evals"]]
         out, ranked, by_g = filter_and_score(evals, S["meta"], dt.datetime.strptime(R, "%Y%m%d").date(), S["tv"],
                                              S["halted"], groups, opts)
-        e = i + 1
-        def px_open(c):
-            return adj_open[e, store.codes[c]]
-        def px_last(c, upto):
-            j = store.codes[c]
-            kk = store.last_valid[upto, j]
-            return adj_close[kk, j] if kk >= 0 else np.nan
-        untradable = {c for c in units if np.isnan(px_open(c)) and store.last_valid[e, store.codes[c]] >= e - 5}
-        value = cash + sum(u * (px_open(c) if not np.isnan(px_open(c)) else px_last(c, e)) for c, u in units.items())
-        target = select(ranked, prev, untradable=untradable) if ranked else list(untradable)
-        tradable_target = [c for c in target if c not in untradable and not np.isnan(px_open(c))]
         info = {r["stock_code"]: r for r in out}
-        cost = 0.0
-        new_units = {c: units[c] for c in untradable if c in units}
-        for c, u in units.items():
-            if c in new_units or c in tradable_target:
-                continue
-            p = px_open(c)
-            p = px_last(c, e) if np.isnan(p) else p
-            cost += trade_cost(costs, scenario, "sell", store.days[e], store.mkt.get(c, "KOSPI"),
-                               (info.get(c) or {}).get("mcap"), u * p, (info.get(c) or {}).get("tv20"))
-        held_val = sum(new_units[c] * px_last(c, e) for c in new_units)
-        w = (value - cost - held_val) / len(tradable_target) if tradable_target else 0.0
-        for c in tradable_target:
-            delta = w - units.get(c, 0.0) * px_open(c)
-            if abs(delta) > 1e-12:
-                cost += trade_cost(costs, scenario, "buy" if delta > 0 else "sell", store.days[e], store.mkt.get(c, "KOSPI"),
-                                   (info.get(c) or {}).get("mcap"), abs(delta), (info.get(c) or {}).get("tv20"))
-        w = (value - cost - held_val) / len(tradable_target) if tradable_target else 0.0
-        turnover = sum(abs(w - units.get(c, 0.0) * px_open(c)) for c in tradable_target) / max(value, 1e-12)
-        for c in tradable_target:
-            new_units[c] = w / px_open(c)
-        cash = 0.0 if tradable_target else value - cost
-        units, prev = new_units, list(new_units)
-        holdings_log.append({"rebalance": R, "exec": store.days[e], "n": len(units), "turnover": round(turnover, 4),
-                             "cost": round(cost / max(value, 1e-12), 6),
+        e = i + 1
+        J = store.codes
+        def last_px(c, upto):
+            kk = store.last_valid[upto, J[c]]
+            return adj_close[kk, J[c]] if kk >= 0 else np.nan
+        untradable = {c for c in units if np.isnan(adj_open[e, J[c]])}
+        target = select(ranked, prev, untradable=untradable) if ranked else list(untradable)
+        targets = [c for c in target if c not in untradable and not np.isnan(adj_open[e, J[c]])]
+        p_open = {c: adj_open[e, J[c]] for c in set(units) | set(targets) if c not in untradable}
+        p_hold = {c: last_px(c, e) for c in untradable}
+        value_now = cash + sum(u * (p_hold[c] if c in untradable else p_open[c]) for c, u in units.items())
+        # 유동성 한도 (DESIGN 6.1): 종목별 보유 금액 ≤ 20일 평균 거래대금의 5% (운용금액 기준 환산)
+        caps = {}
+        for c in targets:
+            tv20 = (info.get(c) or {}).get("tv20")
+            if tv20:
+                caps[c] = 0.05 * tv20 / (capital * max(value_now, 1e-12)) * value_now
+        def cost_fn(c, side, notional):
+            r = info.get(c) or {}
+            return trade_cost(costs, scenario, side, store.days[e], store.mkt.get(c, "KOSPI"), r.get("mcap"),
+                              notional * capital, r.get("tv20")) / capital
+        st = rebalance_step(units, cash, p_open, p_hold, targets, untradable, cost_fn, caps)
+        units, cash, prev = st["units"], st["cash"], list(st["units"])
+        entry = {c: (p_open.get(c) if c in p_open else p_hold.get(c)) for c in units}
+        holdings_log.append({"rebalance": R, "exec": store.days[e], "n": len(units), "turnover": round(st["turnover"], 4),
+                             "cost": round(st["cost"] / max(st["value"], 1e-12), 6), "liquidity_capped": st["capped"],
+                             "cash_weight": round(cash / max(st["value"], 1e-12), 4),
                              "holdings": [{"c": c, "n": store.names.get(c), "rank": (info.get(c) or {}).get("rank"),
                                            "g": (info.get(c) or {}).get("group_id")} for c in units]})
         struct.append({"rebalance": R, "universe": len(S["evals"]), "ranked": len(ranked), "missing_fin": S["missing_fin"],
-                       "groups": len(by_g), "held": len(units), "untradable": len(untradable)})
-        # 노출 (DESIGN 7.1): 사업군·시총 구간·시장
+                       "missing_fin_delisted_later": S.get("missing_fin_delisted_later"), "missing_fin_alive": S.get("missing_fin_alive"),
+                       "no_snapshot": S.get("no_snapshot", False), "groups": len(by_g), "held": len(units), "untradable": len(untradable)})
         mc = [(info.get(c) or {}).get("mcap") or 0 for c in units]
-        expo.append({"rebalance": R,
-                     "groups": dict(Counter((info.get(c) or {}).get("group_id") for c in units)),
+        expo.append({"rebalance": R, "groups": dict(Counter((info.get(c) or {}).get("group_id") for c in units)),
                      "mcap_bucket": {"대형(1조+)": sum(m >= 1e12 for m in mc), "중형(2천억~1조)": sum(2e11 <= m < 1e12 for m in mc),
                                      "소형(2천억 미만)": sum(m < 2e11 for m in mc)},
                      "market": dict(Counter(store.mkt.get(c) for c in units))})
         last_round = k + 1 >= len(sig) or sig[k + 1]["i"] + 1 >= len(store.days)
         nxt = end_i if last_round else sig[k + 1]["i"] + 1
+        # 보유 기간 중 잔여 미확인 기업행위 노출 (4차 통과 조건 5)
+        frozen = set()
+        for c in list(units):
+            hits = np.nonzero(unver[e + 1: nxt + 1, J[c]])[0]
+            if len(hits):
+                unver_log.append({"rebalance": R, "code": c, "name": store.names.get(c), "event_day": store.days[e + 1 + hits[0]]})
+                if unver_hold == "freeze":
+                    frozen.add(c)
+        # 일별 평가 + 상장폐지 실현 (DESIGN 6.2)
         for t in range(e, nxt + (1 if last_round else 0)):
+            for c in list(units):
+                j = J[c]
+                if last_total[j] < t and last_total[j] < len(store.days) - 1:
+                    lo = store.days[last_total[j]]
+                    px, why = delist_proceeds((P.get("delist") or {}).get(c), lo, adj_close[last_total[j], j], delist_policy)
+                    cash += units.pop(c) * px
+                    delist_log.append({"code": c, "name": store.names.get(c), "last_obs": lo, "rule": why})
+            v = cash + sum(u * (entry[c] if c in frozen else last_px(c, t)) for c, u in units.items())
             nav_days.append(store.days[t])
-            nav.append(cash + sum(u * px_last(c, t) for c, u in units.items()))
+            nav.append(v)
+        # IC·적중률: 체결일 시가 → 다음 체결일 시가 (마지막 회차는 구간 끝 종가) — 포트폴리오 구간과 일치
         fwd = {}
         for r in ranked:
             c = r["stock_code"]
-            p0, p1 = px_open(c), px_last(c, nxt)
+            p0 = adj_open[e, J[c]]
+            p1 = last_px(c, nxt) if last_round or np.isnan(adj_open[nxt, J[c]]) else adj_open[nxt, J[c]]
             if not np.isnan(p0) and not np.isnan(p1) and p0 > 0:
                 fwd[c] = p1 / p0 - 1
         ic_log.append({"rebalance": R, "n": len(fwd),
@@ -514,7 +639,17 @@ def simulate(P: dict, opts: dict, scenario: str = "base") -> dict:
                 for c in units if c in fwd and c in info and grp_avg.get(info[c].get("score_group"))]
         bench.append((store.days[e], store.days[nxt], float(np.mean(list(fwd.values()))) if fwd else 0.0))
     return {"nav_days": nav_days, "nav": nav, "holdings": holdings_log, "ic": ic_log, "structure": struct,
-            "bench_ew": bench, "hit": hit, "exposure": expo}
+            "bench_ew": bench, "hit": hit, "exposure": expo, "delistings": delist_log, "unverified_held": unver_log,
+            "params": {"capital": capital, "delist_policy": delist_policy, "unver_hold": unver_hold, "scenario": scenario}}
+
+
+def _survivorship(struct: list[dict]) -> dict:
+    """재무 미매핑 비율: 이후 상장폐지 종목 vs 생존 종목. 차이가 크면 정식 성과로 인정하지 않는다 (4차 통과 조건 3)."""
+    dead = sum(s.get("missing_fin_delisted_later") or 0 for s in struct)
+    alive = sum(s.get("missing_fin_alive") or 0 for s in struct)
+    uni = sum(s.get("universe") or 0 for s in struct)
+    return {"missing_delisted_later": dead, "missing_alive": alive, "evaluated": uni,
+            "no_snapshot_rounds": sum(1 for s in struct if s.get("no_snapshot"))}
 
 
 def summarize(sim: dict, P: dict) -> dict:
@@ -526,7 +661,13 @@ def summarize(sim: dict, P: dict) -> dict:
            "hit_rate": sum(sim["hit"]) / len(sim["hit"]) if sim["hit"] else None,
            "avg_turnover": float(np.mean([h["turnover"] for h in sim["holdings"]])) if sim["holdings"] else None,
            "avg_cost_per_rebalance": float(np.mean([h["cost"] for h in sim["holdings"]])) if sim["holdings"] else None,
-           "benchmark_universe_ew": {"total_return": float(np.prod([1 + b[2] for b in sim["bench_ew"]]) - 1) if sim["bench_ew"] else None}}
+           "benchmark_universe_ew": {"total_return": float(np.prod([1 + b[2] for b in sim["bench_ew"]]) - 1) if sim["bench_ew"] else None,
+                                     "definition": "순위 대상 전체 동일비중, 체결일 시가→다음 체결일 시가, 비용 미차감"},
+           "delistings": {"count": len(sim.get("delistings", [])), "by_rule": dict(Counter(d["rule"].split("(")[0] for d in sim.get("delistings", [])))},
+           "unverified_held_events": len(sim.get("unverified_held", [])),
+           "liquidity_capped_total": sum(len(h.get("liquidity_capped", [])) for h in sim["holdings"]),
+           "survivorship_check": _survivorship(sim["structure"]),
+           "params": sim.get("params")}
     # 지수 벤치마크와 베타·국면별 성과
     for key, ser in P["index"].items():
         lv = [ser.get(d) for d in days]
@@ -596,18 +737,21 @@ LIMITS = ["재무 값: 첫 정정 전 시점은 최초본 XBRL(D-17), 정정 3�
 
 
 def run(start: str = DEV[0], end: str = DEV[1], mode: str = "dev", scenario: str = "base",
-        adj_policy: str = "confirmed_only") -> dict:
+        adj_policy: str = "confirmed_only", capital: float | None = None, delist_policy: str = "design",
+        unver_hold: str = "price") -> dict:
     """전략 v1 단일 실행. mode: dev / validation(전략 frozen 필요) / smoke(구조 점검, 수익률 미출력)."""
     strat = guard(mode, start, end)
     P = prepare(start, end, adj_policy)
-    sim = simulate(P, {}, scenario)
+    sim = simulate(P, {}, scenario, capital, delist_policy, unver_hold)
     smoke = mode == "smoke"
     res = {"mode": mode, "window": [start, end], "scenario": scenario, "adj_policy": adj_policy, "variant": "v1",
            "strategy": strat.get("version"), "rebalances": len(sim["holdings"]), "structure": sim["structure"],
            "limitations": LIMITS + ["미확인 기업행위 처리 정책: " + adj_policy]}
     if smoke:
         res.update({"note": "기계 점검 — 수익률은 의도적으로 계산·출력하지 않음 (검증 구간 보호)",
-                    "nav_points": len(sim["nav"]), "nav_finite": bool(all(math.isfinite(x) for x in sim["nav"]))})
+                    "nav_points": len(sim["nav"]), "nav_finite": bool(all(math.isfinite(x) for x in sim["nav"])),
+                    "delistings": len(sim["delistings"]), "unverified_held_events": len(sim["unverified_held"]),
+                    "survivorship_check": _survivorship(sim["structure"])})
     else:
         res.update(summarize(sim, P))
         _log_run(mode, start, end, strat, scenario, adj_policy, "v1", res)
@@ -649,4 +793,40 @@ def run_variants(start: str = DEV[0], end: str = DEV[1], scenario: str = "base",
     if mode != "smoke" and "v1" in table:
         from .backtest_view import build
         build(d / "v1", d / "comparison.json", P["index"])
+    return out
+
+
+def run_robustness(start: str = DEV[0], end: str = DEV[1], scenario: str = "base", mode: str = "dev") -> dict:
+    """4차 협의 결과의 민감도 묶음: 미확인 기업행위 정책 A·B·C, 상장폐지 회수 규칙, 운용금액, 비용 시나리오.
+    Q3의 남은 이견(A vs B)은 이 숫자 비교로 사용자가 결정한다."""
+    if mode == "validation":
+        raise ValueError("민감도 분석은 개발 구간에서만")
+    guard(mode, start, end)
+    P = prepare(start, end, "confirmed_only")
+    cases = {
+        "Q3-A 확인된 사건만 보정·잔여 미보정 (기본)": dict(adj="confirmed_only", unver_hold="price"),
+        "Q3-B 잔여 미확인 보유 기간 고정": dict(adj="confirmed_only", unver_hold="freeze"),
+        "Q3-C 전부 보정": dict(adj="all", unver_hold="price"),
+        "상장폐지 마지막가 (민감도)": dict(delist_policy="last"),
+        "운용 1천만원": dict(capital=1.0e7), "운용 10억원": dict(capital=1.0e9),
+        "비용 낙관": dict(scenario="optimistic"), "비용 보수": dict(scenario="conservative"),
+    }
+    table = {}
+    for name, c in cases.items():
+        P2 = dict(P)
+        a = c.get("adj", "confirmed_only")
+        P2["adj_close"], P2["adj_open"] = P["adj"][a]
+        sim = simulate(P2, {}, c.get("scenario", scenario), c.get("capital"), c.get("delist_policy", "design"), c.get("unver_hold", "price"))
+        if mode == "smoke":
+            table[name] = {"nav_finite": bool(all(math.isfinite(x) for x in sim["nav"])), "delistings": len(sim["delistings"]),
+                           "unverified_held": len(sim["unverified_held"])}
+            continue
+        r = summarize(sim, P2)
+        table[name] = {"cagr": r["perf"].get("cagr"), "mdd": r["perf"].get("mdd"), "ic_mean": r["ic"]["mean"],
+                       "delistings": r["delistings"]["count"], "unverified_held": r["unverified_held_events"],
+                       "liquidity_capped": r["liquidity_capped_total"]}
+    out = {"mode": mode, "window": [start, end], "cases": table}
+    d = REPORTS / "backtest" / "robustness"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / f"{mode}_{start}_{end}.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     return out
