@@ -786,3 +786,12 @@ def test_parse_dividend_common_stock():
     d = parse_dividend(js)
     assert d == {"dps": 1446.0, "yield_pct": 2.7, "payout_pct": 25.1, "total_mn": 9809438.0}
     assert parse_dividend({"status": "013"})["dps"] is None
+
+
+def test_business_holding_registered_as_649_not_excluded():
+    from qs.screen import filter_and_score, load_groups
+    ev = lambda c, n, k: {"stock_code": c, "name": n, "status": "ok", "induty_code": k, "mcap": 1e13, "metrics": {}, "stock": {}, "ttm": {}}
+    out, _, _ = filter_and_score([ev("999991", "어떤홀딩스", "649"), ev("999992", "어떤벤처투자", "649"), ev("004800", "효성", "649")],
+                                 {}, dt.date(2026, 10, 22), {}, set(), load_groups())
+    g = {r["stock_code"]: r["group_id"] for r in out}
+    assert g == {"999991": "G30", "999992": "EX", "004800": "G30"}

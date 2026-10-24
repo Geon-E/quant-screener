@@ -175,6 +175,11 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
         if ov:
             gid, gname = ov["to_group"], gnames.get(ov["to_group"], ov["to_group"])
             r["group_override"] = ov["reason"]
+        elif gid == "EX" and (r.get("induty_code") or "").startswith("649") and any(k in (r.get("name") or "") for k in ("홀딩스", "지주")) \
+                and "금융" not in (r.get("name") or ""):
+            # KSIC 기타 금융업(649)으로 등록된 사업 지주회사 → 지주회사 사업군 (금융업으로 잘못 제외되지 않도록)
+            gid, gname = "G30", gnames.get("G30")
+            r["group_override"] = "사업 지주회사(이름 규칙, KSIC 649 등록)"
         elif gid == "G30" and "금융" in (r.get("name") or ""):
             # 이름에 '금융'이 들어간 지주회사(64992)는 금융지주로 보고 제외 — 보정표에 없는 소형 금융지주용 규칙
             gid, gname = "EX", gnames.get("EX")
