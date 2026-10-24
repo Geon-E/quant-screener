@@ -95,7 +95,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add reports/phase1 reports/screen/screen.json site/index.html config/sample_v1.csv 2>/dev/null || true
+          git add reports/phase1 reports/screen/screen.json reports/backtest site config/sample_v1.csv 2>/dev/null || true
           if git diff --cached --quiet; then echo "no changes"; exit 0; fi
           git commit -m "1단계 실행 결과 (${{ github.event.inputs.command || 'phase1(일일)' }}, $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST)"
           # 체크아웃 시점 이후 다른 실행이 보고서를 커밋했을 수 있음 → 충돌 시 이번 실행 결과를 우선(-X theirs = 재적용되는 쪽)

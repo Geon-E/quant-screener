@@ -584,7 +584,12 @@ def run(start: str = DEV[0], end: str = DEV[1], mode: str = "dev", scenario: str
     else:
         res.update(summarize(sim, P))
         _log_run(mode, start, end, strat, scenario, adj_policy, "v1", res)
-    _write(REPORTS / "backtest" / f"{mode}_{start}_{end}_{scenario}_{adj_policy}", P, sim, res, mode, smoke)
+    out_dir = REPORTS / "backtest" / f"{mode}_{start}_{end}_{scenario}_{adj_policy}"
+    _write(out_dir, P, sim, res, mode, smoke)
+    if not smoke:
+        from .backtest_view import build
+        vf = REPORTS / "backtest" / "variants" / f"{start}_{end}_{scenario}" / "comparison.json"
+        build(out_dir, vf if vf.exists() else None, P["index"])
     log(f"백테스트 완료 ({mode})")
     return {k: v for k, v in res.items() if k != "structure"} | {"structure_last": sim["structure"][-1] if sim["structure"] else None}
 
@@ -614,4 +619,7 @@ def run_variants(start: str = DEV[0], end: str = DEV[1], scenario: str = "base",
     d = REPORTS / "backtest" / "variants" / f"{start}_{end}_{scenario}"
     d.mkdir(parents=True, exist_ok=True)
     (d / "comparison.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    if mode != "smoke" and "v1" in table:
+        from .backtest_view import build
+        build(d / "v1", d / "comparison.json", P["index"])
     return out

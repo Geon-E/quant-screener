@@ -164,6 +164,7 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
 <div class="wrap">
   <header>
     <h1>업종 대비 저평가 스크리너</h1>
+    <a href="backtest.html" style="font-size:13px;color:var(--accent)">과거 성과 검증 결과 →</a>
     <div class="meta" id="meta"></div>
   </header>
   <div class="status" id="status"></div>
