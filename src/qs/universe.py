@@ -242,6 +242,10 @@ def run(d: DART) -> dict:
     if stopped is None:
         hist = collect_history(d, uni, corp)
         stopped = hist.get("stopped")
+        # 과거 이력까지 끝났으면 남는 예산으로 과거 기업행위 공시 확인 (백테스트 수정주가)
+        if hist.get("complete"):
+            from .backtest import confirm_events
+            hist["adj_confirm"] = confirm_events(d, COLLECT_UNTIL_MIN)
     # 수집 완료 목록 (평가 대상) — 중단돼도 지금까지 끝난 회사로 갱신
     write_gz_json(L1 / "universe.json.gz", {"asof": today_kst().isoformat(), "total": len(uni), "rows": rows,
                                             "complete": len(rows) == len(uni)})

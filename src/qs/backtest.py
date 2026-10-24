@@ -175,6 +175,11 @@ class PriceStore:
         inverse = (np.abs(sr * f - 1) < 0.01) & (np.abs(sr - 1) > 1e-9)
         confirmed = minor | np.nan_to_num(inverse, nan=False).astype(bool)
         unver = event & ~confirmed
+        # 공시로 확인된 사건(캐시)은 확인됨으로 (confirm_events가 채움)
+        from .adjust import dart_confirmed
+        for i, j in zip(*np.nonzero(unver)):
+            if dart_confirmed(self.code_list[j], self.days[i]):
+                unver[i, j] = False
         if policy == "confirmed_only":
             f = np.where(unver, 1.0, f)
         # 과거 가격 × (그 이후 모든 조정계수) → 날짜 t의 배수 = ∏_{s>t} f_s
@@ -301,6 +306,28 @@ def spearman(x: list[float], y: list[float]) -> float | None:
     sxx = sum((a - mx) ** 2 for a in rx)
     syy = sum((b - my) ** 2 for b in ry)
     return sxy / math.sqrt(sxx * syy) if sxx and syy else None
+
+
+def confirm_events(d, until_min: float = 95) -> dict:
+    """과거 전 기간 미확인 기업행위를 DART 공시로 확인 (사건별 캐시, 재개 가능). 과거 이력 수집이 끝난 뒤 남는 호출 예산으로."""
+    from .adjust import confirm_with_dart, dart_confirmed
+    from .http import BudgetExceeded
+    from .util import elapsed_min
+    store = PriceStore()
+    _, unver = store.adjustment("all")
+    corp = {c["stock_code"]: c["corp_code"] for c in d.corpcode() if c["stock_code"]}
+    todo = [(store.code_list[j], store.days[i]) for i, j in zip(*np.nonzero(unver)) if dart_confirmed(store.code_list[j], store.days[i]) is None]
+    done, stopped = 0, None
+    try:
+        for code, day in todo:
+            if elapsed_min() > until_min:
+                stopped = "시간 예산"
+                break
+            confirm_with_dart([{"code": code, "date": day, "class": "확인 필요"}], d, corp)
+            done += 1
+    except BudgetExceeded as e:
+        stopped = str(e)
+    return {"unverified_events": int(unver.sum()), "todo": len(todo), "checked": done, "stopped": stopped}
 
 
 # ── 비교 실험 목록 (DESIGN 7.5 — 개발 구간에서만) ──

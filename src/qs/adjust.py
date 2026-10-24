@@ -145,6 +145,15 @@ def confirm_with_dart(events: list[dict], dart, corp_by_stock: dict[str, str]) -
             e["dart_note"] = f"관련 공시 없음 (status {js.get('status')})"
 
 
+def dart_confirmed(code: str, date: str) -> bool | None:
+    """캐시된 공시 확인 결과: True(관련 공시 있음) / False(없음) / None(아직 조회 안 함)."""
+    p = dart_path("adj_confirm", f"{code}_{date}.json.gz")
+    if not exists(p):
+        return None
+    js = load_l0(p)["payload"]
+    return any(DART_PAT.search(x.get("report_nm", "")) for x in (js.get("list") or []))
+
+
 def run(confirm_codes: set[str] | None = None, dart=None) -> dict:
     series = load_series()
     events = detect_events(series)
