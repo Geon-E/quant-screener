@@ -4,6 +4,10 @@
 - 종목기본정보: 최근일 + 월말 스냅샷 (과거 소속부·주식종류 이력용)
 - 휴장일도 빈 결과로 L0에 기록 → 다시 호출하지 않음, 거래일 달력으로 재사용
 - 당일·전일 파일은 아직 확정 전일 수 있으므로 force 재수집 허용
+- 재수집 결과가 빈 응답이면 기존의 정상(행 있음) 파일을 덮어쓰지 않는다
+  (2026-10-25 실측: 새벽 재수집에서 코스피 10/23이 빈 응답으로 덮여 거래일이 사라짐)
+- 코스피가 비었는데 같은 날 코스닥·지수에 데이터가 있으면 휴장일이 아니라 '의심 빈 응답' → 다음 실행에서 재수집,
+  이번 실행은 실패 처리(파생 데이터 교체 안 함)
 """
 from __future__ import annotations
 
@@ -33,6 +37,7 @@ class KRX:
         self.http = Client("KRX", budget=budget, min_interval=0.15)
         self.saved = 0
         self.skipped = 0
+        self.kept_nonempty = []
 
     def fetch(self, api: str, basDd: str):
         r = self.http.get(f"{BASE}/{api}", params={"basDd": basDd}, headers={"AUTH_KEY": self.key})
@@ -50,6 +55,10 @@ class KRX:
             self.skipped += 1
             return load_l0(path)["meta"].get("rows")
         rows = self.fetch(api, basDd)
+        if not rows and exists(path) and (load_l0(path)["meta"].get("rows") or 0) > 0:
+            self.kept_nonempty.append(f"{api} {basDd}")
+            log(f"KRX {api} {basDd}: 재수집이 빈 응답 → 기존 정상 파일 유지")
+            return load_l0(path)["meta"].get("rows")
         save_l0(path, source={"provider": "KRX", "api": api, "basDd": basDd, "rows": len(rows)}, payload=rows)
         self.saved += 1
         return len(rows)
@@ -71,6 +80,16 @@ def month_ends(start: dt.date, end: dt.date) -> set[str]:
     return {d.strftime("%Y%m%d") for d in last.values()}
 
 
+def _rows_of(api: str, bd: str) -> int | None:
+    p = krx_path(api, bd)
+    return load_l0(p)["meta"].get("rows") if exists(p) else None
+
+
+def suspicious_empty(bd: str) -> bool:
+    """코스피 일별시세가 0행인데 같은 날 코스닥 시세나 지수에 행이 있으면 휴장일이 아니다."""
+    return _rows_of("sto/stk_bydd_trd", bd) == 0 and any((_rows_of(a, bd) or 0) > 0 for a in DAILY_APIS[1:])
+
+
 def run_backfill(start: dt.date, end: dt.date | None = None, budget: int = 3000) -> dict:
     """start~end 평일 일별 데이터 + 월말 종목기본정보. 최근 2영업일은 force 재수집."""
     end = end or today_kst()
@@ -82,9 +101,9 @@ def run_backfill(start: dt.date, end: dt.date | None = None, budget: int = 3000)
         # 최신일부터 거꾸로 → 예산이 모자라도 최근 데이터가 먼저 채워진다
         for d in sorted(weekdays(start, end), reverse=True):
             bd = d.strftime("%Y%m%d")
-            force = bd in recent
+            force = bd in recent or suspicious_empty(bd)
             n = k.collect("sto/stk_bydd_trd", bd, force=force)
-            if n == 0:
+            if n == 0 and not suspicious_empty(bd):
                 continue  # 휴장일 → 나머지 API는 생략 (빈 결과는 기록됨)
             for api in DAILY_APIS[1:]:
                 k.collect(api, bd, force=force)
@@ -95,7 +114,11 @@ def run_backfill(start: dt.date, end: dt.date | None = None, budget: int = 3000)
     except BudgetExceeded as e:
         stopped = str(e)
         log(f"KRX 백필 중단(다음 실행에서 이어받음): {e}")
+    bad = [d.strftime("%Y%m%d") for d in weekdays(start, end) if suspicious_empty(d.strftime("%Y%m%d"))]
     res = {"start": start.isoformat(), "end": end.isoformat(), "saved": k.saved, "skipped": k.skipped,
-           "trading_days_touched": trading_days, "stopped": stopped, **k.http.stats()}
+           "trading_days_touched": trading_days, "stopped": stopped, "kept_nonempty": k.kept_nonempty,
+           "suspicious_empty_days": bad, **k.http.stats()}
     log(f"KRX 백필 결과: {res}")
+    if bad:
+        raise RuntimeError(f"코스피 일별시세 의심 빈 응답 {bad} — 다음 실행에서 재수집 (파생 데이터는 교체하지 않음)")
     return res

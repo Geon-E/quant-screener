@@ -431,3 +431,57 @@ def test_parse_dividend_ni_ofs_fallback_to_consolidated_cell():
     v, unit, se = parse_dividend_ni(rows, "OFS")
     assert v == -4_646_000_000.0 and "연결 칸 사용" in se
     assert parse_dividend_ni([{"se": "(연결)당기순이익(백만원)", "thstrm": "-"}], "CFS")[0] is None
+
+
+# ── 관리종목·상장폐지 실험 (D-15·D-19) ──
+from qs.exp_listing import classify_title, state_on, windows
+
+
+@pytest.mark.parametrize("t,exp", [
+    ("관리종목지정(감사의견거절)", "designate"),
+    ("[정정]관리종목 지정(자본잠식률 50% 이상)", "designate"),
+    ("관리종목지정해제", "release"),
+    ("관리종목 지정 해제(사유해소)", "release"),
+    ("관리종목 지정우려 예고", None),
+    ("상장폐지결정", "delist"),
+    ("상장폐지 우려 예고", None),
+    ("주권매매거래정지", None),
+])
+def test_classify_title(t, exp):
+    assert classify_title(t) == exp
+
+
+def test_state_on_sequence():
+    ev = [("20250110", "designate", ""), ("20250601", "release", ""), ("20250901", "designate", "")]
+    assert state_on(ev, "20250109") is False
+    assert state_on(ev, "20250110") is True
+    assert state_on(ev, "20250701") is False
+    assert state_on(ev, "20251001") is True
+    assert state_on(sorted([("20250110", "release", ""), ("20250110", "designate", "")]), "20250110") is False
+
+
+def test_windows_cover_range_without_gaps():
+    w = list(windows(dt.date(2015, 1, 1), dt.date(2015, 8, 15)))
+    assert w[0] == (dt.date(2015, 1, 1), dt.date(2015, 3, 31))
+    assert w[-1] == (dt.date(2015, 7, 1), dt.date(2015, 8, 15))
+    assert all(b[0] == a[1] + dt.timedelta(days=1) for a, b in zip(w, w[1:]))
+
+
+# ── KRX 빈 응답 보호 (2026-10-25 코스피 10/23 소실 사례) ──
+def test_krx_empty_refetch_keeps_good_file(tmp_path, monkeypatch):
+    from qs import storage
+    from qs.collect import krx as K
+    monkeypatch.setattr(storage, "L0", tmp_path)
+    monkeypatch.setattr(K, "krx_path", lambda api, bd: tmp_path / api.replace("/", "_") / f"{bd}.json.gz")
+    k = K.KRX(budget=10)
+    seq = [[{"ISU_CD": "005930"}], []]
+    monkeypatch.setattr(k, "fetch", lambda api, bd: seq.pop(0))
+    assert k.collect("sto/stk_bydd_trd", "20261023") == 1
+    assert k.collect("sto/stk_bydd_trd", "20261023", force=True) == 1     # 빈 재수집 → 유지
+    assert k.kept_nonempty == ["sto/stk_bydd_trd 20261023"]
+    # 의심 빈 응답 판정: 코스피 0행 + 코스닥 행 있음
+    K.save_l0(K.krx_path("sto/stk_bydd_trd", "20261026"), source={"rows": 0}, payload=[])
+    K.save_l0(K.krx_path("sto/ksq_bydd_trd", "20261026"), source={"rows": 5}, payload=[1])
+    assert K.suspicious_empty("20261026") is True
+    K.save_l0(K.krx_path("sto/ksq_bydd_trd", "20261026"), source={"rows": 0}, payload=[])
+    assert K.suspicious_empty("20261026") is False                       # 둘 다 비면 휴장일

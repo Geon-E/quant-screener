@@ -11,7 +11,7 @@ on:
         description: "phase1 | evaluate | determinism | krx-backfill | sample | dart-sample | inventory | collect-all"
         default: phase1
         type: choice
-        options: [phase1, xcheck, adjust, evaluate, determinism, collect-all, krx-backfill, sample, dart-sample, inventory]
+        options: [phase1, exp-listing, xcheck, adjust, evaluate, determinism, collect-all, krx-backfill, sample, dart-sample, inventory]
       extra:
         description: "추가 인자 (예: --reselect, --start 2025-09-01)"
         default: ""
