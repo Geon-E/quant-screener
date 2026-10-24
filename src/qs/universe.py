@@ -164,9 +164,9 @@ def collect_one(d: DART, cc: str, since: int = SINCE_YEAR) -> dict:
             got += 1
         elif _ok(_fs_one(d, cc, y, r, "OFS")):
             got += 1
-    # 배당에 관한 사항(사업보고서) — 배당 탭용 (회사당 연 1회)
+    # 배당에 관한 사항(사업보고서) — 배당 탭용. 최근 연도만 (과거 배당은 핵심 작업 완료 후 별도 수집 — 과거 재무 수집을 늦추지 않도록)
     for y, r in keys:
-        if r == "11011":
+        if r == "11011" and y >= SINCE_YEAR:
             d.dividend(cc, y)
     # 감사의견(사업보고서)·검토의견(반기) — 위험 필터·관리종목 판정용
     for y, r in keys:
