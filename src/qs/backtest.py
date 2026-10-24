@@ -19,7 +19,7 @@ import csv
 import datetime as dt
 import json
 import math
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 import numpy as np
 import yaml
@@ -303,10 +303,44 @@ def spearman(x: list[float], y: list[float]) -> float | None:
     return sxy / math.sqrt(sxx * syy) if sxx and syy else None
 
 
-# ── 실행 ──
-def run(start: str = DEV[0], end: str = DEV[1], mode: str = "dev", scenario: str = "base",
-        adj_policy: str = "confirmed_only") -> dict:
-    """mode: dev(개발 구간) / validation(검증 구간 — 전략 frozen 필요) / smoke(구조 점검, 수익률 미출력)."""
+# ── 비교 실험 목록 (DESIGN 7.5 — 개발 구간에서만) ──
+V1 = {"value": 0.40, "quality": 0.30, "trend": 0.20, "safety": 0.10}
+VARIANTS = {
+    "v1": {},
+    "동일가중": {"weights": {"value": .25, "quality": .25, "trend": .25, "safety": .25}},
+    "가치중심": {"weights": {"value": .60, "quality": .20, "trend": .10, "safety": .10}},
+    "가치+퀄리티": {"weights": {"value": .50, "quality": .50, "trend": 0, "safety": 0}},
+    "가치제외": {"weights": {"value": 0, "quality": .30, "trend": .20, "safety": .10}},
+    "퀄리티제외": {"weights": {"value": .40, "quality": 0, "trend": .20, "safety": .10}},
+    "추세제외": {"weights": {"value": .40, "quality": .30, "trend": 0, "safety": .10}},
+    "안정성제외": {"weights": {"value": .40, "quality": .30, "trend": .20, "safety": 0}},
+    "가치만": {"weights": {"value": 1, "quality": 0, "trend": 0, "safety": 0}},
+    "퀄리티만": {"weights": {"value": 0, "quality": 1, "trend": 0, "safety": 0}},
+    "추세만": {"weights": {"value": 0, "quality": 0, "trend": 1, "safety": 0}},
+    "적자포함": {"exclude_loss": False},
+    "F스코어미적용": {"exclude_fscore": False},
+    "KSIC원분류": {"grouping": "ksic2"},
+    "전체시장": {"grouping": "market"},
+}
+KEEP = ("stock_code", "corp_code", "name", "status", "error", "induty_code", "mcap", "close", "metrics", "ttm", "stock",
+        "fscore", "fscore_items", "interest_basis", "period", "flags", "fs_div")
+
+
+def _index_series(store: PriceStore) -> dict[str, dict[str, float]]:
+    out = {"KOSPI": {}, "KOSDAQ": {}}
+    for api, name, key in (("idx_kospi_dd_trd", "코스피", "KOSPI"), ("idx_kosdaq_dd_trd", "코스닥", "KOSDAQ")):
+        for p in sorted((L0 / "krx" / api).glob("*.json.gz")):
+            rec = load_l0(p)
+            for r in rec["payload"] if rec["meta"].get("rows") else []:
+                if r.get("IDX_NM") == name:
+                    try:
+                        out[key][p.name[:8]] = float(str(r["CLSPRC_IDX"]).replace(",", ""))
+                    except (TypeError, ValueError):
+                        pass
+    return out
+
+
+def guard(mode: str, start: str, end: str) -> dict:
     with (CONFIG / "strategy_v1.yaml").open(encoding="utf-8") as f:
         strat = yaml.safe_load(f)
     if mode == "dev" and not (DEV[0] <= start and end <= DEV[1]):
@@ -315,26 +349,22 @@ def run(start: str = DEV[0], end: str = DEV[1], mode: str = "dev", scenario: str
         raise ValueError("검증 구간은 전략 버전이 frozen일 때만 실행 (D-21)")
     if mode == "dev" and end >= VALIDATION_START:
         raise ValueError("검증 구간과 겹침")
+    return strat
 
+
+def prepare(start: str, end: str, adj_policy: str = "confirmed_only") -> dict:
+    """리밸런싱일마다 전 종목 평가를 1회만 계산해 둔다 (변형 실험이 공유)."""
     store = PriceStore()
     cum, unver = store.adjustment(adj_policy)
     adj_close, adj_open = store.close * cum, store.open * cum
     cal = TradingCalendar.from_l0()
-    groups = load_groups()
-    costs = load_costs()
     from .collect.dart import DART
     corp = {c["stock_code"]: c["corp_code"] for c in DART(budget=1).corpcode() if c["stock_code"]}
     period_cache: dict[str, tuple] = {}
-
     rdays = rebalance_days(store.days, start, end)
-    log(f"백테스트 {mode}: 리밸런싱 {len(rdays)}회 {rdays[:2]}…")
-    nav_days, nav, holdings_log, ic_log, struct = [], [], [], [], []
-    units: dict[str, float] = {}
-    cash = 1.0
-    prev: list[str] = []
-    bench = []
-    hit = []
-    for k, R in enumerate(rdays):
+    log(f"백테스트 준비: 리밸런싱 {len(rdays)}회 {rdays[:2]}…")
+    signals = []
+    for R in rdays:
         i = store.day_idx[R]
         if i + 1 >= len(store.days):
             break
@@ -360,143 +390,228 @@ def run(start: str = DEV[0], end: str = DEV[1], mode: str = "dev", scenario: str
             if base is None:
                 miss += 1
                 continue
-            if periods is None:
-                ev = dict(base)
-            else:
-                try:
-                    ev = evaluate_company(base, periods, ctx)
-                except Exception as e:  # noqa: BLE001
-                    ev = {**base, "status": "error", "error": str(e)[:120]}
-            evals.append(ev)
+            try:
+                ev = dict(base) if periods is None else evaluate_company(base, periods, ctx)
+            except Exception as e:  # noqa: BLE001
+                ev = {**base, "status": "error", "error": str(e)[:120]}
+            evals.append({k: ev.get(k) for k in KEEP})
             meta[code] = {"market": store.mkt.get(code), "list_dd": b.get("LIST_DD"),
                           "sect": {1: "관리종목", 2: "투자주의환기종목"}.get(int(store.admin[i, j]), "")}
         tv = {c: [x for x in store.tv[max(0, i - 19): i + 1, store.codes[c]] if not np.isnan(x)] for c in meta}
         halted = {c for c, v in tv.items() if len(v) >= 5 and all(x == 0 for x in v[-5:])}
-        out, ranked, by_g = filter_and_score(evals, meta, dt.datetime.strptime(R, "%Y%m%d").date(), tv, halted, groups)
+        signals.append({"R": R, "i": i, "evals": evals, "meta": meta, "tv": tv, "halted": halted, "missing_fin": miss})
+    return {"store": store, "adj_close": adj_close, "adj_open": adj_open, "signals": signals, "start": start, "end": end,
+            "adj_policy": adj_policy, "index": _index_series(store)}
 
-        # 체결일 e = R 다음 거래일 시가
+
+def simulate(P: dict, opts: dict, scenario: str = "base") -> dict:
+    store, adj_close, adj_open = P["store"], P["adj_close"], P["adj_open"]
+    groups, costs = load_groups(), load_costs()
+    end = P["end"]
+    end_i = max(x for x in range(len(store.days)) if store.days[x] <= end.replace("-", ""))
+    nav_days, nav, holdings_log, ic_log, struct, bench, hit, expo = [], [], [], [], [], [], [], []
+    units: dict[str, float] = {}
+    cash, prev = 1.0, []
+    sig = P["signals"]
+    for k, S in enumerate(sig):
+        R, i = S["R"], S["i"]
+        evals = [{**r, "metrics": dict(r.get("metrics") or {})} for r in S["evals"]]
+        out, ranked, by_g = filter_and_score(evals, S["meta"], dt.datetime.strptime(R, "%Y%m%d").date(), S["tv"],
+                                             S["halted"], groups, opts)
         e = i + 1
         def px_open(c):
-            j = store.codes[c]
-            return adj_open[e, j]
+            return adj_open[e, store.codes[c]]
         def px_last(c, upto):
             j = store.codes[c]
             kk = store.last_valid[upto, j]
             return adj_close[kk, j] if kk >= 0 else np.nan
-
-        # 현재 보유 평가 (e 시가, 매매 불가면 마지막 관측가)
         untradable = {c for c in units if np.isnan(px_open(c)) and store.last_valid[e, store.codes[c]] >= e - 5}
         value = cash + sum(u * (px_open(c) if not np.isnan(px_open(c)) else px_last(c, e)) for c, u in units.items())
         target = select(ranked, prev, untradable=untradable) if ranked else list(untradable)
         tradable_target = [c for c in target if c not in untradable and not np.isnan(px_open(c))]
-        # 매도
         info = {r["stock_code"]: r for r in out}
         cost = 0.0
         new_units = {c: units[c] for c in untradable if c in units}
         for c, u in units.items():
-            if c in new_units:
+            if c in new_units or c in tradable_target:
                 continue
             p = px_open(c)
             p = px_last(c, e) if np.isnan(p) else p
-            notional = u * p
-            keep_w = (c in tradable_target)
-            if not keep_w:
-                cost += trade_cost(costs, scenario, "sell", store.days[e], store.mkt.get(c, "KOSPI"),
-                                   (info.get(c) or {}).get("mcap"), notional, (info.get(c) or {}).get("tv20"))
-        # 매수·비중 조정 (동일 비중)
-        invest = value - cost - sum(new_units[c] * px_last(c, e) for c in new_units)
-        w = invest / len(tradable_target) if tradable_target else 0.0
+            cost += trade_cost(costs, scenario, "sell", store.days[e], store.mkt.get(c, "KOSPI"),
+                               (info.get(c) or {}).get("mcap"), u * p, (info.get(c) or {}).get("tv20"))
+        held_val = sum(new_units[c] * px_last(c, e) for c in new_units)
+        w = (value - cost - held_val) / len(tradable_target) if tradable_target else 0.0
         for c in tradable_target:
-            p = px_open(c)
-            old = units.get(c, 0.0) * p
-            delta = w - old
+            delta = w - units.get(c, 0.0) * px_open(c)
             if abs(delta) > 1e-12:
-                side = "buy" if delta > 0 else "sell"
-                cost += trade_cost(costs, scenario, side, store.days[e], store.mkt.get(c, "KOSPI"),
+                cost += trade_cost(costs, scenario, "buy" if delta > 0 else "sell", store.days[e], store.mkt.get(c, "KOSPI"),
                                    (info.get(c) or {}).get("mcap"), abs(delta), (info.get(c) or {}).get("tv20"))
-        invest = value - cost - sum(new_units[c] * px_last(c, e) for c in new_units)
-        w = invest / len(tradable_target) if tradable_target else 0.0
+        w = (value - cost - held_val) / len(tradable_target) if tradable_target else 0.0
         turnover = sum(abs(w - units.get(c, 0.0) * px_open(c)) for c in tradable_target) / max(value, 1e-12)
         for c in tradable_target:
             new_units[c] = w / px_open(c)
         cash = 0.0 if tradable_target else value - cost
-        units = new_units
-        prev = list(units)
+        units, prev = new_units, list(new_units)
         holdings_log.append({"rebalance": R, "exec": store.days[e], "n": len(units), "turnover": round(turnover, 4),
                              "cost": round(cost / max(value, 1e-12), 6),
                              "holdings": [{"c": c, "n": store.names.get(c), "rank": (info.get(c) or {}).get("rank"),
                                            "g": (info.get(c) or {}).get("group_id")} for c in units]})
-        struct.append({"rebalance": R, "universe": len(evals), "ranked": len(ranked), "missing_fin": miss,
+        struct.append({"rebalance": R, "universe": len(S["evals"]), "ranked": len(ranked), "missing_fin": S["missing_fin"],
                        "groups": len(by_g), "held": len(units), "untradable": len(untradable)})
-
-        # 다음 체결일까지 일별 평가 (마지막 회차는 구간 끝까지만)
-        end_i = max(x for x in range(len(store.days)) if store.days[x] <= end.replace("-", ""))
-        last_round = k + 1 >= len(rdays) or store.day_idx[rdays[k + 1]] + 1 >= len(store.days)
-        nxt = end_i if last_round else store.day_idx[rdays[k + 1]] + 1
+        # 노출 (DESIGN 7.1): 사업군·시총 구간·시장
+        mc = [(info.get(c) or {}).get("mcap") or 0 for c in units]
+        expo.append({"rebalance": R,
+                     "groups": dict(Counter((info.get(c) or {}).get("group_id") for c in units)),
+                     "mcap_bucket": {"대형(1조+)": sum(m >= 1e12 for m in mc), "중형(2천억~1조)": sum(2e11 <= m < 1e12 for m in mc),
+                                     "소형(2천억 미만)": sum(m < 2e11 for m in mc)},
+                     "market": dict(Counter(store.mkt.get(c) for c in units))})
+        last_round = k + 1 >= len(sig) or sig[k + 1]["i"] + 1 >= len(store.days)
+        nxt = end_i if last_round else sig[k + 1]["i"] + 1
         for t in range(e, nxt + (1 if last_round else 0)):
-            v = cash + sum(u * px_last(c, t) for c, u in units.items())
             nav_days.append(store.days[t])
-            nav.append(v)
-
-        # IC·적중률: 이번 신호 vs 다음 체결일까지 수익률
+            nav.append(cash + sum(u * px_last(c, t) for c, u in units.items()))
         fwd = {}
         for r in ranked:
             c = r["stock_code"]
             p0, p1 = px_open(c), px_last(c, nxt)
             if not np.isnan(p0) and not np.isnan(p1) and p0 > 0:
                 fwd[c] = p1 / p0 - 1
-        ic = spearman([r["composite"] for r in ranked if r["stock_code"] in fwd], [fwd[r["stock_code"]] for r in ranked if r["stock_code"] in fwd])
+        ic_log.append({"rebalance": R, "n": len(fwd),
+                       "ic": spearman([r["composite"] for r in ranked if r["stock_code"] in fwd],
+                                      [fwd[r["stock_code"]] for r in ranked if r["stock_code"] in fwd])})
         grp_avg = defaultdict(list)
         for r in ranked:
             if r["stock_code"] in fwd:
-                grp_avg[r["group_id"]].append(fwd[r["stock_code"]])
-        hits = [fwd[c] > sum(grp_avg[info[c]["group_id"]]) / len(grp_avg[info[c]["group_id"]])
-                for c in units if c in fwd and c in info and grp_avg.get(info[c]["group_id"])]
-        hit += hits
-        ic_log.append({"rebalance": R, "ic": ic, "n": len(fwd)})
-        # 벤치마크 (DESIGN 7.1-a): 같은 시점 순위 대상 전체 동일비중, 비용 미차감
+                grp_avg[r.get("score_group")].append(fwd[r["stock_code"]])
+        hit += [fwd[c] > sum(grp_avg[info[c].get("score_group")]) / len(grp_avg[info[c].get("score_group")])
+                for c in units if c in fwd and c in info and grp_avg.get(info[c].get("score_group"))]
         bench.append((store.days[e], store.days[nxt], float(np.mean(list(fwd.values()))) if fwd else 0.0))
+    return {"nav_days": nav_days, "nav": nav, "holdings": holdings_log, "ic": ic_log, "structure": struct,
+            "bench_ew": bench, "hit": hit, "exposure": expo}
 
-    res = {"mode": mode, "window": [start, end], "scenario": scenario, "adj_policy": adj_policy,
-           "strategy": strat.get("version"), "rebalances": len(holdings_log), "structure": struct,
-           "limitations": ["재무 값은 최신 정정본(최초본 복원 D-17 전)", "업종은 현재 분류", "코스피 관리종목 미반영(D-15)",
-                           "미확인 기업행위 처리 정책: " + adj_policy]}
-    out_dir = REPORTS / "backtest" / f"{mode}_{start}_{end}_{scenario}_{adj_policy}"
+
+def summarize(sim: dict, P: dict) -> dict:
+    nav, days = sim["nav"], sim["nav_days"]
+    ics = [x["ic"] for x in sim["ic"] if x["ic"] is not None]
+    res = {"perf": perf(nav, days),
+           "ic": {"mean": float(np.mean(ics)) if ics else None, "std": float(np.std(ics, ddof=1)) if len(ics) > 1 else None,
+                  "ir": float(np.mean(ics) / np.std(ics, ddof=1)) if len(ics) > 1 and np.std(ics) > 0 else None, "n": len(ics)},
+           "hit_rate": sum(sim["hit"]) / len(sim["hit"]) if sim["hit"] else None,
+           "avg_turnover": float(np.mean([h["turnover"] for h in sim["holdings"]])) if sim["holdings"] else None,
+           "avg_cost_per_rebalance": float(np.mean([h["cost"] for h in sim["holdings"]])) if sim["holdings"] else None,
+           "benchmark_universe_ew": {"total_return": float(np.prod([1 + b[2] for b in sim["bench_ew"]]) - 1) if sim["bench_ew"] else None}}
+    # 지수 벤치마크와 베타·국면별 성과
+    for key, ser in P["index"].items():
+        lv = [ser.get(d) for d in days]
+        if days and all(v is not None for v in (lv[0], lv[-1])):
+            ix = [v for v in lv if v is not None]
+            res[f"benchmark_{key}"] = perf(ix, [d for d, v in zip(days, lv) if v is not None])
+    kospi = P["index"].get("KOSPI", {})
+    pr, mr = [], []
+    for a, b, na, nb in zip(days, days[1:], nav, nav[1:]):
+        if a in kospi and b in kospi and na:
+            pr.append(nb / na - 1)
+            mr.append(kospi[b] / kospi[a] - 1)
+    if len(pr) > 20:
+        x, y = np.array(mr), np.array(pr)
+        res["beta_kospi"] = float(np.cov(x, y, ddof=1)[0, 1] / np.var(x, ddof=1))
+    months = defaultdict(list)
+    for d, v in zip(days, nav):
+        months[d[:6]].append((d, v))
+    reg = defaultdict(list)
+    ms = sorted(months)
+    for a, b in zip(ms, ms[1:]):
+        d0, v0 = months[a][-1]
+        d1, v1 = months[b][-1]
+        if d0 in kospi and d1 in kospi:
+            m = kospi[d1] / kospi[d0] - 1
+            reg["상승(+2%↑)" if m > .02 else ("하락(−2%↓)" if m < -.02 else "횡보")].append((v1 / v0 - 1) - m)
+    res["regime_excess_vs_kospi_monthly"] = {k: {"months": len(v), "avg_excess": float(np.mean(v))} for k, v in reg.items()}
+    years = defaultdict(list)
+    for d, v in zip(days, nav):
+        years[d[:4]].append(v)
+    ys = sorted(years)
+    res["yearly"] = {y: float(years[y][-1] / (years[ys[n - 1]][-1] if n else years[y][0]) - 1) for n, y in enumerate(ys)}
+    return res
+
+
+def _write(out_dir, P, sim, res, mode, smoke):
     out_dir.mkdir(parents=True, exist_ok=True)
-    if mode == "smoke":
-        res["note"] = "기계 점검 — 수익률은 의도적으로 계산·출력하지 않음 (검증 구간 보호)"
-        res["nav_points"] = len(nav)
-        res["nav_finite"] = bool(all(math.isfinite(x) for x in nav))
-    else:
-        ics = [x["ic"] for x in ic_log if x["ic"] is not None]
-        res.update({"perf": perf(nav, nav_days),
-                    "ic": {"mean": float(np.mean(ics)) if ics else None, "std": float(np.std(ics, ddof=1)) if len(ics) > 1 else None,
-                           "ir": float(np.mean(ics) / np.std(ics, ddof=1)) if len(ics) > 1 and np.std(ics) > 0 else None, "n": len(ics)},
-                    "hit_rate": sum(hit) / len(hit) if hit else None,
-                    "benchmark_universe_ew": {"total_return": float(np.prod([1 + b[2] for b in bench]) - 1) if bench else None,
-                                              "periods": len(bench)},
-                    "avg_turnover": float(np.mean([h["turnover"] for h in holdings_log])) if holdings_log else None,
-                    "avg_cost_per_rebalance": float(np.mean([h["cost"] for h in holdings_log])) if holdings_log else None})
+    if not smoke:
         with (out_dir / "nav.csv").open("w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
             w.writerow(["date", "nav"])
-            w.writerows(zip(nav_days, nav))
+            w.writerows(zip(sim["nav_days"], sim["nav"]))
         with (out_dir / "ic.csv").open("w", newline="", encoding="utf-8") as f:
             w = csv.DictWriter(f, fieldnames=["rebalance", "ic", "n"])
             w.writeheader()
-            w.writerows(ic_log)
-    (out_dir / "holdings.json").write_text(json.dumps(holdings_log, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+            w.writerows(sim["ic"])
+        (out_dir / "exposure.json").write_text(json.dumps(sim["exposure"], ensure_ascii=False, indent=1), encoding="utf-8")
+    (out_dir / "holdings.json").write_text(json.dumps(sim["holdings"], ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     (out_dir / "summary.json").write_text(json.dumps(res, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
-    # 실험 기록 (DESIGN 7.4) — 기계 점검은 실험이 아니므로 기록하지 않음
-    if mode != "smoke":
-        log_path = REPORTS / "backtest" / "runs.csv"
-        new = not log_path.exists()
-        with log_path.open("a", newline="", encoding="utf-8") as f:
-            w = csv.writer(f)
-            if new:
-                w.writerow(["run_at", "mode", "window", "strategy", "scenario", "adj_policy", "cagr", "mdd", "ic_mean"])
-            p = res.get("perf", {})
-            w.writerow([dt.datetime.now().isoformat(timespec="seconds"), mode, f"{start}~{end}", strat.get("version"),
-                        scenario, adj_policy, p.get("cagr"), p.get("mdd"), (res.get("ic") or {}).get("mean")])
-    log(f"백테스트 완료: {out_dir}")
-    return {k: v for k, v in res.items() if k != "structure"} | {"structure_last": struct[-1] if struct else None}
+
+
+def _log_run(mode, start, end, strat, scenario, adj_policy, variant, res):
+    log_path = REPORTS / "backtest" / "runs.csv"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    new = not log_path.exists()
+    with log_path.open("a", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        if new:
+            w.writerow(["run_at", "mode", "window", "strategy", "variant", "scenario", "adj_policy", "cagr", "mdd", "ic_mean"])
+        p = res.get("perf", {})
+        w.writerow([dt.datetime.now().isoformat(timespec="seconds"), mode, f"{start}~{end}", strat.get("version"), variant,
+                    scenario, adj_policy, p.get("cagr"), p.get("mdd"), (res.get("ic") or {}).get("mean")])
+
+
+LIMITS = ["재무 값: 첫 정정 전 시점은 최초본 XBRL(D-17), 정정 3회 이상 중간본은 미복원", "업종은 현재 분류",
+          "코스피 관리종목 미반영(D-15)"]
+
+
+def run(start: str = DEV[0], end: str = DEV[1], mode: str = "dev", scenario: str = "base",
+        adj_policy: str = "confirmed_only") -> dict:
+    """전략 v1 단일 실행. mode: dev / validation(전략 frozen 필요) / smoke(구조 점검, 수익률 미출력)."""
+    strat = guard(mode, start, end)
+    P = prepare(start, end, adj_policy)
+    sim = simulate(P, {}, scenario)
+    smoke = mode == "smoke"
+    res = {"mode": mode, "window": [start, end], "scenario": scenario, "adj_policy": adj_policy, "variant": "v1",
+           "strategy": strat.get("version"), "rebalances": len(sim["holdings"]), "structure": sim["structure"],
+           "limitations": LIMITS + ["미확인 기업행위 처리 정책: " + adj_policy]}
+    if smoke:
+        res.update({"note": "기계 점검 — 수익률은 의도적으로 계산·출력하지 않음 (검증 구간 보호)",
+                    "nav_points": len(sim["nav"]), "nav_finite": bool(all(math.isfinite(x) for x in sim["nav"]))})
+    else:
+        res.update(summarize(sim, P))
+        _log_run(mode, start, end, strat, scenario, adj_policy, "v1", res)
+    _write(REPORTS / "backtest" / f"{mode}_{start}_{end}_{scenario}_{adj_policy}", P, sim, res, mode, smoke)
+    log(f"백테스트 완료 ({mode})")
+    return {k: v for k, v in res.items() if k != "structure"} | {"structure_last": sim["structure"][-1] if sim["structure"] else None}
+
+
+def run_variants(start: str = DEV[0], end: str = DEV[1], scenario: str = "base", adj_policy: str = "confirmed_only",
+                 names: list[str] | None = None, mode: str = "dev") -> dict:
+    """DESIGN 7.5 비교 실험 — 개발 구간 전용(smoke는 구조만). 평가는 1회, 변형별 점수·포트폴리오만 다시 계산."""
+    if mode == "validation":
+        raise ValueError("비교 실험은 개발 구간에서만 (DESIGN 7.5)")
+    strat = guard(mode, start, end)
+    P = prepare(start, end, adj_policy)
+    table = {}
+    for name in names or list(VARIANTS):
+        sim = simulate(P, VARIANTS[name], scenario)
+        if mode == "smoke":
+            table[name] = {"rebalances": len(sim["holdings"]), "nav_finite": bool(all(math.isfinite(x) for x in sim["nav"])),
+                           "avg_held": float(np.mean([h["n"] for h in sim["holdings"]])) if sim["holdings"] else 0}
+            continue
+        res = summarize(sim, P)
+        table[name] = {"cagr": res["perf"].get("cagr"), "mdd": res["perf"].get("mdd"), "sharpe": res["perf"].get("sharpe_rf0"),
+                       "ic_mean": res["ic"]["mean"], "ic_ir": res["ic"]["ir"], "hit_rate": res["hit_rate"],
+                       "turnover": res["avg_turnover"]}
+        _write(REPORTS / "backtest" / "variants" / f"{start}_{end}_{scenario}" / name, P, sim, res | {"variant": name}, mode, False)
+        _log_run(mode, start, end, strat, scenario, adj_policy, name, res)
+    out = {"mode": mode, "window": [start, end], "scenario": scenario, "adj_policy": adj_policy, "variants": table,
+           "rule": "채택 기준(EXPERIMENTS.md 규칙 5): 비용 차감 후 IC 평균 개선 그리고 최대낙폭 악화 없음"}
+    d = REPORTS / "backtest" / "variants" / f"{start}_{end}_{scenario}"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "comparison.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
+    return out

@@ -82,8 +82,10 @@ def pbr_roe_residuals(rows: list[dict]) -> dict[str, float | None]:
 
 
 # ── 점수 ──
-def score_group(rows: list[dict]) -> None:
-    """사업군 하나: 지표별 윈저라이즈(1/99%) → 백분위 → 묶음 → 종합. rows를 제자리 갱신."""
+def score_group(rows: list[dict], weights: dict | None = None) -> None:
+    """사업군 하나: 지표별 윈저라이즈(1/99%) → 백분위 → 묶음 → 종합. rows를 제자리 갱신.
+    weights: 묶음 가중치 (기본 v1). 가중치 0인 묶음은 최소 조건을 요구하지 않는다 (비교 실험용)."""
+    weights = weights or WEIGHTS
     resid = pbr_roe_residuals(rows)
     for r in rows:
         r["metrics"]["PBR-ROE잔차"] = resid.get(r["stock_code"])
@@ -101,24 +103,25 @@ def score_group(rows: list[dict]) -> None:
             need = {"value": 2, "quality": 2, "trend": 1, "safety": 1}[name]
             ok = len(v) >= need and (name != "value" or r["pct"]["E/P"] is not None or r["pct"]["B/P"] is not None)
             b[name] = round(sum(v) / len(v), 1) if ok else None
-            if not ok:
+            if not ok and weights.get(name, 0) > 0:
                 why.append(f"{ {'value': '가치', 'quality': '퀄리티', 'trend': '추세', 'safety': '안정성'}[name]} 지표 부족")
         r["buckets"] = b
-        r["composite"] = None if why else round(sum(WEIGHTS[k] * b[k] for k in WEIGHTS), 1)
+        wsum = sum(w for w in weights.values() if w > 0)
+        r["composite"] = None if why else round(sum(w * b[k] for k, w in weights.items() if w > 0) / wsum, 1)
         if why:
             r["exclude"].extend(why)
 
 
-def risk_flags(r: dict, debt_top10: float | None) -> None:
+def risk_flags(r: dict, debt_top10: float | None, exclude_loss: bool = True, exclude_fscore: bool = True) -> None:
     t, s, m = r.get("ttm") or {}, r.get("stock") or {}, r["metrics"]
     eo, ni = s.get("equity_owners"), t.get("ni_owners")
     if eo is not None and eo <= 0:
         r["exclude"].append("자본잠식(지배주주 자본 ≤ 0)")
     if ni is not None and ni < 0:
-        r["exclude"].append("적자(TTM 지배주주 순이익 < 0)")
+        (r["exclude"] if exclude_loss else r["warn"]).append("적자(TTM 지배주주 순이익 < 0)")
     items = r.get("fscore_items") or {}
     if r.get("fscore") is not None and sum(v is not None for v in items.values()) >= 7 and r["fscore"] <= 3:
-        r["exclude"].append(f"F-스코어 {r['fscore']:.1f} ≤ 3")
+        (r["exclude"] if exclude_fscore else r["warn"]).append(f"F-스코어 {r['fscore']:.1f} ≤ 3")
     op, nit, cfo = t.get("op_income"), t.get("ni_total"), t.get("cfo")
     if op and op > 0 and nit is not None and nit > op * 1.5:
         r["warn"].append("일회성 이익 의심(순이익 > 영업이익×1.5)")
@@ -134,9 +137,13 @@ def risk_flags(r: dict, debt_top10: float | None) -> None:
 
 
 def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv: dict[str, list[float]],
-                     halted: set[str], groups) -> tuple[list[dict], list[dict], dict]:
+                     halted: set[str], groups, opts: dict | None = None) -> tuple[list[dict], list[dict], dict]:
     """평가 결과 → 유니버스 필터·사업군 점수·위험 필터·순위. 현재 화면과 백테스트가 같은 규칙을 쓰도록 분리.
-    meta[code] = {market, sect, list_dd}. tv[code] = 최근 20거래일 거래대금 목록."""
+    meta[code] = {market, sect, list_dd}. tv[code] = 최근 20거래일 거래대금 목록.
+    opts (비교 실험용, 기본 = 전략 v1): weights, exclude_loss, exclude_fscore,
+          grouping = table(사업군 표) | ksic2(KSIC 앞 2자리) | market(전체 시장)"""
+    opts = opts or {}
+    grouping = opts.get("grouping", "table")
     out = []
     for r in evals:
         u = meta.get(r["stock_code"], {})
@@ -174,22 +181,24 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
     by_g = defaultdict(list)
     for r in out:
         if not r["exclude"]:
-            by_g[r["group_id"]].append(r)
+            key = {"table": r["group_id"], "ksic2": "K" + (r.get("induty_code") or "")[:2], "market": "ALL"}[grouping]
+            r["score_group"] = key
+            by_g[key].append(r)
     for gid, rows in by_g.items():
         drs = sorted(x["debt_ratio"] for x in rows if x["debt_ratio"] is not None)
         top10 = drs[int(len(drs) * 0.9)] if len(drs) >= 10 else None
-        score_group(rows)
+        score_group(rows, opts.get("weights"))
         for r in rows:
             r["group_n"] = len(rows)
             r["reliability"] = reliability(len(rows))
-            risk_flags(r, top10)
+            risk_flags(r, top10, opts.get("exclude_loss", True), opts.get("exclude_fscore", True))
     # 순위
     ranked = sorted([r for r in out if not r["exclude"] and r.get("composite") is not None],
                     key=lambda r: (-r["composite"], r["stock_code"]))
     for i, r in enumerate(ranked, 1):
         r["rank"] = i
     for gid in by_g:
-        g = [r for r in ranked if r["group_id"] == gid]
+        g = [r for r in ranked if r.get("score_group") == gid]
         for i, r in enumerate(g, 1):
             r["group_rank"] = i
     return out, ranked, by_g

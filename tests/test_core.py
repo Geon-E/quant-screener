@@ -668,3 +668,15 @@ def test_admin_rule_judge():
     assert res["R1"] and res["R2"] and res["R4"] and res["R5"] and res["R6"] is False and res["R3"] is False
     res2, _ = judge(P, dt.date(2025, 4, 30), [])          # 2025 사업보고서 공시 전 → 2024가 최신
     assert res2["R1"] is False and res2["R5"] is None     # 4년 연속 판단에 연도 부족
+
+
+def test_summarize_benchmarks_beta_and_yearly():
+    days = [f"2019{m:02d}{d:02d}" for m in range(1, 13) for d in (3, 10, 17, 24)] + ["20200103"]
+    k = {d: 100 * (1.001 ** i) for i, d in enumerate(days)}
+    nav = [1.002 ** i for i in range(len(days))]
+    sim = {"nav": nav, "nav_days": days, "ic": [{"ic": .1}, {"ic": .2}], "hit": [True, False, True], "holdings": [{"turnover": .5, "cost": .001}],
+           "bench_ew": [("a", "b", .05), ("b", "c", .02)]}
+    r = BT.summarize(sim, {"index": {"KOSPI": k, "KOSDAQ": {}}})
+    assert abs(r["benchmark_universe_ew"]["total_return"] - (1.05 * 1.02 - 1)) < 1e-12
+    assert abs(r["hit_rate"] - 2 / 3) < 1e-12 and r["ic"]["n"] == 2
+    assert "benchmark_KOSPI" in r and set(r["yearly"]) == {"2019", "2020"}
