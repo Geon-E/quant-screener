@@ -654,3 +654,17 @@ def test_as_of_values_uses_original_before_first_amendment():
     assert before[(2016, 2)]["values"] == {"ni_owners": 80.0, "equity_owners": 500.0} and used == ["2016Q2"]
     after, used2 = as_of_values(p, dt.date(2016, 11, 20))
     assert after[(2016, 2)]["values"]["ni_owners"] == 100.0 and used2 == []
+
+
+def test_admin_rule_judge():
+    from qs.exp_admin_rules import judge
+    def per(y, q, avail, **v):
+        return {"available_date": avail, "values": v}
+    P = {(2025, 4): per(2025, 4, "2026-03-31", revenue=2.0e9, op_income=-1, pretax=-6e8, equity_total=1e9, capital_stock=3e9),
+         (2024, 4): per(2024, 4, "2025-03-31", revenue=5e9, op_income=-1, pretax=-6e8, equity_total=1e9, capital_stock=3e9),
+         (2023, 4): per(2023, 4, "2024-03-31", revenue=5e9, op_income=-1, pretax=1, equity_total=1e9, capital_stock=3e9),
+         (2022, 4): per(2022, 4, "2023-03-31", revenue=5e9, op_income=-1, pretax=1, equity_total=1e9, capital_stock=3e9)}
+    res, why = judge(P, dt.date(2026, 4, 30), [1e10] * 40)
+    assert res["R1"] and res["R2"] and res["R4"] and res["R5"] and res["R6"] is False and res["R3"] is False
+    res2, _ = judge(P, dt.date(2025, 4, 30), [])          # 2025 사업보고서 공시 전 → 2024가 최신
+    assert res2["R1"] is False and res2["R5"] is None     # 4년 연속 판단에 연도 부족

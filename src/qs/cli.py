@@ -13,6 +13,7 @@
   universe       전 종목 최근 재무 수집 (2024년~, 재개 가능, 방침 B)
   screen         전 종목 업종 대비 점수 + 화면(reports/screen/screener.html)
   backtest       과거 성과 검증 (--bt-mode dev|validation|smoke, --bt-scenario, --bt-adj)
+  exp-admin-rules  4차 Q1 준비: 관리종목 요건 직접 판정 vs 코스닥 정답지 (재현율·정밀도)
   phase1         증분 수집 + 인벤토리 + 평가 + 결정성 검사
 모든 명령은 실행 보고서(reports/phase1/runs/)와 보안 검사를 남긴다.
 """
@@ -119,6 +120,11 @@ def cmd_backtest(args) -> dict:
                         scenario=args.bt_scenario, adj_policy=args.bt_adj)
 
 
+def cmd_exp_admin_rules(args) -> dict:
+    from . import exp_admin_rules
+    return exp_admin_rules.run()
+
+
 def cmd_determinism(args) -> dict:
     from . import pipeline
     return pipeline.determinism_check()
@@ -128,7 +134,7 @@ COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [c
             "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory],
             "evaluate": [cmd_evaluate], "determinism": [cmd_determinism], "adjust": [cmd_adjust],
             "xcheck": [cmd_xcheck], "exp-listing": [cmd_exp_listing],
-            "universe": [cmd_universe], "screen": [cmd_screen], "backtest": [cmd_backtest],
+            "universe": [cmd_universe], "screen": [cmd_screen], "backtest": [cmd_backtest], "exp-admin-rules": [cmd_exp_admin_rules],
             "phase1": [cmd_krx, cmd_dart, cmd_universe, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_xcheck,
                        cmd_screen, cmd_determinism]}
 

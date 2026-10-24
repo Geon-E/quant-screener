@@ -15,6 +15,13 @@ items:
     ids: ["ifrs:Revenue"]
     names: ['^매출액$', '^수익\(매출액\)$', '^매출$', '^영업수익$']
 
+  pretax:
+    kind: flow
+    sj: [IS, CIS]
+    ids: ["ifrs:ProfitLossBeforeTax", "ifrs:ProfitLossFromContinuingOperationsBeforeTax"]
+    names: ['^법인세비용차감전']
+    note: 관리종목 요건 판정(법인세비용차감전 손실)용 — 2026-10-25 추가
+
   gross_profit:
     kind: flow
     sj: [IS, CIS]
@@ -98,6 +105,13 @@ items:
     sj: [BS]
     ids: ["ifrs:Equity"]
     names: ['^자\s*본\s*총\s*계']
+
+  capital_stock:
+    kind: stock
+    sj: [BS]
+    ids: ["ifrs:IssuedCapital"]
+    names: ['^자\s*본\s*금$']
+    note: 관리종목 요건 판정(자본잠식률)용 — 2026-10-25 추가
 
   equity_owners:
     kind: stock
