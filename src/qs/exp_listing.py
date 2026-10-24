@@ -65,20 +65,30 @@ def windows(start: dt.date, end: dt.date, months: int = 3):
         s = e + dt.timedelta(days=1)
 
 
+def parse_robots(status: int, ctype: str, text: str, path: str) -> tuple[bool | None, str]:
+    """robots.txt 응답 해석. 진짜 robots.txt로 보이지 않으면(방화벽 차단 페이지 등) None = 확인 불가 → 수집 안 함.
+    (2026-10-25 실측: KIND 방화벽이 robots.txt 요청에 HTML 차단 페이지를 200으로 돌려줌 → 이를 '허용'으로 오판한 버그 수정)"""
+    if status == 404:
+        return True, "robots.txt 없음(404) → 제한 없음"
+    if status != 200:
+        return None, f"robots.txt HTTP {status}"
+    looks_html = "<html" in text[:500].lower() or "<br" in text[:200].lower() or "<center" in text[:500].lower()
+    has_rules = re.search(r"(?im)^\s*user-agent\s*:", text) is not None
+    if looks_html or not has_rules or ("text/plain" not in (ctype or "") and not has_rules):
+        return None, f"robots.txt가 아닌 응답(방화벽 차단 페이지 등) → 확인 불가: {text[:120]!r}"
+    rp = urllib.robotparser.RobotFileParser()
+    rp.parse(text.splitlines())
+    ok = rp.can_fetch(UA["User-Agent"], f"{KIND}{path}")
+    return ok, f"robots.txt 규칙: {'허용' if ok else '금지'} ({path})"
+
+
 def robots_allows(path: str) -> tuple[bool | None, str]:
     """KIND robots.txt 확인. (허용 여부, 근거). 확인 불가면 None → 수집하지 않음."""
     try:
         r = requests.get(f"{KIND}/robots.txt", headers=UA, timeout=30)
     except Exception as e:  # noqa: BLE001
         return None, f"robots.txt 접속 실패: {type(e).__name__}"
-    if r.status_code == 404:
-        return True, "robots.txt 없음(404) → 제한 없음"
-    if r.status_code != 200:
-        return None, f"robots.txt HTTP {r.status_code}"
-    rp = urllib.robotparser.RobotFileParser()
-    rp.parse(r.text.splitlines())
-    ok = rp.can_fetch(UA["User-Agent"], f"{KIND}{path}")
-    return ok, f"robots.txt 규칙: {'허용' if ok else '금지'} ({path}) — 원문 앞부분: {r.text[:200]!r}"
+    return parse_robots(r.status_code, r.headers.get("content-type", ""), r.text, path)
 
 
 # ── DART 시장조치 공시 ──

@@ -485,3 +485,13 @@ def test_krx_empty_refetch_keeps_good_file(tmp_path, monkeypatch):
     assert K.suspicious_empty("20261026") is True
     K.save_l0(K.krx_path("sto/ksq_bydd_trd", "20261026"), source={"rows": 0}, payload=[])
     assert K.suspicious_empty("20261026") is False                       # 둘 다 비면 휴장일
+
+
+def test_parse_robots_rejects_firewall_page():
+    from qs.exp_listing import parse_robots
+    waf = "<br>\r\n<br>\r\n<center>\r\n<h2>\r\nThe request / response that are contrary to the Web firewall security policies have been blocked.</h2>"
+    assert parse_robots(200, "text/html", waf, "/investwarn/adminissue.do")[0] is None
+    assert parse_robots(200, "text/plain", "User-agent: *\nDisallow: /investwarn/\n", "/investwarn/adminissue.do")[0] is False
+    assert parse_robots(200, "text/plain", "User-agent: *\nDisallow:\n", "/investwarn/adminissue.do")[0] is True
+    assert parse_robots(404, "", "", "/x")[0] is True
+    assert parse_robots(403, "", "", "/x")[0] is None
