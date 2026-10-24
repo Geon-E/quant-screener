@@ -5,6 +5,9 @@
   dart-sample    표본 기업 재무·공시 버전·정정 최초본 XBRL 수집
   inventory      표본 계정 ID 분포 집계
   collect-all    위 네 단계를 순서대로
+  evaluate       표본 L1·L2 생성, 커버리지, 검증 워크북 (reports/phase1/verification_workbook.xlsx)
+  determinism    같은 L0로 두 번 계산해 결과 해시 비교
+  phase1         증분 수집 + 인벤토리 + 평가 + 결정성 검사
 모든 명령은 실행 보고서(reports/phase1/runs/)와 보안 검사를 남긴다.
 """
 from __future__ import annotations
@@ -60,8 +63,20 @@ def cmd_inventory(args) -> dict:
     return inventory.run()
 
 
+def cmd_evaluate(args) -> dict:
+    from . import pipeline
+    return pipeline.run()
+
+
+def cmd_determinism(args) -> dict:
+    from . import pipeline
+    return pipeline.determinism_check()
+
+
 COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [cmd_dart],
-            "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory]}
+            "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory],
+            "evaluate": [cmd_evaluate], "determinism": [cmd_determinism],
+            "phase1": [cmd_krx, cmd_dart, cmd_inventory, cmd_evaluate, cmd_determinism]}
 
 
 def main(argv=None):
@@ -85,7 +100,7 @@ def main(argv=None):
             log(f"!! {name} 실패: {e}")
             break
 
-    for sub in ("l0",):
+    for sub in ("l0", "l1", "l2"):
         if (DATA / sub).exists():
             write_manifest(DATA / sub)
     hits = scan_for_secrets(DATA, REPORTS)

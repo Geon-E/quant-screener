@@ -46,7 +46,7 @@ def load_l0(path: Path):
 def build_manifest(root: Path) -> dict:
     files = {}
     for p in sorted(root.rglob("*")):
-        if p.is_file() and not p.name.endswith(".tmp"):
+        if p.is_file() and not p.name.endswith(".tmp") and p.name != "MANIFEST.json":
             files[str(p.relative_to(root))] = {"bytes": p.stat().st_size, "sha256": sha256_bytes(p.read_bytes())}
     return {"root": str(root.name), "generated_at": now_kst().isoformat(), "count": len(files),
             "total_bytes": sum(v["bytes"] for v in files.values()), "files": files}

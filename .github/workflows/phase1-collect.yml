@@ -8,10 +8,10 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: "krx-backfill | sample | dart-sample | inventory | collect-all"
-        default: collect-all
+        description: "phase1 | evaluate | determinism | krx-backfill | sample | dart-sample | inventory | collect-all"
+        default: phase1
         type: choice
-        options: [collect-all, krx-backfill, sample, dart-sample, inventory]
+        options: [phase1, evaluate, determinism, collect-all, krx-backfill, sample, dart-sample, inventory]
       extra:
         description: "추가 인자 (예: --reselect, --start 2025-09-01)"
         default: ""
@@ -46,6 +46,7 @@ jobs:
         run: |
           gh release view data-store >/dev/null 2>&1 || gh release create data-store --title "data-store" --notes "파이프라인 데이터 보관소 (L0~L2). 수동 편집 금지." --prerelease
           mkdir -p data
+          gh release download data-store -p derived.tar.gz -D /tmp/ds 2>/dev/null && tar -xzf /tmp/ds/derived.tar.gz -C data || true
           if gh release download data-store -p l0.tar.gz -D /tmp/ds 2>/dev/null; then
             tar -xzf /tmp/ds/l0.tar.gz -C data
             python -c "from qs.storage import verify_manifest, L0; b=verify_manifest(L0); print('manifest 불일치', len(b)); print(b[:5])"
@@ -72,6 +73,11 @@ jobs:
             tar -czf /tmp/l0.tar.gz -C data l0
             ls -lh /tmp/l0.tar.gz
             gh release upload data-store /tmp/l0.tar.gz --clobber
+          fi
+          layers=$(cd data && ls -d l1 l2 2>/dev/null | tr '\n' ' ')
+          if [ -n "$layers" ]; then
+            tar -czf /tmp/derived.tar.gz -C data $layers
+            gh release upload data-store /tmp/derived.tar.gz --clobber
           fi
 
       - name: Commit reports

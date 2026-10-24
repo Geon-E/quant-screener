@@ -1,0 +1,162 @@
+# 계정 표준화 규칙 v1 (DESIGN 4.2)
+# 근거: reports/phase1/account_inventory.csv · account_probe.csv (표본·후보 74개사 실측, 2026-10-24)
+#
+# 규칙
+# - 계정 ID 우선 매칭. 'ifrs-full_' 와 구 택소노미 'ifrs_' 는 같은 것으로 본다 (ifrs:로 정규화).
+# - ID로 못 찾으면 '-표준계정코드 미사용-' 행에 한해 계정명 패턴으로 보조 매칭 → 신뢰도 pattern.
+# - kind: flow(손익·현금흐름, YTD 누적 → 분기 복원) / stock(재무상태표 잔액)
+# - mode: first(첫 매칭 1개) / sum(서로 다른 ID 각 1회씩 합산)
+# - 부호: 원 데이터 그대로. abs: true 이면 절대값 (지급액이 음수로 표기되는 경우)
+
+items:
+  revenue:
+    kind: flow
+    sj: [IS, CIS]
+    ids: ["ifrs:Revenue"]
+    names: ['^매출액$', '^수익\(매출액\)$', '^매출$', '^영업수익$']
+
+  gross_profit:
+    kind: flow
+    sj: [IS, CIS]
+    ids: ["ifrs:GrossProfit"]
+    names: ['^매출총이익']
+    note: 성격별 비용 분류 기업은 매출총이익이 없음 → GP/A 무효
+
+  op_income:
+    kind: flow
+    sj: [IS, CIS]
+    ids: ["dart_OperatingIncomeLoss"]
+    names: ['^영업이익', '^영업손실', '^영업손익']
+
+  ni_total:
+    kind: flow
+    sj: [IS, CIS]
+    ids: ["ifrs:ProfitLoss"]
+    names: ['^(당기|분기|반기)순이익', '^(당기|분기|반기)순손익', '^(당기|분기|반기)순손실']
+
+  ni_owners:
+    kind: flow
+    sj: [IS, CIS]
+    ids: ["ifrs:ProfitLossAttributableToOwnersOfParent"]
+    # 비표준 계정: 같은 명칭('지배기업 소유주지분')이 순이익 귀속과 포괄손익 귀속에 모두 쓰인다.
+    # → 순이익(ni_total) 행 바로 뒤, '포괄' 구간 이전에 나오는 첫 지배기업 행만 인정 (ordinal 규칙)
+    ordinal_after: ni_total
+    ordinal_names: ['지배기업', '지배주주']
+    ordinal_stop: ['포괄', 'Comprehensive']
+    separate_only_fallback: ni_total   # 별도재무제표만 있는 회사는 전체 = 지배주주
+    # 연결이지만 비지배지분 행이 아예 없으면 → 비지배지분이 없는 것 → 전체 = 지배주주 (신뢰도 no_nci로 표시)
+    no_nci_fallback: ni_total
+    nci_ids: ["ifrs:ProfitLossAttributableToNoncontrollingInterests"]
+    nci_names: ['비지배']
+
+  cfo:
+    kind: flow
+    sj: [CF]
+    ids: ["ifrs:CashFlowsFromUsedInOperatingActivities"]
+    names: ['^영업활동.*현금흐름', '^영업활동으로 인한']
+
+  depreciation:
+    kind: flow
+    sj: [CF]
+    mode: first
+    ids: ["ifrs:AdjustmentsForDepreciationExpense", "dart_AdjustmentsForDepreciationExpense",
+          "ifrs:AdjustmentsForDepreciationAndAmortisationExpense"]
+    names: ['^감가상각비$', '^감가상각비\s*조정']
+    note: 실측 커버리지 낮음 (표준 ID 기준 약 1/3) → EBITDA/EV 실효성 문제 (D-20)
+
+  interest_paid:
+    kind: flow
+    sj: [CF]
+    mode: sum
+    abs: true
+    ids: ["ifrs:InterestPaidClassifiedAsOperatingActivities", "ifrs:InterestPaidClassifiedAsFinancingActivities",
+          "ifrs:InterestPaidClassifiedAsInvestingActivities"]
+    exclude_names: ['신종자본']   # 신종자본증권 이자는 자본 성격 → 제외
+    names: ['^이자의?\s*지급']
+
+  finance_costs:
+    kind: flow
+    sj: [IS, CIS]
+    ids: ["ifrs:FinanceCosts"]
+    names: ['^금융원가$', '^금융비용$']
+    note: 이자 외 외환손실·평가손실 포함 → 이자비용 대용으로만 사용 (플래그)
+
+  assets:
+    kind: stock
+    sj: [BS]
+    ids: ["ifrs:Assets"]
+    names: ['^자\s*산\s*총\s*계']
+
+  liabilities:
+    kind: stock
+    sj: [BS]
+    ids: ["ifrs:Liabilities"]
+    names: ['^부\s*채\s*총\s*계']
+
+  equity_total:
+    kind: stock
+    sj: [BS]
+    ids: ["ifrs:Equity"]
+    names: ['^자\s*본\s*총\s*계']
+
+  equity_owners:
+    kind: stock
+    sj: [BS]
+    ids: ["ifrs:EquityAttributableToOwnersOfParent"]
+    names: ['지배기업.*(소유|귀속)', '지배주주지분']
+    separate_only_fallback: equity_total
+    no_nci_fallback: equity_total
+    nci_ids: ["ifrs:NoncontrollingInterests"]
+    nci_names: ['비지배']
+
+  cur_assets:
+    kind: stock
+    sj: [BS]
+    ids: ["ifrs:CurrentAssets"]
+    names: ['^유동자산']
+
+  cur_liab:
+    kind: stock
+    sj: [BS]
+    ids: ["ifrs:CurrentLiabilities"]
+    names: ['^유동부채']
+
+  cash:
+    kind: stock
+    sj: [BS]
+    ids: ["ifrs:CashAndCashEquivalents"]
+    names: ['^현금및현금성자산$', '^현금 및 현금성자산$']
+
+  st_fin:
+    kind: stock
+    sj: [BS]
+    mode: sum
+    ids: ["ifrs:ShorttermDepositsNotClassifiedAsCashEquivalents", "dart_ShortTermDepositsNotClassifiedAsCashEquivalents"]
+    names: ['^단기금융상품$']
+    missing_as_zero: true   # 보유하지 않는 회사가 많음 → 없으면 0
+
+  debt:
+    kind: stock
+    sj: [BS]
+    mode: sum
+    ids: ["ifrs:ShorttermBorrowings", "dart_ShortTermBorrowings",
+          "ifrs:CurrentPortionOfLongtermBorrowings", "ifrs:CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings",
+          "ifrs:LongtermBorrowings", "dart_LongTermBorrowingsGross", "ifrs:NoncurrentPortionOfNoncurrentLoansReceived",
+          "dart_BondsIssued", "dart_CurrentPortionOfBonds", "ifrs:NoncurrentPortionOfNoncurrentBondsIssued",
+          "dart_ConvertibleBonds", "dart_CurrentPortionOfConvertibleBonds",
+          "dart_BondWithWarrant", "dart_CurrentPortionOfBondWithWarrant",
+          "ifrs:CurrentLeaseLiabilities", "ifrs:NoncurrentLeaseLiabilities"]
+    names: ['차입금$', '사채$', '리스부채$']
+    exclude_names: ['할인', '할증', '상환할증', '전환권조정', '이자']
+    missing_as_zero: true   # 무차입 기업
+    note: 사채할인발행차금 등 차감 계정은 1단계에서 제외(보수적으로 부채 과대) → 표본 검증에서 확인
+
+  lt_debt:
+    kind: stock
+    sj: [BS]
+    mode: sum
+    ids: ["ifrs:LongtermBorrowings", "dart_LongTermBorrowingsGross", "ifrs:NoncurrentPortionOfNoncurrentLoansReceived",
+          "ifrs:NoncurrentPortionOfNoncurrentBondsIssued", "dart_BondsIssued", "dart_ConvertibleBonds", "dart_BondWithWarrant"]
+    names: ['^장기차입금', '^사채$']
+    exclude_names: ['유동성', '할인', '할증', '전환권조정']
+    missing_as_zero: true

@@ -183,3 +183,90 @@ def test_gz_json_deterministic(tmp_path):
     h1 = write_gz_json(a, {"b": 1, "a": [1, 2]})
     h2 = write_gz_json(b, {"a": [1, 2], "b": 1})
     assert h1 == h2 and a.read_bytes() == b.read_bytes()
+
+
+# ── 계정 표준화 ──
+from qs.normalize.accounts import canon, extract
+
+
+def _r(sj, aid, nm, amt, add=None, ord_=1):
+    return {"sj_div": sj, "account_id": aid, "account_nm": nm, "thstrm_amount": amt,
+            "thstrm_add_amount": add, "ord": str(ord_)}
+
+
+def test_canon_prefix():
+    assert canon("ifrs_Revenue") == canon("ifrs-full_Revenue") == "ifrs:Revenue"
+
+
+def test_extract_ids_and_owners_by_id():
+    rows = [_r("CIS", "ifrs-full_Revenue", "매출액", "1000", ord_=1),
+            _r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=2),
+            _r("CIS", "ifrs-full_ProfitLossAttributableToOwnersOfParent", "지배기업 소유주지분", "80", ord_=3),
+            _r("CIS", "ifrs-full_ComprehensiveIncomeAttributableToOwnersOfParent", "지배기업 소유주지분", "120", ord_=9),
+            _r("BS", "ifrs-full_Equity", "자본총계", "500", ord_=1),
+            _r("BS", "ifrs-full_EquityAttributableToOwnersOfParent", "지배기업 소유주지분", "450", ord_=2)]
+    x = extract(rows, "CFS")
+    assert x["revenue"].value == 1000 and x["ni_owners"].value == 80 and x["ni_owners"].confidence == "id"
+    assert x["equity_owners"].value == 450
+
+
+def test_extract_owners_ordinal_not_comprehensive():
+    ns = "-표준계정코드 미사용-"
+    rows = [_r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=10),
+            _r("CIS", ns, "지배기업소유주지분", "70", ord_=11),
+            _r("CIS", ns, "비지배지분", "30", ord_=12),
+            _r("CIS", ns, "총포괄손익", "150", ord_=13),
+            _r("CIS", ns, "지배기업소유주지분", "110", ord_=14)]
+    x = extract(rows, "CFS")
+    assert x["ni_owners"].value == 70 and x["ni_owners"].confidence == "ordinal"
+
+
+def test_extract_cfs_without_owner_line_is_invalid():
+    # 비지배지분 행은 있는데 지배주주 행을 못 찾음 → 무효 (대체하지 않음)
+    rows = [_r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=1),
+            _r("CIS", "ifrs-full_ProfitLossAttributableToNoncontrollingInterests", "비지배지분", "20", ord_=3)]
+    assert extract(rows, "CFS")["ni_owners"].value is None
+
+
+def test_extract_cfs_no_nci_means_total_is_owners():
+    rows = [_r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=1),
+            _r("BS", "ifrs-full_Equity", "자본총계", "500", ord_=1)]
+    x = extract(rows, "CFS")
+    assert x["ni_owners"].value == 100 and x["ni_owners"].confidence == "no_nci"
+    assert x["equity_owners"].value == 500 and x["equity_owners"].confidence == "no_nci"
+
+
+def test_extract_separate_only_owner_equals_total():
+    rows = [_r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=1), _r("BS", "ifrs-full_Equity", "자본총계", "500", ord_=1)]
+    x = extract(rows, "OFS")
+    assert x["ni_owners"].value == 100 and x["ni_owners"].confidence == "separate_only"
+    assert x["equity_owners"].value == 500
+
+
+def test_extract_debt_sum_and_exclusions():
+    ns = "-표준계정코드 미사용-"
+    rows = [_r("BS", "ifrs-full_ShorttermBorrowings", "단기차입금", "100", ord_=1),
+            _r("BS", "dart_LongTermBorrowingsGross", "장기차입금", "200", ord_=2),
+            _r("BS", "ifrs-full_CurrentLeaseLiabilities", "리스부채", "10", ord_=3),
+            _r("BS", ns, "사채할인발행차금", "-5", ord_=4),
+            _r("BS", ns, "교환사채", "50", ord_=5)]
+    x = extract(rows, "CFS")
+    assert x["debt"].value == 360  # 100+200+10+50, 할인차금 제외
+    assert extract([], "CFS")["debt"].value == 0 and extract([], "CFS")["debt"].confidence == "zero_default"
+
+
+def test_extract_interest_paid_abs_and_hybrid_excluded():
+    rows = [_r("CF", "ifrs-full_InterestPaidClassifiedAsOperatingActivities", "이자의 지급", "-30", ord_=1),
+            _r("CF", "ifrs-full_InterestPaidClassifiedAsFinancingActivities", "신종자본증권 이자지급", "-7", ord_=2)]
+    assert extract(rows, "CFS")["interest_paid"].value == 30
+
+
+def test_extract_flow_uses_cumulative():
+    rows = [_r("CIS", "ifrs-full_Revenue", "매출액", "300", add="900", ord_=1)]
+    assert extract(rows, "CFS")["revenue"].value == 900
+
+
+def test_roe_gpa_require_begin_balance():
+    from qs.score.metrics import gp_a
+    assert roe(10, None, 100, 1000).reason == "기초 잔액 없음"
+    assert gp_a(10, None, 100).reason == "기초 잔액 없음"

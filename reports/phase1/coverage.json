@@ -1,0 +1,143 @@
+{
+ "evaluated": 25,
+ "status": {
+  "ok": 25,
+  "no_price": 1,
+  "excluded_non_dec": 2
+ },
+ "metrics": {
+  "E/P": {
+   "valid": 25,
+   "rate": 1.0,
+   "invalid_reasons": {}
+  },
+  "B/P": {
+   "valid": 25,
+   "rate": 1.0,
+   "invalid_reasons": {}
+  },
+  "EBIT/EV": {
+   "valid": 24,
+   "rate": 0.96,
+   "invalid_reasons": {
+    "EV 비정상": 1
+   }
+  },
+  "EBITDA/EV": {
+   "valid": 3,
+   "rate": 0.12,
+   "invalid_reasons": {
+    "EBITDA 구성 계정 없음": 22
+   }
+  },
+  "ROE": {
+   "valid": 25,
+   "rate": 1.0,
+   "invalid_reasons": {}
+  },
+  "GP/A": {
+   "valid": 22,
+   "rate": 0.88,
+   "invalid_reasons": {
+    "데이터 없음": 3
+   }
+  },
+  "CFO/NI": {
+   "valid": 14,
+   "rate": 0.56,
+   "invalid_reasons": {
+    "순이익 ≤ 0": 11
+   }
+  },
+  "이자보상배율": {
+   "valid": 25,
+   "rate": 1.0,
+   "invalid_reasons": {}
+  },
+  "영업이익증가율": {
+   "valid": 17,
+   "rate": 0.68,
+   "invalid_reasons": {
+    "값 없음": 8
+   }
+  },
+  "12-1모멘텀": {
+   "valid": 0,
+   "rate": 0.0,
+   "invalid_reasons": {
+    "수정주가 미검증": 25
+   }
+  }
+ },
+ "item_confidence": {
+  "revenue": {
+   "id": 25
+  },
+  "gross_profit": {
+   "id": 22,
+   "none": 3
+  },
+  "op_income": {
+   "id": 25
+  },
+  "ni_total": {
+   "id": 25
+  },
+  "ni_owners": {
+   "id": 20,
+   "separate_only": 4,
+   "no_nci": 1
+  },
+  "cfo": {
+   "id": 25
+  },
+  "depreciation": {
+   "none": 22,
+   "id": 3
+  },
+  "interest_paid": {
+   "id": 24,
+   "none": 1
+  },
+  "finance_costs": {
+   "id": 24,
+   "none": 1
+  },
+  "assets": {
+   "id": 25
+  },
+  "liabilities": {
+   "id": 25
+  },
+  "equity_total": {
+   "id": 25
+  },
+  "equity_owners": {
+   "id": 21,
+   "separate_only": 4
+  },
+  "cur_assets": {
+   "id": 25
+  },
+  "cur_liab": {
+   "id": 25
+  },
+  "cash": {
+   "id": 25
+  },
+  "st_fin": {
+   "id": 13,
+   "zero_default": 12
+  },
+  "debt": {
+   "id": 24,
+   "pattern": 1
+  },
+  "lt_debt": {
+   "id": 14,
+   "zero_default": 10,
+   "pattern": 1
+  }
+ },
+ "fscore_valid": 23
+}

@@ -76,9 +76,11 @@ def ebitda_ev(op_income_ttm, dep_ttm, ev_value, mcap) -> Metric:
 def roe(ni_owners_ttm, eq_begin, eq_end, mcap) -> Metric:
     if ni_owners_ttm is None or eq_end is None:
         return Metric(None, "데이터 없음")
-    if eq_end <= 0 or (eq_begin is not None and eq_begin <= 0):
+    if eq_begin is None:
+        return Metric(None, "기초 잔액 없음")  # 기말만으로 대체하지 않음 (조용한 대체 금지)
+    if eq_end <= 0 or eq_begin <= 0:
         return Metric(None, "자본잠식")
-    avg = eq_end if eq_begin is None else (eq_begin + eq_end) / 2
+    avg = (eq_begin + eq_end) / 2
     if mcap and avg < 0.01 * mcap:
         return Metric(None, "분모 불안정")
     return Metric(ni_owners_ttm / avg)
@@ -87,7 +89,9 @@ def roe(ni_owners_ttm, eq_begin, eq_end, mcap) -> Metric:
 def gp_a(gross_profit_ttm, assets_begin, assets_end) -> Metric:
     if gross_profit_ttm is None or assets_end is None:
         return Metric(None, "데이터 없음")
-    avg = assets_end if assets_begin is None else (assets_begin + assets_end) / 2
+    if assets_begin is None:
+        return Metric(None, "기초 잔액 없음")
+    avg = (assets_begin + assets_end) / 2
     if avg <= 0:
         return Metric(None, "자산 비정상")
     return Metric(gross_profit_ttm / avg)
