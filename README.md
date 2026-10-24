@@ -35,7 +35,8 @@
 
 | 회차 | 일자 | 검토자 | 의견 | 응답 | 결과 |
 |---|---|---|---|---|---|
-| 1 | 2026-10-24 | GPT | [의견](reviews/2026-10-24_gpt.md) | [응답](reviews/2026-10-24_claude-response.md) | 대부분 수용 → v0.2 |
+| 1 | 2026-10-24 | GPT 검토 | [의견](reviews/2026-10-24_gpt.md) | [응답](reviews/2026-10-24_claude-response.md) | 대부분 수용 → v0.2 |
+| 2 | 2026-10-24~ | Claude·GPT 독립 답변 후 채택 ([방식](docs/DEBATE_PROTOCOL.md)) | [질문지](reviews/round2/QUESTIONS.md) | [Claude 답변(봉인)](reviews/round2/claude_position.md) | GPT 답변 대기 |
 
 ---
 ※ 개인 투자 판단을 돕는 도구이며 투자 권유가 아닙니다. 투자 판단과 결과의 책임은 투자자 본인에게 있습니다.
