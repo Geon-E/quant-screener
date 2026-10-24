@@ -41,6 +41,20 @@ def load_groups() -> list[tuple[str, str, str]]:
     return sorted(out, key=lambda x: -len(x[0]))
 
 
+def load_overrides() -> dict[str, dict]:
+    """개별 종목 사업군 보정 (DESIGN 5.2: config/peer_overrides.csv — 적용일·사유 기록)."""
+    p = CONFIG / "peer_overrides.csv"
+    if not p.exists():
+        return {}
+    with p.open(encoding="utf-8") as f:
+        return {r["stock_code"]: r for r in csv.DictReader(f)}
+
+
+def group_names() -> dict[str, str]:
+    with (CONFIG / "peer_groups_v1.csv").open(encoding="utf-8") as f:
+        return {r["group_id"]: r["group_name"] for r in csv.DictReader(f)}
+
+
 def group_of(ksic: str | None, groups) -> tuple[str | None, str | None]:
     k = (ksic or "").strip()
     for p, gid, gname in groups:
@@ -147,6 +161,7 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
           grouping = table(사업군 표) | ksic2(KSIC 앞 2자리) | market(전체 시장)"""
     opts = opts or {}
     grouping = opts.get("grouping", "table")
+    overrides, gnames = load_overrides(), group_names()
     out = []
     for r in evals:
         u = meta.get(r["stock_code"], {})
@@ -156,6 +171,14 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
                                  "excluded_non_dec": "12월 외 결산"}.get(r.get("status"), r.get("error") or r.get("status")))
             r.setdefault("metrics", {})
         gid, gname = group_of(r.get("induty_code"), groups)
+        ov = overrides.get(r["stock_code"])
+        if ov:
+            gid, gname = ov["to_group"], gnames.get(ov["to_group"], ov["to_group"])
+            r["group_override"] = ov["reason"]
+        elif gid == "G30" and "금융" in (r.get("name") or ""):
+            # 이름에 '금융'이 들어간 지주회사(64992)는 금융지주로 보고 제외 — 보정표에 없는 소형 금융지주용 규칙
+            gid, gname = "EX", gnames.get("EX")
+            r["group_override"] = "금융지주회사(이름 규칙, D-06)"
         r["group_id"], r["group_name"] = gid, gname
         # 유니버스 필터 (DESIGN 5.1)
         if gid is None:

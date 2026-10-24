@@ -760,3 +760,15 @@ def test_parallel_stops_on_budget_and_isolates_errors():
 def test_kind_source_policy_recorded():
     from qs.collect import kind
     assert kind.allowed() is True     # config/sources.yaml: robots.txt 없음(사용자 확인), 관리종목 경로만, 하루 1회
+
+
+def test_financial_holding_companies_excluded():
+    """KSIC 64992로 등록된 금융지주는 금융업(D-06)으로 제외 — 보정표 또는 이름 규칙."""
+    from qs.screen import filter_and_score, load_groups
+    def ev(code, name):
+        return {"stock_code": code, "name": name, "status": "ok", "induty_code": "64992", "mcap": 1e13,
+                "metrics": {}, "stock": {}, "ttm": {}}
+    out, _, _ = filter_and_score([ev("105560", "KB금융"), ev("999990", "어떤금융지주"), ev("003550", "LG")],
+                                 {}, dt.date(2026, 10, 22), {}, set(), load_groups())
+    g = {r["stock_code"]: r["group_id"] for r in out}
+    assert g == {"105560": "EX", "999990": "EX", "003550": "G30"}
