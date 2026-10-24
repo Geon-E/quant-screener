@@ -234,6 +234,22 @@ def run() -> dict:
            "collection_complete": uni.get("complete"), "evaluated": len(out), "build_status": dict(stat),
            "ranked": len(ranked), "groups": {g: len(v) for g, v in sorted(by_g.items())},
            "exclusions": dict(exc.most_common())}
+    # 데이터 상태 (DESIGN 8: 기준일·갱신 성공·품질 점검)
+    from .collect.krx import suspicious_empty, weekdays
+    from .util import now_kst
+    warn = []
+    recent_wd = [d.strftime("%Y%m%d") for d in weekdays(asof - dt.timedelta(days=14), asof + dt.timedelta(days=7))]
+    bad = [d for d in recent_wd if suspicious_empty(d)]
+    if bad:
+        warn.append(f"KRX 코스피 시세가 비어 있는 날 {', '.join(bad)} — 매일 다시 받는 중, 그동안 시세 기준일은 {last_bd}")
+    if not uni.get("complete"):
+        warn.append(f"재무 수집 진행 중 {len(uni['rows']):,}/{uni['total']:,}개사 — 나머지는 다음 자동 실행에서")
+    try:
+        hp = read_gz_json(L1 / "history_progress.json.gz")
+        hist = {"processed": hp.get("processed"), "targets": hp.get("targets"), "complete": hp.get("complete")}
+    except FileNotFoundError:
+        hist = None
+    res["status"] = {"built_at": now_kst().isoformat(timespec="minutes"), "warnings": warn, "history": hist}
     log(f"스크리너: 순위 {len(ranked)} / 평가 {len(out)}")
     from .screen_view import build_view
     build_view(out, res, REPORTS / "screen")

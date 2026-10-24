@@ -103,6 +103,11 @@ h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balan
 .meta b{color:var(--ink);font-weight:600;font-family:var(--font-num)}
 .notice{background:var(--warn-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:6px;padding:9px 12px;font-size:13px;display:grid;gap:2px}
 .notice strong{color:var(--warn)}
+.status{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted);align-items:center}
+.status .ok{color:var(--ink)}
+.status .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2f8f5b;margin-right:6px;vertical-align:middle}
+.status .dot.w{background:var(--warn)}
+.status ul{margin:0;padding-left:18px;color:var(--warn);flex-basis:100%}
 .controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .controls input[type=search],.controls select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-width:0}
 .controls input[type=search]{flex:1 1 200px}
@@ -137,7 +142,8 @@ tbody tr.open{background:var(--accent-soft)}
 .up{color:var(--up)} .down{color:var(--down)}
 .dash{color:var(--muted)}
 tr.detail td{background:var(--surface);padding:0;white-space:normal;text-align:left;font-family:var(--font-body)}
-.panel{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;padding:16px 18px;border-bottom:2px solid var(--accent)}
+.panel{position:sticky;left:0;box-sizing:border-box;width:min(100%,calc(100vw - 2*max(16px,env(safe-area-inset-left,0px)) - 2px));display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;padding:16px 18px;border-bottom:2px solid var(--accent)}
+tr.detail td{overflow:visible}
 .panel h3{font-size:13px;margin:0 0 8px;color:var(--muted);font-weight:600;letter-spacing:.02em}
 .mt{width:100%;min-width:0;font-size:12.5px}
 .mt th,.mt td{padding:5px 8px;cursor:default;position:static}
@@ -160,6 +166,7 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
     <h1>업종 대비 저평가 스크리너</h1>
     <div class="meta" id="meta"></div>
   </header>
+  <div class="status" id="status"></div>
   <div class="notice">
     <div><strong>점수는 가설입니다.</strong> 가치 40%·퀄리티 30%·추세 20%·안정성 10% 가중치는 과거 성과로 아직 검증되지 않았습니다. 투자 권유가 아닙니다.</div>
     <div id="notice2"></div>
@@ -200,11 +207,12 @@ const COLS = [
 ];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num = (v,d=1) => v==null ? '<span class="dash">–</span>' : v.toLocaleString("ko-KR",{maximumFractionDigits:d,minimumFractionDigits:d});
-const pct = (v,d=1) => v==null ? '<span class="dash">–</span>' : `<span class="${v>0?'up':v<0?'down':''}">${(v*100).toFixed(d)}%</span>`;
+const pct = (v,d=1,color=false) => v==null ? '<span class="dash">–</span>' : `<span class="${color?(v>0?'up':v<0?'down':''):''}">${(v*100).toFixed(d)}%</span>`;
+const CHANGE = new Set(["12-1모멘텀","영업이익증가율"]);   // 상승 빨강·하락 파랑은 변화율에만 (수익률·비율 지표에는 쓰지 않음)
 function fmtMetric(k,v){
   if(v==null) return '<span class="dash">–</span>';
   if(k==="PBR-ROE잔차"){const d=Math.exp(-v)-1; return `<span class="${d<0?'down':'up'}">${(d*100).toFixed(0)}%</span>`;}
-  if(PCTM.has(k)) return pct(v);
+  if(PCTM.has(k)) return pct(v,1,CHANGE.has(k));
   if(k==="이자보상배율") return v>=100?"100배+":num(v,1)+"배";
   return num(v,2)+"배";
 }
@@ -219,6 +227,14 @@ function meta(){
   document.getElementById("notice2").textContent = "코스피 관리종목은 아직 걸러내지 못합니다(코스닥은 제외 반영). 결측 지표는 빈칸이며 점수를 채워 넣지 않습니다.";
   const gs=[...new Set(ROWS.filter(r=>r.g&&r.gid!=="EX").map(r=>r.g))].sort((a,b)=>a.localeCompare(b,"ko"));
   const sel=document.getElementById("grp"); gs.forEach(g=>{const o=document.createElement("option");o.textContent=g;sel.append(o);});
+}
+function status(){
+  const st=S.status||{}, w=st.warnings||[];
+  const built=(st.built_at||"").replace("T"," ");
+  const h=st.history; const hs = h&&h.targets ? `과거 이력(2015~) 수집 ${h.processed.toLocaleString()}/${h.targets.toLocaleString()}개사${h.complete?" 완료":""}` : "과거 이력(2015~) 수집 대기";
+  document.getElementById("status").innerHTML =
+    `<span class="ok"><span class="dot ${w.length?'w':''}"></span>${w.length?'갱신됨 · 확인 필요 '+w.length+'건':'정상 갱신'}</span><span>화면 생성 ${esc(built)}</span><span>${hs}</span>`+
+    (w.length?`<ul>${w.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"");
 }
 function header(){
   document.getElementById("hdr").innerHTML = COLS.map(c=>`<th class="${c.l?'l':''}" data-k="${c.k}" ${c.ns?'data-ns="1"':''} ${sortK===c.k?`aria-sort="${sortDir>0?'ascending':'descending'}"`:''}>${c.t}</th>`).join("");
@@ -242,7 +258,7 @@ function row(r){
     <td class="l grp">${esc(r.g||'미배정')}${r.gn?`<small class="rel-${r.rel}">${r.gn}</small>`:''}</td>
     <td class="score">${num(r.sc,1)}</td><td>${bars(r.b)}</td>
     <td>${r.per==null?'<span class="dash">–</span>':num(r.per,1)}</td><td>${r.pbr==null?'<span class="dash">–</span>':num(r.pbr,2)}</td>
-    <td>${pct(r.m.ROE)}</td><td>${pct(r.m["12-1모멘텀"],0)}</td>
+    <td>${pct(r.m.ROE)}</td><td>${pct(r.m["12-1모멘텀"],0,true)}</td>
     <td>${r.mc==null?'<span class="dash">–</span>':Math.round(r.mc/1e8).toLocaleString()}</td><td>${flag}</td></tr>`;
 }
 function detail(r){
@@ -280,6 +296,6 @@ document.getElementById("tb").addEventListener("click",e=>{const tr=e.target.clo
 document.getElementById("tb").addEventListener("keydown",e=>{if(e.key!=="Enter") return; const tr=e.target.closest("tr.row"); if(!tr) return; openCode=openCode===tr.dataset.c?null:tr.dataset.c; render();});
 ["q","mk","grp","showx"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{limit=200; if(id==="showx"){sortK=document.getElementById("showx").checked?"mc":"rk"; sortDir=document.getElementById("showx").checked?-1:1;} render();}));
 document.getElementById("more").addEventListener("click",()=>{limit+=300; render();});
-meta(); render();
+meta(); status(); render();
 </script>
 """
