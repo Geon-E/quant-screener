@@ -16,6 +16,9 @@ on:
         description: "추가 인자 (예: --reselect, --start 2025-09-01)"
         default: ""
         type: string
+  schedule:
+    # 일일 운영 (3차 협의 Q5-a): 화~토 07:40 KST = 전 거래일 데이터 확정 후. D-08 측정 결과에 따라 시각 조정 예정
+    - cron: "40 22 * * 1-5"
 
 permissions:
   contents: write
@@ -61,7 +64,9 @@ jobs:
           DART_API_KEY: ${{ secrets.DART_API_KEY }}
         run: |
           set +e
-          python -m qs.cli ${{ github.event.inputs.command }} ${{ github.event.inputs.extra }}
+          CMD="${{ github.event.inputs.command }}"
+          if [ -z "$CMD" ]; then CMD=phase1; fi
+          python -m qs.cli $CMD ${{ github.event.inputs.extra }}
           code=$?
           echo "code=$code" >> "$GITHUB_OUTPUT"
           echo "exit code $code"
@@ -74,8 +79,9 @@ jobs:
             ls -lh /tmp/l0.tar.gz
             gh release upload data-store /tmp/l0.tar.gz --clobber
           fi
+          # 파생 데이터(L1·L2)는 실행이 완전히 성공했을 때만 교체 → 실패 시 마지막 정상본 유지
           layers=$(cd data && ls -d l1 l2 2>/dev/null | tr '\n' ' ')
-          if [ -n "$layers" ]; then
+          if [ -n "$layers" ] && [ "${{ steps.run.outputs.code }}" = "0" ]; then
             tar -czf /tmp/derived.tar.gz -C data $layers
             gh release upload data-store /tmp/derived.tar.gz --clobber
           fi
@@ -87,7 +93,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add reports/phase1 config/sample_v1.csv 2>/dev/null || true
           if git diff --cached --quiet; then echo "no changes"; exit 0; fi
-          git commit -m "1단계 수집 결과 (${{ github.event.inputs.command }}, $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST)"
+          git commit -m "1단계 실행 결과 (${{ github.event.inputs.command || 'phase1(일일)' }}, $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST)"
           for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done
 
       - name: Fail on error

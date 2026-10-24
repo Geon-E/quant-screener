@@ -41,7 +41,11 @@ def build(results: list[dict], path: Path) -> None:
         "    (파이썬은 '분기값 4개 합산' 방식 → 서로 다른 경로로 같은 답이 나와야 함)",
         "  · '일치/불일치' 칸이 전부 '일치'여야 계산 로직이 맞는 것",
         "",
-        "■ 원천값 확인 시트 (사람이 확인)",
+        "■ 확인 표본 시트 (3차 협의 Q4) — 먼저 이것부터",
+        "  · 회사별 핵심 4항목(지배주주순이익·지배주주자본·영업이익·이자부부채) + 대체 규칙이 적용된 항목 전부",
+        "  · '담당' 칸대로 사용자·GPT가 나눠 DART 원문과 대조 → 판정 칸에 O / X / 미확인",
+        "",
+        "■ 원천값 확인 시트 (전체 700행, 참고용)",
         "  · 각 행의 DART 링크를 열어 해당 계정 금액이 맞는지 확인 후 '확인' 칸에 O/X 입력",
         "  · X가 나오면 계정 매핑 규칙(config/account_rules.yaml) 수정 대상",
         "",
@@ -160,6 +164,55 @@ def build(results: list[dict], path: Path) -> None:
                     c.font = Font(color="1F5FD6", underline="single")
                 row += 1
 
+    # ── 확인 표본 (3차 협의 Q4: 층화 약 100행 + 대체 규칙 행 전부, 사용자·GPT 분담) ──
+    ws4 = wb.create_sheet("확인 표본", 1)
+    hdr4 = ["#", "담당", "회사", "종목코드", "기준분기", "항목", "기간 역할", "금액(원)", "매핑 방식", "원 계정 ID", "원 계정명",
+            "접수번호", "DART 원문", "판정(O/X/미확인)", "메모"]
+    for c, h in enumerate(hdr4, start=1):
+        cell = ws4.cell(row=1, column=c, value=h)
+        cell.fill = HDR
+        cell.font = Font(bold=True)
+    for c, w in enumerate([5, 8, 16, 9, 9, 14, 10, 18, 13, 38, 26, 16, 10, 14, 30], start=1):
+        ws4.column_dimensions[get_column_letter(c)].width = w
+    ws4.freeze_panes = "C2"
+    labels = dict(FLOWS + STOCKS + [("lt_debt", "장기부채"), ("interest_paid", "이자지급"), ("gross_profit", "매출총이익")])
+    CORE = ["ni_owners", "equity_owners", "op_income", "debt"]
+    picks = []
+    for idx, r in enumerate(ok):
+        who = "사용자" if idx % 2 == 0 else "GPT"
+        chosen = list(CORE)
+        for it, conf in r["confidence_P"].items():
+            if conf not in ("id",) and it not in chosen and it in labels:
+                chosen.append(it)  # 대체 규칙이 적용된 항목은 전부 포함
+        for it in chosen:
+            conf = r["confidence_P"].get(it)
+            v = r["verify_inputs"].get(it, {})
+            amount = v.get("ytd_P", v.get("P"))
+            role = "당기 YTD" if "ytd_P" in v else "당기말"
+            src = (r.get("sources_P") or {}).get(it) or []
+            picks.append([who, r["name"], r["stock_code"], r["period"], labels.get(it, it), role, amount, conf,
+                          " + ".join(str(x[0]) for x in src), " + ".join(str(x[1]) for x in src),
+                          r["verify_inputs"]["rcept"]["P"]])
+    for n, p in enumerate(picks, start=1):
+        row = n + 1
+        vals = [n] + p
+        for c, v in enumerate(vals, start=1):
+            if c == 13:
+                continue
+            cell = ws4.cell(row=row, column=c if c < 13 else c + 1, value=v)
+        ws4.cell(row=row, column=8).number_format = "#,##0"
+        if p[7] not in ("id",):
+            for c in range(1, 16):
+                ws4.cell(row=row, column=c).fill = INPUT
+        rno = p[10]
+        ws4.cell(row=row, column=12, value=rno)
+        if rno:
+            c = ws4.cell(row=row, column=13, value="열기")
+            c.hyperlink = f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rno}"
+            c.font = Font(color="1F5FD6", underline="single")
+        ws4.cell(row=row, column=14, value=None)
+    ws4.cell(row=len(picks) + 3, column=3, value="노란 행 = 대체 규칙(id 외) 적용 항목. 통과 기준: id 행 오류 0건, 대체 규칙 행은 오류 1건이면 해당 규칙 전수 재검토. 원문을 실제로 열지 못했으면 '미확인'.")
+
     # ── 커버리지 ──
     ws3 = wb.create_sheet("커버리지")
     ws3.append(["지표", "계산 가능", "평가 대상", "비율", "무효 사유"])
@@ -167,7 +220,7 @@ def build(results: list[dict], path: Path) -> None:
         ws3.cell(row=1, column=c).fill = HDR
         ws3.cell(row=1, column=c).font = Font(bold=True)
     from collections import Counter
-    for m in ["E/P", "B/P", "EBIT/EV", "EBITDA/EV", "ROE", "GP/A", "CFO/NI", "이자보상배율", "영업이익증가율", "12-1모멘텀"]:
+    for m in ["E/P", "B/P", "EBIT/EV", "EBITDA/EV(실험)", "ROE", "GP/A", "CFO/NI", "이자보상배율", "영업이익증가율", "12-1모멘텀"]:
         vals = [x["metrics"].get(m) for x in ok]
         reasons = Counter(x["metric_reasons"].get(m) or "값 없음" for x in ok if x["metrics"].get(m) is None)
         n = sum(v is not None for v in vals)

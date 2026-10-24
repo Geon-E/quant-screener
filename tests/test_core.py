@@ -270,3 +270,70 @@ def test_roe_gpa_require_begin_balance():
     from qs.score.metrics import gp_a
     assert roe(10, None, 100, 1000).reason == "기초 잔액 없음"
     assert gp_a(10, None, 100).reason == "기초 잔액 없음"
+
+
+# ── 3차 협의 반영 규칙 ──
+def test_zero_default_only_when_no_related_names():
+    ns = "-표준계정코드 미사용-"
+    # 관련 명칭 없음 → 0 (무차입)
+    assert extract([_r("BS", "ifrs-full_Equity", "자본총계", "500")], "CFS")["debt"].confidence == "zero_default"
+    # 차입금 명칭은 있는데 매핑 규칙에 없는 ID → 무효
+    rows = [_r("BS", "ifrs-full_OtherCurrentFinancialLiabilities", "기타차입금", "300")]
+    x = extract(rows, "CFS")["debt"]
+    assert x.value is None and x.confidence == "unmapped"
+
+
+def test_no_nci_not_applied_when_owner_named_row_exists():
+    ns = "-표준계정코드 미사용-"
+    rows = [_r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=1),
+            _r("CIS", ns, "총포괄손익", "150", ord_=2),
+            _r("CIS", ns, "지배기업의 소유주", "140", ord_=3)]  # 포괄손익 귀속행만 있음 → 순이익 귀속을 모름
+    x = extract(rows, "CFS")["ni_owners"]
+    assert x.value is None
+
+
+def test_separate_only_blocked_if_company_had_cfs():
+    rows = [_r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=1)]
+    assert extract(rows, "OFS", had_cfs=False)["ni_owners"].confidence == "separate_only"
+    assert extract(rows, "OFS", had_cfs=True)["ni_owners"].value is None
+
+
+def test_ordinal_variations():
+    ns = "-표준계정코드 미사용-"
+    # 비지배가 먼저 나와도 지배기업 행을 고른다
+    rows = [_r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=1),
+            _r("CIS", ns, "비지배지분", "30", ord_=2),
+            _r("CIS", ns, "지배주주지분", "70", ord_=3)]
+    assert extract(rows, "CFS")["ni_owners"].value == 70
+    # 순이익 다음에 바로 포괄손익 구간이 시작되면 그 뒤 '지배기업' 행은 채택하지 않음
+    rows2 = [_r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=1),
+             _r("CIS", ns, "기타포괄손익", "50", ord_=2),
+             _r("CIS", ns, "지배기업소유주지분", "140", ord_=3),
+             _r("CIS", ns, "비지배지분", "10", ord_=4)]
+    assert extract(rows2, "CFS")["ni_owners"].value is None
+
+
+def test_debt_same_id_counted_once():
+    rows = [_r("BS", "ifrs-full_ShorttermBorrowings", "단기차입금", "100", ord_=1),
+            _r("BS", "ifrs-full_ShorttermBorrowings", "단기차입금", "100", ord_=7)]  # 같은 ID 반복(소계 표시 등)
+    assert extract(rows, "CFS")["debt"].value == 100
+
+
+def test_id_matched_blank_amount_is_zero_tagged():
+    rows = [_r("BS", "dart_LongTermBorrowingsGross", "장기차입금", "-")]
+    x = extract(rows, "CFS")["lt_debt"]
+    assert x.value == 0 and x.confidence == "id_blank"
+
+
+def test_lt_debt_guard_ignores_current_ids():
+    rows = [_r("BS", "dart_CurrentPortionOfConvertibleBonds", "전환사채", "50")]
+    x = extract(rows, "CFS")
+    assert x["lt_debt"].confidence == "zero_default" and x["debt"].value == 50
+
+
+def test_new_debt_ids():
+    rows = [_r("BS", "dart_CurrentLoansReceived", "단기 금융기관 차입금(사채 제외)", "10"),
+            _r("BS", "dart_NoncurrentLoansReceived", "장기 금융기관 차입금(사채 제외)", "20"),
+            _r("BS", "dart_NoncurrentBondsIssued", "장기 사채", "30")]
+    x = extract(rows, "CFS")
+    assert x["debt"].value == 60 and x["lt_debt"].value == 50

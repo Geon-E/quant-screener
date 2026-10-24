@@ -133,7 +133,8 @@ items:
     mode: sum
     ids: ["ifrs:ShorttermDepositsNotClassifiedAsCashEquivalents", "dart_ShortTermDepositsNotClassifiedAsCashEquivalents"]
     names: ['^단기금융상품$']
-    missing_as_zero: true   # 보유하지 않는 회사가 많음 → 없으면 0
+    missing_as_zero: true   # 보유하지 않는 회사가 많음 → 관련 명칭이 없으면 0
+    zero_guard_names: ['단기금융', '단기예금', '정기예금']
 
   debt:
     kind: stock
@@ -142,13 +143,15 @@ items:
     ids: ["ifrs:ShorttermBorrowings", "dart_ShortTermBorrowings",
           "ifrs:CurrentPortionOfLongtermBorrowings", "ifrs:CurrentBorrowingsAndCurrentPortionOfNoncurrentBorrowings",
           "ifrs:LongtermBorrowings", "dart_LongTermBorrowingsGross", "ifrs:NoncurrentPortionOfNoncurrentLoansReceived",
+          "dart_CurrentLoansReceived", "dart_NoncurrentLoansReceived", "dart_NoncurrentBondsIssued", "dart_CurrentBondsIssued",
           "dart_BondsIssued", "dart_CurrentPortionOfBonds", "ifrs:NoncurrentPortionOfNoncurrentBondsIssued",
           "dart_ConvertibleBonds", "dart_CurrentPortionOfConvertibleBonds",
           "dart_BondWithWarrant", "dart_CurrentPortionOfBondWithWarrant",
           "ifrs:CurrentLeaseLiabilities", "ifrs:NoncurrentLeaseLiabilities"]
     names: ['차입금$', '사채$', '리스부채$']
     exclude_names: ['할인', '할증', '상환할증', '전환권조정', '이자']
-    missing_as_zero: true   # 무차입 기업
+    missing_as_zero: true   # 무차입 기업 — 관련 명칭이 하나도 없을 때만 0 (3차 협의 Q6-B)
+    zero_guard_names: ['차입금', '사채', '리스부채', '차입부채']
     note: 사채할인발행차금 등 차감 계정은 1단계에서 제외(보수적으로 부채 과대) → 표본 검증에서 확인
 
   lt_debt:
@@ -156,7 +159,10 @@ items:
     sj: [BS]
     mode: sum
     ids: ["ifrs:LongtermBorrowings", "dart_LongTermBorrowingsGross", "ifrs:NoncurrentPortionOfNoncurrentLoansReceived",
-          "ifrs:NoncurrentPortionOfNoncurrentBondsIssued", "dart_BondsIssued", "dart_ConvertibleBonds", "dart_BondWithWarrant"]
+          "ifrs:NoncurrentPortionOfNoncurrentBondsIssued", "dart_BondsIssued", "dart_ConvertibleBonds", "dart_BondWithWarrant",
+          "dart_NoncurrentLoansReceived", "dart_NoncurrentBondsIssued"]
     names: ['^장기차입금', '^사채$']
     exclude_names: ['유동성', '할인', '할증', '전환권조정']
     missing_as_zero: true
+    zero_guard_names: ['장기차입금', '사채', '비유동.*차입']
+    zero_guard_exclude_ids: 'Current|Shortterm|ShortTerm'   # 유동 계정은 장기부채 판단에서 제외

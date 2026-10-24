@@ -7,6 +7,7 @@
   "induty_code": "264",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -50,7 +51,7 @@
    "cur_liab": 134189617000000.0,
    "cash": 92916382000000.0,
    "st_fin": 97036646000000.0,
-   "debt": 8698600000000.0,
+   "debt": 22408721000000.0,
    "lt_debt": 7492771000000.0
   },
   "stock_prev": {
@@ -186,6 +187,10 @@
    ],
    "debt": [
     [
+     "dart_CurrentLoansReceived",
+     "단기차입금"
+    ],
+    [
      "ifrs-full_CurrentPortionOfLongtermBorrowings",
      "유동성장기부채"
     ],
@@ -209,13 +214,13 @@
     ]
    ]
   },
-  "ev": 1213336737007700.0,
+  "ev": 1227046858007700.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
    "E/P": 0.10732118254827294,
    "B/P": 0.4051830774339375,
-   "EBIT/EV": 0.14749815573981442,
-   "EBITDA/EV": null,
+   "EBIT/EV": 0.1458501196038896,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.3138511834548552,
    "GP/A": 0.44126346055839866,
    "CFO/NI": 1.3052876869249683,
@@ -224,7 +229,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
   "fscore": 7.875,
@@ -416,7 +421,7 @@
     "P_prevyear": 53580554000000.0
    },
    "debt": {
-    "P": 8698600000000.0,
+    "P": 22408721000000.0,
     "P_prevyear": 14029673000000.0
    },
    "lt_debt": {
@@ -433,6 +438,7 @@
   "induty_code": "2612",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -639,7 +645,7 @@
    "E/P": 0.1736263528737086,
    "B/P": 0.2812711306969897,
    "EBIT/EV": 0.14226068901844066,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.9268199674073054,
    "GP/A": 0.6037294550029235,
    "CFO/NI": 0.7829512403810864,
@@ -648,7 +654,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
   "fscore": 7.875,
@@ -857,6 +863,7 @@
   "induty_code": "30121",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -1079,7 +1086,7 @@
    "E/P": 0.11711351774161656,
    "B/P": 1.7585600015019685,
    "EBIT/EV": 0.0410204487868796,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.07004647751040909,
    "GP/A": 0.08956628317608205,
    "CFO/NI": -0.22827217827858234,
@@ -1088,7 +1095,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
   "fscore": 1.125,
@@ -1297,6 +1304,7 @@
   "induty_code": "63120",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -1506,7 +1514,7 @@
    "E/P": 0.07663145697601025,
    "B/P": 1.1186642471096488,
    "EBIT/EV": 0.09796558634043065,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.07234520209373854,
    "GP/A": null,
    "CFO/NI": 1.6679277292136652,
@@ -1515,7 +1523,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "GP/A": "데이터 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
@@ -1725,6 +1733,7 @@
   "induty_code": "20111",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -1920,7 +1929,7 @@
    "E/P": -0.08915693643411493,
    "B/P": 2.088757204361578,
    "EBIT/EV": 0.017683270087878622,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.04522632751823028,
    "GP/A": 0.08925025513700197,
    "CFO/NI": null,
@@ -1929,7 +1938,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "12-1모멘텀": "수정주가 미검증"
   },
@@ -2139,6 +2148,7 @@
   "induty_code": "63120",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -2340,7 +2350,7 @@
    "E/P": 0.02610981217919059,
    "B/P": 0.8880275724460138,
    "EBIT/EV": 0.14341323465781927,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.030989749690704317,
    "GP/A": null,
    "CFO/NI": 2.9208178701812346,
@@ -2349,7 +2359,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "GP/A": "데이터 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
@@ -2559,6 +2569,7 @@
   "induty_code": "64992",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -2772,7 +2783,7 @@
    "E/P": 0.05000749417812824,
    "B/P": 2.047728384110497,
    "EBIT/EV": 0.07484637699184339,
-   "EBITDA/EV": 0.09336811035167297,
+   "EBITDA/EV(실험)": 0.09336811035167297,
    "ROE": 0.026077483525110655,
    "GP/A": 0.041504254572184984,
    "CFO/NI": 1.0070632352427993,
@@ -2989,6 +3000,7 @@
   "induty_code": "64992",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -3191,7 +3203,7 @@
    "E/P": 0.23839543804657837,
    "B/P": 1.102072027015201,
    "EBIT/EV": 0.12398354638746209,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.2540537390645458,
    "GP/A": 0.07997112639633536,
    "CFO/NI": 0.28379865309341984,
@@ -3200,7 +3212,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
   "fscore": 7.875,
@@ -3409,6 +3421,7 @@
   "induty_code": "24212",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 15,
   "l1_periods": 15,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -3450,8 +3463,8 @@
    "cur_liab": 148520048156.0,
    "cash": 6217797610.0,
    "st_fin": 1568000000.0,
-   "debt": 2530070664.0,
-   "lt_debt": 0.0
+   "debt": 83576743233.0,
+   "lt_debt": 8968817143.0
   },
   "stock_prev": {
    "assets": 217262765598.0,
@@ -3484,7 +3497,7 @@
    "cash": "id",
    "st_fin": "id",
    "debt": "id",
-   "lt_debt": "zero_default"
+   "lt_debt": "id"
   },
   "sources_P": {
    "revenue": [
@@ -3586,19 +3599,40 @@
    ],
    "debt": [
     [
+     "dart_CurrentLoansReceived",
+     "단기 금융기관 차입금(사채 제외)"
+    ],
+    [
      "dart_CurrentPortionOfConvertibleBonds",
      "유동성전환사채"
+    ],
+    [
+     "dart_NoncurrentBondsIssued",
+     "장기 사채"
+    ],
+    [
+     "dart_NoncurrentLoansReceived",
+     "장기 금융기관 차입금(사채 제외)"
     ]
    ],
-   "lt_debt": []
+   "lt_debt": [
+    [
+     "dart_NoncurrentBondsIssued",
+     "장기 사채"
+    ],
+    [
+     "dart_NoncurrentLoansReceived",
+     "장기 금융기관 차입금(사채 제외)"
+    ]
+   ]
   },
-  "ev": 18287123943.0,
+  "ev": 99333796512.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
    "E/P": -0.08117435921462332,
    "B/P": 2.051379054886049,
-   "EBIT/EV": 0.04166272123351792,
-   "EBITDA/EV": null,
+   "EBIT/EV": 0.0076700113531647796,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.039381907613863495,
    "GP/A": 0.050740628420675546,
    "CFO/NI": null,
@@ -3607,7 +3641,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "영업이익증가율": null,
    "12-1모멘텀": "수정주가 미검증"
@@ -3801,11 +3835,11 @@
     "P_prevyear": 1568000000.0
    },
    "debt": {
-    "P": 2530070664.0,
+    "P": 83576743233.0,
     "P_prevyear": 96189239830.0
    },
    "lt_debt": {
-    "P": 0.0,
+    "P": 8968817143.0,
     "P_prevyear": 15628875638.0
    }
   }
@@ -3820,6 +3854,7 @@
   "flags": [
    "KRX 백필 기간에 시세 없음"
   ],
+  "cfs_quarters": 10,
   "l1_periods": 41,
   "status": "no_price"
  },
@@ -3831,6 +3866,7 @@
   "induty_code": "759",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 14,
   "l1_periods": 15,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -3906,7 +3942,7 @@
    "cash": "id",
    "st_fin": "id",
    "debt": "id",
-   "lt_debt": "zero_default"
+   "lt_debt": "id_blank"
   },
   "sources_P": {
    "revenue": [
@@ -4021,7 +4057,12 @@
      "비유동 리스부채"
     ]
    ],
-   "lt_debt": []
+   "lt_debt": [
+    [
+     "dart_LongTermBorrowingsGross",
+     "장기차입금"
+    ]
+   ]
   },
   "ev": 61330000771.0,
   "interest_basis": "이자지급(CF)",
@@ -4029,7 +4070,7 @@
    "E/P": 0.13847770763694836,
    "B/P": 0.6711390123580876,
    "EBIT/EV": 0.33980835035068907,
-   "EBITDA/EV": 0.3702537240589333,
+   "EBITDA/EV(실험)": 0.3702537240589333,
    "ROE": 0.22169109917861585,
    "GP/A": 0.29157583491372796,
    "CFO/NI": 1.402340673101343,
@@ -4246,6 +4287,7 @@
   "induty_code": "212",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 0,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -4287,7 +4329,7 @@
    "cur_liab": 91786321039.0,
    "cash": 1118692236.0,
    "st_fin": 0.0,
-   "debt": 377934408.0,
+   "debt": 75568608288.0,
    "lt_debt": 0.0
   },
   "stock_prev": {
@@ -4418,19 +4460,23 @@
    "st_fin": [],
    "debt": [
     [
+     "dart_CurrentLoansReceived",
+     "단기차입금"
+    ],
+    [
      "dart_CurrentPortionOfConvertibleBonds",
      "전환사채"
     ]
    ],
    "lt_debt": []
   },
-  "ev": 50567792982.0,
+  "ev": 125758466862.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
    "E/P": 0.4444493345845096,
    "B/P": 3.160463321591133,
-   "EBIT/EV": 0.07495483869246948,
-   "EBITDA/EV": null,
+   "EBIT/EV": 0.030139527465448946,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.15810389658165647,
    "GP/A": 0.32694523168339246,
    "CFO/NI": 0.47151782573965734,
@@ -4439,7 +4485,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
   "fscore": 4.5,
@@ -4631,7 +4677,7 @@
     "P_prevyear": 0.0
    },
    "debt": {
-    "P": 377934408.0,
+    "P": 75568608288.0,
     "P_prevyear": 77377785640.0
    },
    "lt_debt": {
@@ -4648,6 +4694,7 @@
   "induty_code": "64992",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 37,
   "l1_periods": 37,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -4843,7 +4890,7 @@
    "E/P": -0.18363956008099347,
    "B/P": 2.932246218167128,
    "EBIT/EV": 0.02651829969769367,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.06493873508583001,
    "GP/A": 0.19426611348904102,
    "CFO/NI": null,
@@ -4852,7 +4899,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "12-1모멘텀": "수정주가 미검증"
   },
@@ -5064,6 +5111,7 @@
   "flags": [
    "상장폐지/거래정지 — 마지막 거래일 20260414 기준 평가"
   ],
+  "cfs_quarters": 0,
   "l1_periods": 10,
   "asof": "2026-04-14",
   "period": "2025Q4",
@@ -5243,12 +5291,12 @@
    ]
   },
   "ev": 296767710.0,
-  "interest_basis": "금융원가 대용",
+  "interest_basis": "금융원가 대용(신뢰도 낮음)",
   "metrics": {
    "E/P": 0.014605598626011669,
    "B/P": 0.9772472366836062,
    "EBIT/EV": null,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.01505818071971797,
    "GP/A": null,
    "CFO/NI": -0.05491286672548874,
@@ -5258,7 +5306,7 @@
   },
   "metric_reasons": {
    "EBIT/EV": "EV 비정상",
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "GP/A": "데이터 없음",
    "영업이익증가율": null,
    "12-1모멘텀": "수정주가 미검증"
@@ -5471,6 +5519,7 @@
   "flags": [
    "상장폐지/거래정지 — 마지막 거래일 20260211 기준 평가"
   ],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-02-11",
   "period": "2025Q3",
@@ -5655,7 +5704,7 @@
    "E/P": 0.11942478746369405,
    "B/P": 2.082455997895074,
    "EBIT/EV": 0.20486919489106792,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.05824983626334376,
    "GP/A": 0.12324421120980923,
    "CFO/NI": 3.263895352878051,
@@ -5664,7 +5713,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
   "fscore": 9.0,
@@ -5903,6 +5952,7 @@
   "induty_code": "383",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 18,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -6082,12 +6132,12 @@
    "lt_debt": []
   },
   "ev": 28436332275.0,
-  "interest_basis": "금융원가 대용",
+  "interest_basis": "금융원가 대용(신뢰도 낮음)",
   "metrics": {
    "E/P": -0.21585565382745217,
    "B/P": 1.7487486421188265,
    "EBIT/EV": -0.0720742360575754,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.1166297484518116,
    "GP/A": 0.13621591003373212,
    "CFO/NI": null,
@@ -6096,7 +6146,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "영업이익증가율": null,
    "12-1모멘텀": "수정주가 미검증"
@@ -6307,6 +6357,7 @@
   "induty_code": "468",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -6495,7 +6546,7 @@
    "E/P": -0.43860638718133327,
    "B/P": 1.507845694224714,
    "EBIT/EV": -0.3807779381868834,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.254072376840902,
    "GP/A": 0.04281200969105567,
    "CFO/NI": null,
@@ -6504,7 +6555,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "영업이익증가율": null,
    "12-1모멘텀": "수정주가 미검증"
@@ -6715,6 +6766,7 @@
   "induty_code": "108",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 28,
   "l1_periods": 31,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -6903,7 +6955,7 @@
    "E/P": 0.09397253190937788,
    "B/P": 2.48749355641517,
    "EBIT/EV": -0.0832328296386521,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.03827649082936972,
    "GP/A": 0.07163790316579038,
    "CFO/NI": 0.6258327849006708,
@@ -6912,7 +6964,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "영업이익증가율": null,
    "12-1모멘텀": "수정주가 미검증"
   },
@@ -7122,6 +7174,7 @@
   "induty_code": "212",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -7314,7 +7367,7 @@
    "E/P": -1.9487157269059088,
    "B/P": 4.834451725801501,
    "EBIT/EV": -0.2779954392423497,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.3389614551925137,
    "GP/A": -0.040988140565829626,
    "CFO/NI": null,
@@ -7323,7 +7376,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "영업이익증가율": null,
    "12-1모멘텀": "수정주가 미검증"
@@ -7534,6 +7587,7 @@
   "induty_code": "4112",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -7740,7 +7794,7 @@
    "E/P": -0.8411939285105539,
    "B/P": 6.600100985886285,
    "EBIT/EV": 0.08827054306305401,
-   "EBITDA/EV": 0.1064038757001658,
+   "EBITDA/EV(실험)": 0.1064038757001658,
    "ROE": -0.11716360357073514,
    "GP/A": 0.0830758897420463,
    "CFO/NI": null,
@@ -7958,6 +8012,7 @@
   "induty_code": "582",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 10,
   "l1_periods": 21,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -8155,7 +8210,7 @@
    "E/P": -0.15499876175406632,
    "B/P": 1.4779271155724447,
    "EBIT/EV": -0.13729589607370543,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.10015720172200536,
    "GP/A": 0.35419843483497754,
    "CFO/NI": null,
@@ -8164,7 +8219,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "12-1모멘텀": "수정주가 미검증"
   },
@@ -8374,6 +8429,7 @@
   "induty_code": "262",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 6,
   "l1_periods": 21,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -8579,7 +8635,7 @@
    "E/P": -0.02518045422869632,
    "B/P": 0.5765807337600578,
    "EBIT/EV": 0.014283691795642615,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.04553614222079541,
    "GP/A": 0.19842883773817407,
    "CFO/NI": null,
@@ -8588,7 +8644,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "영업이익증가율": null,
    "12-1모멘텀": "수정주가 미검증"
@@ -8799,6 +8855,7 @@
   "induty_code": "59120",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -8995,7 +9052,7 @@
    "E/P": -0.02623292436128291,
    "B/P": 1.5346262628191,
    "EBIT/EV": -0.04642247236749772,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.016856274453907742,
    "GP/A": 0.02357643743269142,
    "CFO/NI": null,
@@ -9004,7 +9061,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "영업이익증가율": null,
    "12-1모멘텀": "수정주가 미검증"
@@ -9215,6 +9272,7 @@
   "induty_code": "204",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 21,
   "l1_periods": 21,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -9421,7 +9479,7 @@
    "E/P": 0.03219686668006684,
    "B/P": 0.6347798075393802,
    "EBIT/EV": 0.027950258943316316,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.05179091479478721,
    "GP/A": 0.10134853076234791,
    "CFO/NI": 0.7037717423351786,
@@ -9430,7 +9488,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
   "fscore": 4.5,
@@ -9639,6 +9697,7 @@
   "induty_code": "26410",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 43,
   "l1_periods": 43,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -9680,7 +9739,7 @@
    "cur_liab": 271810296420.0,
    "cash": 57248515571.0,
    "st_fin": 28008536607.0,
-   "debt": 24331190828.0,
+   "debt": 132656004556.0,
    "lt_debt": 14500000000.0
   },
   "stock_prev": {
@@ -9816,6 +9875,10 @@
    ],
    "debt": [
     [
+     "dart_CurrentLoansReceived",
+     "단기차입금"
+    ],
+    [
      "dart_CurrentPortionOfBondWithWarrant",
      "유동성신주인수권부사채"
     ],
@@ -9839,13 +9902,13 @@
     ]
    ]
   },
-  "ev": 43722000570.0,
+  "ev": 152046814298.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
    "E/P": -0.18032370287150154,
    "B/P": 2.667451838322279,
-   "EBIT/EV": 1.0032972440446588,
-   "EBITDA/EV": null,
+   "EBIT/EV": 0.2885043194001139,
+   "EBITDA/EV(실험)": null,
    "ROE": -0.0667292677678974,
    "GP/A": 0.27421317625911096,
    "CFO/NI": null,
@@ -9854,7 +9917,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "CFO/NI": "순이익 ≤ 0",
    "12-1모멘텀": "수정주가 미검증"
   },
@@ -10047,7 +10110,7 @@
     "P_prevyear": 13245748458.0
    },
    "debt": {
-    "P": 24331190828.0,
+    "P": 132656004556.0,
     "P_prevyear": 164949624731.0
    },
    "lt_debt": {
@@ -10064,6 +10127,7 @@
   "induty_code": "2032",
   "acc_mt": "12",
   "flags": [],
+  "cfs_quarters": 0,
   "l1_periods": 23,
   "asof": "2026-10-23",
   "period": "2026Q2",
@@ -10264,7 +10328,7 @@
    "E/P": 0.027041206719695496,
    "B/P": 2.095540709446324,
    "EBIT/EV": 0.028478813385321346,
-   "EBITDA/EV": null,
+   "EBITDA/EV(실험)": null,
    "ROE": 0.012984836414009744,
    "GP/A": 0.18952473788668833,
    "CFO/NI": 8.755051220485493,
@@ -10273,7 +10337,7 @@
    "12-1모멘텀": null
   },
   "metric_reasons": {
-   "EBITDA/EV": "EBITDA 구성 계정 없음",
+   "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
    "12-1모멘텀": "수정주가 미검증"
   },
   "fscore": 6.75,

@@ -80,7 +80,16 @@ def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
 
     # L1: 보고서별 표준 항목
     periods = {}
+    # 연결재무제표 제출 분기 (separate_only 오적용 방지: 인접 ±4분기에 연결이 있으면 별도 기간의 대체 금지)
+    cfs_q = set()
+    for (y, c) in versions:
+        p = dart_path("fs", cc, f"{y}_{c}_CFS.json.gz")
+        if exists(p) and load_l0(p)["payload"].get("status") == "000":
+            cfs_q.add(y * 4 + REPRT_Q[c])
+    out["cfs_quarters"] = len(cfs_q)
     for (y, code_r), vs in sorted(versions.items()):
+        qi = y * 4 + REPRT_Q[code_r]
+        had_cfs = any(abs(qi - x) <= 4 for x in cfs_q)
         q = REPRT_Q[code_r]
         fs_div, payload = None, None
         for div in ("CFS", "OFS"):
@@ -92,7 +101,7 @@ def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
                     break
         if not payload:
             continue
-        items = extract(payload["list"], fs_div)
+        items = extract(payload["list"], fs_div, had_cfs=had_cfs)
         api_rcepts = sorted({r.get("rcept_no") for r in payload["list"] if r.get("rcept_no")})
         first, last = vs[0], vs[-1]
         avail, exact = cal.next_trading_day(_d(first["rcept_dt"]))
@@ -163,18 +172,20 @@ def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
 
     # 지표
     ev_v = ev(mcap, S["debt"], S["cash"], S["st_fin"])
-    interest = T["interest_paid"] if T["interest_paid"] not in (None, 0) else None
-    int_basis = "이자지급(CF)"
-    if interest is None and T["finance_costs"] is not None:
-        interest, int_basis = abs(T["finance_costs"]), "금융원가 대용"
-    if T["interest_paid"] == 0 and T["finance_costs"] in (None, 0):
-        interest = 0.0
+    # 이자: 이자지급(CF)이 기준. 없을 때만 금융원가 대용 — 신뢰도를 구분해 보고 (3차 협의 #5)
+    interest, int_basis = None, "없음"
+    if T["interest_paid"] not in (None, 0):
+        interest, int_basis = T["interest_paid"], "이자지급(CF)"
+    elif T["finance_costs"] not in (None, 0):
+        interest, int_basis = abs(T["finance_costs"]), "금융원가 대용(신뢰도 낮음)"
+    elif T["interest_paid"] == 0 or T["finance_costs"] == 0:
+        interest, int_basis = 0.0, "이자 0 (무차입)"
     m: dict[str, Metric] = {
         "E/P": earnings_yield(T["ni_owners"], mcap),
         "B/P": book_yield(S["equity_owners"], mcap),
         "EBIT/EV": Metric(None, "EV 비정상") if ev_v is None or mcap is None or ev_v <= 0 or ev_v < 0.1 * mcap
         else Metric(None if T["op_income"] is None else T["op_income"] / ev_v, None if T["op_income"] is not None else "영업이익 없음"),
-        "EBITDA/EV": ebitda_ev(T["op_income"], T["depreciation"], ev_v, mcap),
+        "EBITDA/EV(실험)": ebitda_ev(T["op_income"], T["depreciation"], ev_v, mcap),  # D-20: 전략에서 제외, 커버리지 추적용
         "ROE": roe(T["ni_owners"], S_prev["equity_owners"], S["equity_owners"], mcap),
         "GP/A": gp_a(T["gross_profit"], S_prev["assets"], S["assets"]),
         "CFO/NI": earnings_quality(T["cfo"], T["ni_total"]),
@@ -247,6 +258,16 @@ def run() -> dict:
     cov = coverage(results)
     write_text(REPORTS / "phase1" / "coverage.json", json.dumps(cov, ensure_ascii=False, indent=1))
     write_text(REPORTS / "phase1" / "sample_eval.json", json.dumps(results, ensure_ascii=False, indent=1, default=str))
+    # 유니버스 제외 이력 (3차 협의 #8: 제외 사실과 사유를 남긴다)
+    import csv
+    ex = REPORTS / "phase1" / "universe_exclusions.csv"
+    ex.parent.mkdir(parents=True, exist_ok=True)
+    with ex.open("w", encoding="utf-8", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["stock_code", "name", "status", "reason", "asof"])
+        for r in results:
+            if r.get("status") != "ok":
+                w.writerow([r.get("stock_code"), r.get("name"), r.get("status"), "; ".join(r.get("flags", [])) or r.get("error", ""), r.get("asof", "")])
     from .workbook import build as build_wb
     build_wb(results, REPORTS / "phase1" / "verification_workbook.xlsx")
     return {"companies": len(results), "l2_sha256": h, "coverage": cov["metrics"]}
@@ -264,7 +285,14 @@ def coverage(results: list[dict]) -> dict:
                 met[k]["valid"] += 1
         for it, c in r["confidence_P"].items():
             conf[it][c] += 1
+    fallback = Counter()
+    for r in ok:
+        for it, c in r["confidence_P"].items():
+            if c not in ("id",):
+                fallback[f"{it}:{c}"] += 1
     return {"evaluated": len(ok), "status": dict(Counter(r.get("status") for r in results)),
+            "fallback_rules_applied": dict(sorted(fallback.items())),
+            "interest_basis": dict(Counter(r.get("interest_basis") for r in ok)),
             "metrics": {k: {"valid": v["valid"], "rate": round(v["valid"] / max(len(ok), 1), 3),
                             "invalid_reasons": dict(v["invalid_reasons"])} for k, v in met.items()},
             "item_confidence": {k: dict(v) for k, v in conf.items()},

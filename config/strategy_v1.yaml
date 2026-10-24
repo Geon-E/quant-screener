@@ -1,0 +1,55 @@
+# 전략 설정 v1 (DESIGN 5장) — 변경 시 새 버전 파일을 만들고 docs/EXPERIMENTS.md에 기록
+version: v1
+status: draft   # 결과(수익률)를 보기 전 확정. 1단계 게이트 통과 시 frozen으로 변경
+history:
+  - 2026-10-24: DESIGN v0.2 5장 기본값
+  - 2026-10-25: D-20 EBITDA/EV → EBIT/EV (데이터 커버리지 12% vs 96%, 수익률 미계산 상태에서 결정)
+
+universe:
+  markets: [KOSPI, KOSDAQ]
+  min_mcap_krw: 5.0e10
+  min_tv20_krw: 5.0e8
+  exclude: [관리종목, 거래정지, 투자주의환기, SPAC, 리츠, 금융업(KSIC 64~66), 상장 1년 미만, 12월 외 결산(1단계)]
+  warn: [지주회사]
+
+peer_groups: config/peer_groups_v1.csv   # 1단계 중 작성 예정
+
+factors:
+  value:
+    weight: 0.40
+    metrics: [E/P, B/P, EBIT/EV, PBR-ROE 잔차]
+    minimum: "E/P 또는 B/P 포함, 4개 중 2개 이상 유효"
+  quality:
+    weight: 0.30
+    metrics: [ROE, GP/A, CFO/NI]
+    minimum: "3개 중 2개 이상"
+  trend:
+    weight: 0.20
+    metrics: [12-1 모멘텀, 영업이익 TTM 증가율]
+    minimum: "2개 중 1개 이상"
+  safety:
+    weight: 0.10
+    metrics: [이자보상배율]
+    minimum: "1개"
+
+winsorize: [0.01, 0.99]   # 사업군별, 백분위 변환 전
+missing: exclude           # 결측 ≠ 중립 50점
+
+filters:
+  exclude: ["자본잠식", "TTM 지배주주순이익 < 0", "F-스코어 ≤ 3 (유효 항목 7개 이상일 때)"]
+  warn: ["순이익 > 영업이익 × 1.5", "순이익 > 0 & 영업현금흐름 < 0 (2개 분기 연속)", "부채비율 사업군 상위 10%",
+         "지주회사", "거래대금 하위 10%", "이자보상배율이 금융원가 대용으로 계산됨"]
+
+portfolio:
+  n: 20
+  weighting: equal
+  sector_cap: {count: 3, weight: 0.25}
+  liquidity_cap: "주문금액 ≤ 20일 평균 거래대금의 5%"
+  buffer_rank: 30
+  rebalance: "분기, 법정 제출기한 + 5영업일"
+  execution: "D+1 시가 (민감도: D+1 종가)"
+
+backtest:   # D-21
+  development: [2018-04-01, 2022-03-31]
+  validation_start: 2022-04-01
+  validation_rule: "전략 선택용 반복 실험 금지. 검증 결과를 보고 전략 변경 시 '검증 구간 사용됨' 기록"

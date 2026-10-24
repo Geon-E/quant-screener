@@ -38,8 +38,13 @@ def _excluded(nm: str, rule: dict) -> bool:
     return any(re.search(p, nm or "") for p in rule.get("exclude_names", []))
 
 
-def extract(rows: list[dict], fs_div: str) -> dict[str, Picked]:
-    """rows: fnlttSinglAcntAll의 list (한 보고서). fs_div: CFS/OFS."""
+OWNER_NAMES = re.compile(r"지배기업|지배주주")
+
+
+def extract(rows: list[dict], fs_div: str, had_cfs: bool = False) -> dict[str, Picked]:
+    """rows: fnlttSinglAcntAll의 list (한 보고서). fs_div: CFS/OFS.
+    had_cfs: 인접 기간(±4분기)에 연결재무제표가 있었는가 (3차 협의 #4 — separate_only 오적용 방지).
+             연결→별도 전환 직후처럼 이유를 알 수 없는 별도 기간에는 전체=지배주주 대체를 하지 않는다."""
     rs = sorted(rows, key=lambda r: (r.get("sj_div") or "", int(r.get("ord") or 0)))
     out: dict[str, Picked] = {}
     R = rules()
@@ -67,6 +72,9 @@ def extract(rows: list[dict], fs_div: str) -> dict[str, Picked]:
                     seen.add(aid)
                     total += conv(v)
                     src.append((r.get("account_id"), r.get("account_nm")))
+                if not src and rule.get("missing_as_zero"):
+                    # ID로 찾았지만 금액이 전부 비어 있음('-' 표기) → DART 관행상 0. 신뢰도를 따로 표시
+                    return Picked(0.0, "id_blank", [(r.get("account_id"), r.get("account_nm")) for r in hits[:5]])
                 if src:
                     # 비표준 행 중 이름이 맞는 것도 더한다 (ID와 비표준이 섞인 회사)
                     for r in cand:
@@ -121,21 +129,32 @@ def extract(rows: list[dict], fs_div: str) -> dict[str, Picked]:
                             return Picked(conv(v), "pattern", [(r.get("account_id"), r.get("account_nm"))])
 
         # 4) 별도재무제표만 있는 회사: 전체 = 지배주주
-        if rule.get("separate_only_fallback") and fs_div == "OFS":
+        #    단, 다른 기간에 연결을 낸 회사라면 이번 기간만 별도인 이유를 알 수 없음 → 적용하지 않음(무효)
+        if rule.get("separate_only_fallback") and fs_div == "OFS" and not had_cfs:
             base = out.get(rule["separate_only_fallback"]) or pick(rule["separate_only_fallback"])
             if base.value is not None:
                 return Picked(base.value, "separate_only", base.sources)
 
-        # 5) 연결인데 비지배지분 행이 전혀 없음 → 전체 = 지배주주
+        # 5) 연결인데 비지배지분 행도, '지배기업/지배주주' 명칭 행도 전혀 없음 → 귀속 구분이 없는 것 → 전체 = 지배주주
+        #    (3차 협의 #3: 지배 명칭 행이 있는데 못 고른 경우는 무효)
         if rule.get("no_nci_fallback") and fs_div == "CFS":
             nci = [r for r in cand if canon(r.get("account_id")) in set(rule.get("nci_ids", []))
-                   or any(re.search(p, r.get("account_nm") or "") for p in rule.get("nci_names", []))]
+                   or any(re.search(p, r.get("account_nm") or "") for p in rule.get("nci_names", []))
+                   or OWNER_NAMES.search(r.get("account_nm") or "")]
             if not nci:
                 base = out.get(rule["no_nci_fallback"]) or pick(rule["no_nci_fallback"])
                 if base.value is not None:
                     return Picked(base.value, "no_nci", base.sources)
 
+        # 6) 0 대체 (3차 협의 Q6-B): 관련 명칭이 재무상태표에 하나도 없을 때만 0. 있는데 못 찾았으면 무효
         if rule.get("missing_as_zero"):
+            guards = rule.get("zero_guard_names", [])
+            gx = rule.get("zero_guard_exclude_ids")
+            related = [r for r in cand if any(re.search(p, r.get("account_nm") or "") for p in guards)
+                       and not _excluded(r.get("account_nm"), rule)
+                       and not (gx and re.search(gx, r.get("account_id") or ""))]
+            if related:
+                return Picked(None, "unmapped", [(r.get("account_id"), r.get("account_nm")) for r in related[:5]])
             return Picked(0.0, "zero_default", [])
         return Picked(None, "none", [])
 

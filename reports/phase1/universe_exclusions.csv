@@ -1,0 +1,4 @@
+stock_code,name,status,reason,asof
+034300,신세계건설,no_price,KRX 백필 기간에 시세 없음,
+169330,엠브레인,excluded_non_dec,12월 외 결산 → 1단계 TTM 무효 (DESIGN 4.3),
+093240,형지엘리트,excluded_non_dec,12월 외 결산 → 1단계 TTM 무효 (DESIGN 4.3),
