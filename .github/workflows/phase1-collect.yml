@@ -94,7 +94,14 @@ jobs:
           git add reports/phase1 config/sample_v1.csv 2>/dev/null || true
           if git diff --cached --quiet; then echo "no changes"; exit 0; fi
           git commit -m "1단계 실행 결과 (${{ github.event.inputs.command || 'phase1(일일)' }}, $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST)"
-          for i in 1 2 3; do git pull --rebase -q && git push -q && break; sleep 5; done
+          # 체크아웃 시점 이후 다른 실행이 보고서를 커밋했을 수 있음 → 충돌 시 이번 실행 결과를 우선(-X theirs = 재적용되는 쪽)
+          ok=0
+          for i in 1 2 3; do
+            if git pull --rebase -X theirs -q && git push -q; then ok=1; break; fi
+            git rebase --abort 2>/dev/null || true
+            sleep 5
+          done
+          if [ "$ok" != "1" ]; then echo "보고서 push 실패"; exit 1; fi
 
       - name: Fail on error
         if: steps.run.outputs.code != '0'
