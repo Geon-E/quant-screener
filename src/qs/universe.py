@@ -6,11 +6,13 @@
       2024 1분기~ → 현재 TTM(4개 분기)과 1년 전 TTM(영업이익 증가율·F-스코어)을 모두 분기 복원으로 계산 가능
 절약: 최근 사업보고서의 연결재무제표 유무를 먼저 확인해, 연결이 없는 회사는 다른 보고서도 별도만 조회
       12월 외 결산 회사는 재무를 받지 않는다 (1단계 규칙상 TTM 무효)
+새 공시: 매 실행 최근 10일 전체 시장 정기보고서를 조회해 새 보고서·정정본만 추가로 받는다 (update_recent).
 재개: 이미 받은 파일은 건너뜀. 호출 예산 소진 시 정상 중단 → 다음 실행(일일 07:40)이 이어받음. 시총 큰 순서로 수집.
 저장 형식은 표본 수집(collect/dart.py)과 같아 평가 파이프라인을 그대로 쓴다.
 """
 from __future__ import annotations
 
+import datetime as dt
 import json
 import time
 
@@ -69,14 +71,65 @@ def _list_since(d: DART, cc: str) -> list[dict]:
     return items
 
 
-def _fs_one(d: DART, cc: str, y: int, reprt: str, div: str) -> dict:
+def _fs_one(d: DART, cc: str, y: int, reprt: str, div: str, force: bool = False) -> dict:
     path = dart_path("fs", cc, f"{y}_{reprt}_{div}.json.gz")
-    if not exists(path):
+    if force or not exists(path):
         js = d._json("fnlttSinglAcntAll.json", {"corp_code": cc, "bsns_year": str(y), "reprt_code": reprt, "fs_div": div})
         save_l0(path, source={"provider": "DART", "api": "fnlttSinglAcntAll", "corp_code": cc, "bsns_year": y,
                               "reprt_code": reprt, "fs_div": div, "status": js.get("status"),
                               "rows": len(js.get("list") or [])}, payload=js)
     return load_l0(path)["payload"]
+
+
+def update_recent(d: DART, corp_codes: set[str], days: int = 10) -> dict:
+    """새 공시 반영: 회사 지정 없이 최근 N일 전체 시장 정기보고서를 조회 → 우리 유니버스 회사의 공시 목록에 추가.
+    - 새 보고서: 목록에 추가 → collect_one이 없는 재무 파일을 받아옴
+    - 정정 보고서(이미 받은 보고서의 새 버전): 해당 재무 파일을 다시 받음 (DART 응답은 최신 정정본)
+    평소 하루 몇 회 호출, 실적 시즌에도 수십 회 + 새 보고서 재무."""
+    end = today_kst()
+    bgn = end - dt.timedelta(days=days)
+    items, page = [], 1
+    while True:
+        js = d._json("list.json", {"bgn_de": f"{bgn:%Y%m%d}", "end_de": f"{end:%Y%m%d}", "pblntf_ty": "A",
+                                   "last_reprt_at": "N", "page_no": page, "page_count": 100})
+        if js.get("status") not in ("000", "013"):
+            raise RuntimeError(f"list.json 최근 공시: {js.get('status')} {js.get('message')}")
+        items += js.get("list") or []
+        if page >= int(js.get("total_page") or 1):
+            break
+        page += 1
+    save_l0(dart_path("recent", f"{end:%Y%m%d}.json.gz"),
+            source={"provider": "DART", "api": "list.json", "bgn_de": f"{bgn:%Y%m%d}", "count": len(items)}, payload=items)
+    new_reports, amended, refetched = 0, 0, 0
+    by_cc: dict[str, list[dict]] = {}
+    for it in items:
+        if it.get("corp_code") in corp_codes:
+            by_cc.setdefault(it["corp_code"], []).append(it)
+    for cc, its in by_cc.items():
+        path = dart_path("list", f"{cc}.json.gz")
+        if not exists(path):
+            continue                       # 아직 첫 수집 전 → collect_one이 전체 목록을 받음
+        cur = load_l0(path)["payload"]
+        have = {x["rcept_no"] for x in cur}
+        add = [x for x in its if x["rcept_no"] not in have]
+        if not add:
+            continue
+        before = report_versions(cur)
+        cur = cur + add
+        save_l0(path, source={"provider": "DART", "api": "list.json", "corp_code": cc, "count": len(cur),
+                              "updated_from": "recent"}, payload=cur)
+        after = report_versions(cur)
+        for key, vs in after.items():
+            if key not in before:
+                new_reports += 1
+            elif len(vs) > len(before[key]) and key[0] >= SINCE_YEAR:
+                amended += 1
+                for div in ("CFS", "OFS"):
+                    if exists(dart_path("fs", cc, f"{key[0]}_{key[1]}_{div}.json.gz")):
+                        _fs_one(d, cc, key[0], key[1], div, force=True)
+                        refetched += 1
+    return {"recent_filings": len(items), "companies": len(by_cc), "new_reports": new_reports,
+            "amended": amended, "fs_refetched": refetched}
 
 
 def _ok(js: dict) -> bool:
@@ -107,9 +160,10 @@ def collect_one(d: DART, cc: str) -> dict:
 def run(d: DART) -> dict:
     uni = universe()
     corp = {c["stock_code"]: c["corp_code"] for c in d.corpcode() if c["stock_code"]}
-    rows, stat, stopped = [], {}, None
+    rows, stat, stopped, recent = [], {}, None, None
     t0 = time.monotonic()
     try:
+        recent = update_recent(d, {corp[u["stock_code"]] for u in uni if u["stock_code"] in corp})
         for u in uni:
             if time.monotonic() - t0 > TIME_LIMIT_S:
                 stopped = f"시간 제한 {TIME_LIMIT_S // 60}분 — 다음 실행에서 이어받음"
@@ -127,6 +181,7 @@ def run(d: DART) -> dict:
     # 수집 완료 목록 (평가 대상) — 중단돼도 지금까지 끝난 회사로 갱신
     write_gz_json(L1 / "universe.json.gz", {"asof": today_kst().isoformat(), "total": len(uni), "rows": rows,
                                             "complete": stopped is None})
-    res = {"universe": len(uni), "processed": len(rows), "stopped": stopped, "status": stat, **d.http.stats()}
+    res = {"universe": len(uni), "processed": len(rows), "stopped": stopped, "status": stat, "recent": recent,
+           **d.http.stats()}
     log(f"전 종목 수집: {json.dumps(res, ensure_ascii=False)}")
     return res

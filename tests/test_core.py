@@ -538,3 +538,29 @@ def test_pbr_roe_residual_needs_15():
     res = pbr_roe_residuals(rows)
     assert sum(v is not None for v in res.values()) == 20
     assert res["1"] < 0 < res["2"]        # 예상보다 PBR 높음(비쌈) → 음수, 낮음(쌈) → 양수
+
+
+def test_update_recent_adds_new_and_refetches_amended(tmp_path, monkeypatch):
+    from qs import storage, universe as U
+    monkeypatch.setattr(storage, "L0", tmp_path)
+    monkeypatch.setattr(U, "dart_path", lambda kind, *p: tmp_path / kind / os.path.join(*p))
+    monkeypatch.setattr(U, "exists", lambda p: p.exists())
+    cc = "00126380"
+    U.save_l0(U.dart_path("list", f"{cc}.json.gz"), source={}, payload=[
+        {"rcept_no": "20260814000001", "rcept_dt": "20260814", "report_nm": "반기보고서 (2026.06)"}])
+    U.save_l0(U.dart_path("fs", cc, "2026_11012_CFS.json.gz"), source={}, payload={"status": "000", "list": [{"a": 1}]})
+    recent = [{"corp_code": cc, "rcept_no": "20261020000002", "rcept_dt": "20261020", "report_nm": "[기재정정]반기보고서 (2026.06)"},
+              {"corp_code": cc, "rcept_no": "20261114000003", "rcept_dt": "20261114", "report_nm": "분기보고서 (2026.09)"},
+              {"corp_code": "99999999", "rcept_no": "20261114000009", "rcept_dt": "20261114", "report_nm": "분기보고서 (2026.09)"}]
+    calls = []
+
+    class D:
+        def _json(self, path, params):
+            calls.append((path, params.get("fs_div")))
+            if path == "list.json":
+                return {"status": "000", "list": recent, "total_page": 1}
+            return {"status": "000", "list": [{"b": 2}]}
+    r = U.update_recent(D(), {cc})
+    assert r["new_reports"] == 1 and r["amended"] == 1 and r["fs_refetched"] == 1
+    assert ("fnlttSinglAcntAll.json", "CFS") in calls                      # 정정본 재무 다시 받음
+    assert len(U.load_l0(U.dart_path("list", f"{cc}.json.gz"))["payload"]) == 3
