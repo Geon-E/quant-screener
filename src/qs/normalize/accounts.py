@@ -73,7 +73,15 @@ def extract(rows: list[dict], fs_div: str, had_cfs: bool = False) -> dict[str, P
                     total += conv(v)
                     src.append((r.get("account_id"), r.get("account_nm")))
                 if not src and rule.get("missing_as_zero"):
-                    # ID로 찾았지만 금액이 전부 비어 있음('-' 표기) → DART 관행상 0. 신뢰도를 따로 표시
+                    # ID 행이 전부 비어 있음('-'). 단, 같은 성격의 금액이 비표준 계정(예: '사채', '전환사채')에 있으면 그것을 쓴다
+                    # (2026-10-25 XBRL 교차검증에서 발견: NAVER 2016 3Q 사채 1,500억, 인크레더블버즈 전환사채 132억이 0으로 처리됨)
+                    alt = [(_val(r, kind), r) for r in cand if r.get("account_id") == NONSTD
+                           and any(re.search(p, r.get("account_nm") or "") for p in rule.get("names", []))
+                           and not _excluded(r.get("account_nm"), rule)]
+                    alt = [(v, r) for v, r in alt if v is not None]
+                    if alt:
+                        return Picked(sum(conv(v) for v, _ in alt), "pattern",
+                                      [(r.get("account_id"), r.get("account_nm")) for _, r in alt])
                     return Picked(0.0, "id_blank", [(r.get("account_id"), r.get("account_nm")) for r in hits[:5]])
                 if src:
                     # 비표준 행 중 이름이 맞는 것도 더한다 (ID와 비표준이 섞인 회사)

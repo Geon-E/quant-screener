@@ -634,3 +634,23 @@ def test_list_since_extends_range_and_merges(tmp_path, monkeypatch):
     items = U._list_since(D(), cc, since=2015)
     assert calls == ["20150101"] and len(items) == 2                           # 2015~로 다시 받아 중복 없이 합침
     assert U._list_since(D(), cc, since=2015) and calls == ["20150101"]        # 이후엔 재사용
+
+
+def test_blank_id_rows_fall_back_to_nonstandard_named_rows():
+    """ID 행이 비어 있어도 비표준 '사채'·'전환사채' 금액은 부채로 잡는다 (NAVER 2016 3Q 사례)."""
+    from qs.normalize.accounts import extract
+    rows = [{"sj_div": "BS", "ord": "1", "account_id": "dart_ShortTermBorrowings", "account_nm": "단기차입금", "thstrm_amount": ""},
+            {"sj_div": "BS", "ord": "2", "account_id": "dart_LongTermBorrowingsGross", "account_nm": "장기차입금", "thstrm_amount": ""},
+            {"sj_div": "BS", "ord": "3", "account_id": "-표준계정코드 미사용-", "account_nm": "전환사채", "thstrm_amount": "13179961230"}]
+    v = extract(rows, "CFS")
+    assert v["debt"].value == 13179961230 and v["debt"].confidence == "pattern"
+
+
+def test_as_of_values_uses_original_before_first_amendment():
+    from qs.pipeline import as_of_values
+    p = {(2016, 2): {"values": {"ni_owners": 100.0, "equity_owners": 500.0}, "values_first": {"ni_owners": 80.0, "equity_owners": None},
+                     "rcept_dt_second": "20161115", "amended": True}}
+    before, used = as_of_values(p, dt.date(2016, 9, 1))
+    assert before[(2016, 2)]["values"] == {"ni_owners": 80.0, "equity_owners": 500.0} and used == ["2016Q2"]
+    after, used2 = as_of_values(p, dt.date(2016, 11, 20))
+    assert after[(2016, 2)]["values"]["ni_owners"] == 100.0 and used2 == []

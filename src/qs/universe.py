@@ -161,7 +161,14 @@ def collect_one(d: DART, cc: str, since: int = SINCE_YEAR) -> dict:
             got += 1
         elif _ok(_fs_one(d, cc, y, r, "OFS")):
             got += 1
-    return {"status": "ok", "reports": len(keys), "fs_ok": got, "cfs": has_cfs}
+    # D-17: 정정 이력이 있는 보고서는 최초본 XBRL을 받아 둔다 (백테스트 시점 정합성)
+    xb = 0
+    for key in keys:
+        vs = versions.get(key, [])
+        if len(vs) > 1:
+            info = d.xbrl(vs[0]["rcept_no"], key[1])
+            xb += int(bool(info.get("ok")))
+    return {"status": "ok", "reports": len(keys), "fs_ok": got, "cfs": has_cfs, "xbrl_first": xb}
 
 
 HISTORY_SINCE = 2015

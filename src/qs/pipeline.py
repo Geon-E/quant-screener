@@ -166,7 +166,20 @@ def company_periods(row: dict, cal: TradingCalendar) -> tuple[dict, dict | None]
         api_rcepts = sorted({r.get("rcept_no") for r in payload["list"] if r.get("rcept_no")})
         first, last = vs[0], vs[-1]
         avail, exact = cal.next_trading_day(_d(first["rcept_dt"]))
+        # D-17: 정정 이력이 있으면 최초본 XBRL 값 (백테스트 시점이 첫 정정 전이면 이 값을 쓴다)
+        first_vals = None
+        if len(vs) > 1:
+            zp = dart_path("xbrl", f"{vs[0]['rcept_no']}.zip")
+            if exists(zp):
+                try:
+                    from .xbrl import to_rows
+                    fx = extract(to_rows(zp, y, code_r, fs_div), fs_div, had_cfs=had_cfs)
+                    first_vals = {k: v.value for k, v in fx.items()}
+                except Exception:  # noqa: BLE001 — 해석 실패 시 최신 정정본만 사용 (시점 정합성 플래그 유지)
+                    first_vals = None
         periods[(y, q)] = {
+            "values_first": first_vals,
+            "rcept_dt_second": vs[1]["rcept_dt"] if len(vs) > 1 else None,
             "year": y, "q": q, "reprt_code": code_r, "fs_div": fs_div,
             "rcept_first": first["rcept_no"], "rcept_dt_first": first["rcept_dt"],
             "rcept_last": last["rcept_no"], "rcept_dt_last": last["rcept_dt"],
@@ -179,6 +192,21 @@ def company_periods(row: dict, cal: TradingCalendar) -> tuple[dict, dict | None]
         }
     out["l1_periods"] = len(periods)
     return out, periods
+
+
+def as_of_values(periods: dict, D: dt.date) -> tuple[dict, list[str]]:
+    """기준일 D에 알 수 있던 값으로: 첫 정정 접수일이 D 이후이고 최초본 XBRL 값이 있으면 그 값으로 바꾼다.
+    최초본에 없는 항목은 정정본 값을 쓴다(혼합 — 플래그). 정정이 3번 이상이면 중간 정정본은 복원하지 못한다(한계)."""
+    out, used = {}, []
+    for k, p in periods.items():
+        sec, first = p.get("rcept_dt_second"), p.get("values_first")
+        if sec and first and _d(sec) > D:
+            vals = {it: (first.get(it) if first.get(it) is not None else v) for it, v in p["values"].items()}
+            out[k] = dict(p, values=vals, as_of_first=True)
+            used.append(f"{k[0]}Q{k[1]}")
+        else:
+            out[k] = p
+    return out, used
 
 
 def evaluate_company(out: dict, periods: dict, px) -> dict:
@@ -194,6 +222,9 @@ def evaluate_company(out: dict, periods: dict, px) -> dict:
         return out
     D = _d(last_bd)
     out["asof"] = D.isoformat()
+    periods, used_first = as_of_values(periods, D)
+    if used_first:
+        out["flags"].append(f"정정 전 최초본 값 사용(D-17): {used_first}")
     if last_bd != px.days[-1]:
         out["flags"].append(f"상장폐지/거래정지 — 마지막 거래일 {last_bd} 기준 평가")
 
@@ -226,7 +257,7 @@ def evaluate_company(out: dict, periods: dict, px) -> dict:
         k = prev_q(*k)
         used.append(k)
     pit_issue = [f"{y}Q{q}" for (y, q) in used if (y, q) in periods and periods[(y, q)]["amended"]
-                 and _d(periods[(y, q)]["rcept_dt_last"]) > D]
+                 and _d(periods[(y, q)]["rcept_dt_last"]) > D and not periods[(y, q)].get("as_of_first")]
     if pit_issue:
         out["flags"].append(f"시점 정합성 미충족(기준일 이후 정정): {pit_issue}")
 
