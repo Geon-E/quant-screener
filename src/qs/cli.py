@@ -8,6 +8,7 @@
   evaluate       표본 L1·L2 생성, 커버리지, 검증 워크북 (reports/phase1/verification_workbook.xlsx)
   determinism    같은 L0로 두 번 계산해 결과 해시 비교
   adjust         수정주가: KRX 기준가로 조정계수 산출, 분류, 표본 DART 공시 확인, 비공식 수정주가 교차검증
+  xcheck         원천값 자동 대조: 우리 계정 선택 결과 vs DART 주요계정·사업보고서 배당 항목 (D-22 변경)
   phase1         증분 수집 + 인벤토리 + 평가 + 결정성 검사
 모든 명령은 실행 보고서(reports/phase1/runs/)와 보안 검사를 남긴다.
 """
@@ -76,6 +77,11 @@ def cmd_evaluate(args) -> dict:
     return pipeline.run()
 
 
+def cmd_xcheck(args) -> dict:
+    from . import xcheck
+    return xcheck.run(DART(budget=args.dart_budget))
+
+
 def cmd_determinism(args) -> dict:
     from . import pipeline
     return pipeline.determinism_check()
@@ -84,7 +90,8 @@ def cmd_determinism(args) -> dict:
 COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [cmd_dart],
             "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory],
             "evaluate": [cmd_evaluate], "determinism": [cmd_determinism], "adjust": [cmd_adjust],
-            "phase1": [cmd_krx, cmd_dart, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_determinism]}
+            "xcheck": [cmd_xcheck],
+            "phase1": [cmd_krx, cmd_dart, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_xcheck, cmd_determinism]}
 
 
 def main(argv=None):

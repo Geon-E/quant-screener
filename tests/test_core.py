@@ -376,3 +376,38 @@ def test_verified_requires_confirmation_for_rights():
     assert ok is False and len(rel) == 2
     ev[0]["confirmed_by"] = "DART 공시"
     assert verified_for("A", ev, "20250101", "20251231")[0] is True
+
+
+# ── 원천값 자동 대조 (D-22 변경) ──
+from qs.xcheck import compare, parse_dividend_ni, parse_main
+
+
+def test_compare_statuses():
+    assert compare(100.0, 100.0)[0] == "정확 일치"
+    assert compare(1_000_400_000.0, 1_000_000_000.0, unit_tol=1e6)[0] == "정확 일치"   # 백만원 반올림
+    assert compare(1005.0, 1000.0)[0] == "1% 이내"
+    assert compare(1100.0, 1000.0) == ("불일치", 10.0)
+    assert compare(None, 5.0)[0] == "우리값 없음"
+    assert compare(5.0, None)[0] == "외부값 없음"
+    assert compare(0.0, 0.0)[0] == "정확 일치"
+    assert compare(-990.0, -1000.0)[0] == "1% 이내"     # 적자도 절대값 기준
+
+
+def test_parse_main_fs_div_and_ytd():
+    rows = [{"fs_div": "OFS", "account_nm": "매출액", "thstrm_amount": "1"},
+            {"fs_div": "CFS", "account_nm": "매출액", "thstrm_amount": "30", "thstrm_add_amount": "100"},
+            {"fs_div": "CFS", "account_nm": "당기순이익(손실)", "thstrm_amount": "7"},
+            {"fs_div": "CFS", "account_nm": "자본 총계", "thstrm_amount": "50", "thstrm_add_amount": "999"}]
+    v = parse_main(rows, "CFS")
+    assert v["revenue"] == 100      # 반기·3분기는 누적
+    assert v["ni_total"] == 7
+    assert v["equity_total"] == 50  # 재무상태표는 기말 잔액
+    assert "op_income" not in v
+
+
+def test_parse_dividend_ni_unit_and_basis():
+    rows = [{"se": "(별도)당기순이익(백만원)", "thstrm": "200"},
+            {"se": "(연결)당기순이익(백만원)", "thstrm": "1,234"}]
+    assert parse_dividend_ni(rows, "CFS")[:2] == (1_234_000_000.0, 1e6)
+    assert parse_dividend_ni(rows, "OFS")[0] == 200_000_000.0
+    assert parse_dividend_ni([{"se": "현금배당금총액(백만원)", "thstrm": "5"}], "CFS")[0] is None
