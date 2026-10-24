@@ -65,7 +65,13 @@ def build_view(results: list[dict], summary: dict, out_dir: Path) -> None:
     js = json.dumps(data, ensure_ascii=False, separators=(",", ":"), default=str)
     out_dir.mkdir(parents=True, exist_ok=True)
     write_text(out_dir / "screen.json", json.dumps(summary, ensure_ascii=False, indent=1, default=str))
-    write_text(out_dir / "screener.html", TEMPLATE.replace("/*__DATA__*/null", js.replace("</", "<\\/")))
+    page = TEMPLATE.replace("/*__DATA__*/null", js.replace("</", "<\\/"))
+    write_text(out_dir / "screener.html", page)
+    # 배포용 완전한 문서 (Vercel 정적 사이트 — 매일 GitHub Actions가 배포)
+    write_text(out_dir / "site" / "index.html",
+               '<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n'
+               '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
+               '<meta name="robots" content="noindex">\n</head>\n<body>\n' + page + '\n</body>\n</html>\n')
 
 
 TEMPLATE = r"""<title>저평가 스크리너</title>

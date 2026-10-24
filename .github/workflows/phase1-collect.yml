@@ -90,6 +90,18 @@ jobs:
             gh release upload data-store reports/screen/screener.html --clobber
           fi
 
+      - name: Deploy screen (Vercel)
+        # 스크리너 화면을 고정 주소로 매일 배포. VERCEL_TOKEN이 등록돼 있을 때만 실행 (토큰은 GitHub secret에만 보관)
+        if: steps.run.outputs.code == '0' && hashFiles('reports/screen/site/index.html') != ''
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_OmPMmvVSoUHaxLX5jM2Dixb9
+          VERCEL_PROJECT_ID: prj_hpo3WQVgvwK1LR3VCsiej2Askp8K
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then echo "VERCEL_TOKEN 미등록 — 배포 건너뜀"; exit 0; fi
+          npx --yes vercel@39.1.1 deploy reports/screen/site --prod --yes --token "$VERCEL_TOKEN" > /tmp/vercel_url.txt
+          echo "배포 완료"
+
       - name: Commit reports
         if: steps.run.outputs.code != '2'
         run: |
