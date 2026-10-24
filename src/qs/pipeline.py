@@ -115,6 +115,18 @@ def _momentum(code: str, last_bd: str, px) -> Metric:
 
 # ── 회사 1개 ──
 def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
+    """현재 시점 평가 = 재무 기간 표 만들기(company_periods) + 기준일 평가(evaluate_company) + L1 저장."""
+    out, periods = company_periods(row, cal)
+    if periods is None:
+        return out
+    out = evaluate_company(out, periods, px)
+    write_gz_json(L1 / "dart" / f"{row['corp_code']}.json.gz",
+                  {f"{y}Q{q}": p for (y, q), p in sorted(periods.items())})
+    return out
+
+
+def company_periods(row: dict, cal: TradingCalendar) -> tuple[dict, dict | None]:
+    """L0 → 보고서별 표준 항목·시점 정보. 백테스트는 회사당 1회만 만들고 리밸런싱일마다 evaluate_company를 반복한다."""
     cc, code = row["corp_code"], row["stock_code"]
     comp = load_l0(dart_path("company", f"{cc}.json.gz"))["payload"]
     acc_mt = (comp.get("acc_mt") or "12").zfill(2)
@@ -125,7 +137,7 @@ def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
     if acc_mt != "12":
         out["flags"].append("12월 외 결산 → 1단계 TTM 무효 (DESIGN 4.3)")
         out["status"] = "excluded_non_dec"
-        return out
+        return out, None
 
     # L1: 보고서별 표준 항목
     periods = {}
@@ -166,7 +178,14 @@ def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
             "sources": {k: v.sources for k, v in items.items()},
         }
     out["l1_periods"] = len(periods)
+    return out, periods
 
+
+def evaluate_company(out: dict, periods: dict, px) -> dict:
+    """기준일 평가. px는 현재 시점용 Prices 또는 백테스트용 시점 고정 가격 객체(같은 인터페이스:
+    last_trading_day_of, days, day, mcap_map, momentum(선택))."""
+    out = dict(out, flags=list(out["flags"]))
+    cc, code = out["corp_code"], out["stock_code"]
     # 기준일 D
     last_bd = px.last_trading_day_of(code)
     if not last_bd:
@@ -240,7 +259,7 @@ def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
         "CFO/NI": earnings_quality(T["cfo"], T["ni_total"]),
         "이자보상배율": interest_coverage(T["op_income"], interest),
         "영업이익증가율": Metric(yoy_ttm_growth(qs["op_income"], *P)),
-        "12-1모멘텀": _momentum(code, last_bd, px),
+        "12-1모멘텀": px.momentum(code, last_bd) if hasattr(px, "momentum") else _momentum(code, last_bd, px),
     }
     fs_cur = {"ni": T["ni_total"], "cfo": T["cfo"], "assets_begin": S_prev["assets"], "assets_end": S["assets"],
               "lt_debt": S["lt_debt"], "avg_assets": None if S_prev["assets"] is None or S["assets"] is None else (S_prev["assets"] + S["assets"]) / 2,
@@ -266,9 +285,6 @@ def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
                          for (y, q), p in periods.items() if (y, q) >= (P[0] - 2, P[1])},
         "verify_inputs": verify_inputs(periods, P, target_div),
     })
-    # L1 저장 (회사별)
-    write_gz_json(L1 / "dart" / f"{cc}.json.gz",
-                  {f"{y}Q{q}": p for (y, q), p in sorted(periods.items())})
     return out
 
 

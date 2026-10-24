@@ -133,32 +133,14 @@ def risk_flags(r: dict, debt_top10: float | None) -> None:
         r["warn"].append("이자보상배율이 금융원가 대용으로 계산됨")
 
 
-def run() -> dict:
-    uni = read_gz_json(L1 / "universe.json.gz")
-    targets = [u for u in uni["rows"] if u.get("status") == "ok"]
-    cal = TradingCalendar.from_l0()
-    px = Prices()
-    groups = load_groups()
-    last_bd = px.days[-1]
-    asof = dt.datetime.strptime(last_bd, "%Y%m%d").date()
-
-    # 20일 평균 거래대금·최근 거래 여부
-    recent = px.days[-20:]
-    tv = defaultdict(list)
-    for bd in recent:
-        for r in px.day(bd):
-            tv[r["ISU_CD"]].append(float(r.get("ACC_TRDVAL") or 0))
-    halted = {c for c, v in tv.items() if len(v) >= 5 and all(x == 0 for x in v[-5:])}
-
-    out, stat = [], Counter()
-    for u in targets:
-        row = {"corp_code": u["corp_code"], "stock_code": u["stock_code"], "name": u["name"], "category": ""}
-        try:
-            r = build_company(row, cal, px)
-        except Exception as e:  # noqa: BLE001
-            r = {**row, "status": "error", "error": f"{type(e).__name__}: {str(e)[:150]}"}
-        r.update({"market": u["market"], "sect": u["sect"], "list_dd": u["list_dd"], "exclude": [], "warn": []})
-        stat[r.get("status")] += 1
+def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv: dict[str, list[float]],
+                     halted: set[str], groups) -> tuple[list[dict], list[dict], dict]:
+    """평가 결과 → 유니버스 필터·사업군 점수·위험 필터·순위. 현재 화면과 백테스트가 같은 규칙을 쓰도록 분리.
+    meta[code] = {market, sect, list_dd}. tv[code] = 최근 20거래일 거래대금 목록."""
+    out = []
+    for r in evals:
+        u = meta.get(r["stock_code"], {})
+        r.update({"market": u.get("market"), "sect": u.get("sect") or "", "list_dd": u.get("list_dd"), "exclude": [], "warn": []})
         if r.get("status") != "ok":
             r["exclude"].append({"no_price": "시세 없음", "no_financials": "사용 가능한 재무 없음",
                                  "excluded_non_dec": "12월 외 결산"}.get(r.get("status"), r.get("error") or r.get("status")))
@@ -172,17 +154,17 @@ def run() -> dict:
             r["exclude"].append("금융업(D-06)")
         if (r.get("mcap") or 0) < MIN_MCAP:
             r["exclude"].append("시가총액 500억 미만")
-        t20 = tv.get(u["stock_code"]) or []
+        t20 = tv.get(r["stock_code"]) or []
         r["tv20"] = sum(t20) / len(t20) if t20 else None
         if (r["tv20"] or 0) < MIN_TV20:
             r["exclude"].append("20일 평균 거래대금 5억 미만")
-        if u["stock_code"] in halted:
+        if r["stock_code"] in halted:
             r["exclude"].append("거래정지(최근 5거래일 거래 없음)")
-        if "관리종목" in u["sect"]:
+        if "관리종목" in r["sect"]:
             r["exclude"].append("관리종목")
-        if "투자주의환기" in u["sect"]:
+        if "투자주의환기" in r["sect"]:
             r["exclude"].append("투자주의환기종목")
-        if u.get("list_dd") and (asof - dt.datetime.strptime(u["list_dd"], "%Y%m%d").date()).days < 365:
+        if r.get("list_dd") and (asof - dt.datetime.strptime(r["list_dd"], "%Y%m%d").date()).days < 365:
             r["exclude"].append("상장 1년 미만")
         s = r.get("stock") or {}
         r["debt_ratio"] = (s["liabilities"] / s["equity_total"]) if s.get("liabilities") is not None and s.get("equity_total") and s["equity_total"] > 0 else None
@@ -202,13 +184,44 @@ def run() -> dict:
             r["reliability"] = reliability(len(rows))
             risk_flags(r, top10)
     # 순위
-    ranked = sorted([r for r in out if not r["exclude"] and r.get("composite") is not None], key=lambda r: -r["composite"])
+    ranked = sorted([r for r in out if not r["exclude"] and r.get("composite") is not None],
+                    key=lambda r: (-r["composite"], r["stock_code"]))
     for i, r in enumerate(ranked, 1):
         r["rank"] = i
     for gid in by_g:
         g = [r for r in ranked if r["group_id"] == gid]
         for i, r in enumerate(g, 1):
             r["group_rank"] = i
+    return out, ranked, by_g
+
+
+def run() -> dict:
+    uni = read_gz_json(L1 / "universe.json.gz")
+    targets = [u for u in uni["rows"] if u.get("status") == "ok"]
+    cal = TradingCalendar.from_l0()
+    px = Prices()
+    groups = load_groups()
+    last_bd = px.days[-1]
+    asof = dt.datetime.strptime(last_bd, "%Y%m%d").date()
+
+    # 20일 평균 거래대금·최근 거래 여부
+    tv = defaultdict(list)
+    for bd in px.days[-20:]:
+        for r in px.day(bd):
+            tv[r["ISU_CD"]].append(float(r.get("ACC_TRDVAL") or 0))
+    halted = {c for c, v in tv.items() if len(v) >= 5 and all(x == 0 for x in v[-5:])}
+
+    evals, stat = [], Counter()
+    for u in targets:
+        row = {"corp_code": u["corp_code"], "stock_code": u["stock_code"], "name": u["name"], "category": ""}
+        try:
+            r = build_company(row, cal, px)
+        except Exception as e:  # noqa: BLE001
+            r = {**row, "status": "error", "error": f"{type(e).__name__}: {str(e)[:150]}"}
+        stat[r.get("status")] += 1
+        evals.append(r)
+    meta = {u["stock_code"]: u for u in targets}
+    out, ranked, by_g = filter_and_score(evals, meta, asof, tv, halted, groups)
 
     write_gz_json(L2 / "screen.json.gz", out)
     # 실전 추적 (DESIGN 7.6): 날짜별 점수 기록 — 백테스트와 별개로 실제 사후 성과를 확인하는 근거. 시세 기준일별 1개 파일
