@@ -6,9 +6,10 @@
 **같은 사업군 안에서** 싸면서(가치) 돈을 잘 벌고(퀄리티) 나빠지지 않는(추세·안정성) 종목을
 **"정량 기준상 저평가 후보"** 로 골라 근거와 함께 보여줍니다.
 
-> **현재 상태: 설계 v0.2 확정 — 0단계(데이터 확보 검증) 준비 중**
-> - 1차 외부 검토(GPT) 반영 완료
-> - 다음 단계: 0단계(데이터 확보 가능성 검증)
+> **현재 상태: 0단계(데이터 확보 검증) 거의 완료 — 1단계 착수 가능**
+> - 1차 외부 검토(GPT) 반영 완료 (설계 v0.2)
+> - 0단계 실측 결과: [docs/PHASE0_FINDINGS.md](docs/PHASE0_FINDINGS.md). 데이터 제공 시각만 평일 측정 중
+> - 다음 단계: 1단계 (국내 최소 파이프라인 + 계산 검증)
 
 ## 개발 원칙
 ```
@@ -23,6 +24,8 @@
 | [docs/DESIGN.md](docs/DESIGN.md) | 설계안 본문 (v0.2) |
 | [docs/DECISIONS.md](docs/DECISIONS.md) | 확정 사항 · 확정 대기 · 열린 질문 |
 | [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md) | 실험 기록 규칙과 이력 (과최적화 방지) |
+| [docs/PHASE0_FINDINGS.md](docs/PHASE0_FINDINGS.md) | 0단계 데이터 확보 가능성 실측 결과 |
+| [reports/phase0/](reports/phase0/) | 0단계 자동 점검 원자료 |
 | [docs/V2_REVIEW.md](docs/V2_REVIEW.md) | 기존 v2.0 분석과 재설계 배경 |
 | [docs/REVIEW_REQUEST_FOR_GPT.md](docs/REVIEW_REQUEST_FOR_GPT.md) | 외부 AI 검토 요청서 |
 | [reviews/](reviews/) | 검토 의견과 응답 기록 |
