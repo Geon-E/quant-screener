@@ -1,0 +1,122 @@
+{
+ "command": "xcheck",
+ "started": "2026-10-25T03:06:39.479742+09:00",
+ "finished": "2026-10-25T03:07:37.571702+09:00",
+ "ok": true,
+ "secret_scan_hits": [],
+ "results": {
+  "cmd_xcheck": {
+   "rows": 368,
+   "status": {
+    "정확 일치": 321,
+    "범위 정상": 40,
+    "불일치": 3,
+    "외부값 없음": 2,
+    "범위 이상": 2
+   },
+   "by_item": {
+    "revenue": {
+     "정확 일치": 49
+    },
+    "op_income": {
+     "정확 일치": 49
+    },
+    "ni_total": {
+     "정확 일치": 49
+    },
+    "assets": {
+     "정확 일치": 49
+    },
+    "liabilities": {
+     "정확 일치": 49
+    },
+    "equity_total": {
+     "정확 일치": 49
+    },
+    "equity_owners": {
+     "범위 정상": 40,
+     "정확 일치": 7,
+     "범위 이상": 2
+    },
+    "ni_owners": {
+     "정확 일치": 20,
+     "불일치": 3,
+     "외부값 없음": 2
+    }
+   },
+   "flagged": [
+    {
+     "name": "한주라이트메탈",
+     "period": "2025Q4",
+     "item": "ni_owners",
+     "ours": -2741692510.0,
+     "external": -2741692510000000.0,
+     "diff_pct": 99.9999,
+     "status": "불일치",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_ProfitLossAttributableToOwnersOfParent:지배기업의 소유주에게 귀속되는 당기순이익(손실)",
+     "source": "사업보고서 배당 항목 (연결)당기순이익(백만원)",
+     "note": ""
+    },
+    {
+     "name": "에이프로젠바이오로직스",
+     "period": "2025Q4",
+     "item": "ni_owners",
+     "ours": -170330530390.0,
+     "external": -168297000000.0,
+     "diff_pct": 1.2083,
+     "status": "불일치",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_ProfitLossAttributableToOwnersOfParent:지배기업 소유주지분",
+     "source": "사업보고서 배당 항목 (연결)당기순이익(백만원)",
+     "note": ""
+    },
+    {
+     "name": "SGC E&C",
+     "period": "2025Q4",
+     "item": "equity_owners",
+     "ours": 355737911133.0,
+     "external": 332124592183.0,
+     "diff_pct": null,
+     "status": "범위 이상",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_EquityAttributableToOwnersOfParent:지배기업의 소유주에게 귀속되는 자본",
+     "source": "범위 확인 (지배 ≤ 자본총계)",
+     "note": "외부 출처에 지배 귀속 자본 없음 → 독립 대조 불가, 범위만 확인"
+    },
+    {
+     "name": "SGC E&C",
+     "period": "2026Q2",
+     "item": "equity_owners",
+     "ours": 362366317283.0,
+     "external": 334273097560.0,
+     "diff_pct": null,
+     "status": "범위 이상",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_EquityAttributableToOwnersOfParent:지배기업의 소유주에게 귀속되는 자본",
+     "source": "범위 확인 (지배 ≤ 자본총계)",
+     "note": "외부 출처에 지배 귀속 자본 없음 → 독립 대조 불가, 범위만 확인"
+    },
+    {
+     "name": "다산네트웍스",
+     "period": "2025Q4",
+     "item": "ni_owners",
+     "ours": -7170811062.0,
+     "external": 4191000000.0,
+     "diff_pct": 271.1002,
+     "status": "불일치",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_ProfitLossAttributableToOwnersOfParent:지배기업의 소유주지분",
+     "source": "사업보고서 배당 항목 (연결)당기순이익(백만원)",
+     "note": ""
+    }
+   ],
+   "calls": 74,
+   "errors": 0,
+   "budget": 15000
+  }
+ },
+ "log": [
+  "[03:07:36] 원천값 대조: {'정확 일치': 321, '범위 정상': 40, '불일치': 3, '외부값 없음': 2, '범위 이상': 2}"
+ ]
+}
