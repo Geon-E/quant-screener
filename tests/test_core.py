@@ -614,3 +614,23 @@ def test_dev_mode_refuses_validation_window():
         BT.run(start="2022-04-01", end="2023-01-01", mode="dev")
     with pytest.raises(ValueError):
         BT.run(start="2022-04-01", end="2023-01-01", mode="validation")      # 전략 frozen 전
+
+
+def test_list_since_extends_range_and_merges(tmp_path, monkeypatch):
+    from qs import universe as U
+    monkeypatch.setattr(U, "dart_path", lambda kind, *p: tmp_path / kind / os.path.join(*p))
+    monkeypatch.setattr(U, "exists", lambda p: p.exists())
+    cc = "00000001"
+    U.save_l0(U.dart_path("list", f"{cc}.json.gz"), source={"bgn_de": "20240101"},
+              payload=[{"rcept_no": "20260814000001", "report_nm": "반기보고서 (2026.06)"}])
+    calls = []
+
+    class D:
+        def _json(self, path, params):
+            calls.append(params["bgn_de"])
+            return {"status": "000", "total_page": 1, "list": [{"rcept_no": "20160330000001", "report_nm": "사업보고서 (2015.12)"},
+                                                               {"rcept_no": "20260814000001", "report_nm": "반기보고서 (2026.06)"}]}
+    assert len(U._list_since(D(), cc, since=2024)) == 1 and calls == []        # 이미 2024~ → 재사용
+    items = U._list_since(D(), cc, since=2015)
+    assert calls == ["20150101"] and len(items) == 2                           # 2015~로 다시 받아 중복 없이 합침
+    assert U._list_since(D(), cc, since=2015) and calls == ["20150101"]        # 이후엔 재사용

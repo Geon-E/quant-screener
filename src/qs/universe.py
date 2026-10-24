@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import datetime as dt
 import json
-import time
 
 from .collect.dart import DART, report_versions
 from .http import BudgetExceeded
@@ -52,13 +51,19 @@ def universe() -> list[dict]:
     return sorted(out.values(), key=lambda x: -(x["mcap"] or 0))
 
 
-def _list_since(d: DART, cc: str) -> list[dict]:
+def _list_since(d: DART, cc: str, since: int = SINCE_YEAR) -> list[dict]:
+    """공시 목록. 이미 있는 목록이 since보다 늦게 시작하면 since부터 다시 받아 합친다 (과거 이력 단계)."""
     path = dart_path("list", f"{cc}.json.gz")
+    old = []
     if exists(path):
-        return load_l0(path)["payload"]
+        rec = load_l0(path)
+        have_from = str(rec["meta"].get("bgn_de") or "20150101")   # 표본 수집 목록은 2015년부터
+        if have_from <= f"{since}0101":
+            return rec["payload"]
+        old = rec["payload"]
     items, page = [], 1
     while True:
-        js = d._json("list.json", {"corp_code": cc, "bgn_de": f"{SINCE_YEAR}0101", "end_de": f"{today_kst():%Y%m%d}",
+        js = d._json("list.json", {"corp_code": cc, "bgn_de": f"{since}0101", "end_de": f"{today_kst():%Y%m%d}",
                                    "pblntf_ty": "A", "last_reprt_at": "N", "page_no": page, "page_count": 100})
         if js.get("status") not in ("000", "013"):
             raise RuntimeError(f"list.json {cc}: {js.get('status')} {js.get('message')}")
@@ -66,8 +71,10 @@ def _list_since(d: DART, cc: str) -> list[dict]:
         if page >= int(js.get("total_page") or 1):
             break
         page += 1
+    seen = {x["rcept_no"] for x in items}
+    items += [x for x in old if x["rcept_no"] not in seen]
     save_l0(path, source={"provider": "DART", "api": "list.json", "corp_code": cc, "count": len(items),
-                          "bgn_de": f"{SINCE_YEAR}0101"}, payload=items)
+                          "bgn_de": f"{since}0101"}, payload=items)
     return items
 
 
@@ -136,13 +143,13 @@ def _ok(js: dict) -> bool:
     return js.get("status") == "000" and bool(js.get("list"))
 
 
-def collect_one(d: DART, cc: str) -> dict:
+def collect_one(d: DART, cc: str, since: int = SINCE_YEAR) -> dict:
     comp = d.company(cc)
     acc = (comp.get("acc_mt") or "12").zfill(2)
     if acc != "12":
         return {"status": "non_dec", "acc_mt": acc}
-    versions = report_versions(_list_since(d, cc), acc)
-    keys = sorted(k for k in versions if k[0] >= SINCE_YEAR)
+    versions = report_versions(_list_since(d, cc, since), acc)
+    keys = sorted(k for k in versions if k[0] >= since)
     if not keys:
         return {"status": "no_reports"}
     annual = [k for k in keys if k[1] == "11011"]
@@ -157,11 +164,52 @@ def collect_one(d: DART, cc: str) -> dict:
     return {"status": "ok", "reports": len(keys), "fs_ok": got, "cfs": has_cfs}
 
 
+HISTORY_SINCE = 2015
+
+
+def history_targets(uni: list[dict]) -> list[str]:
+    """과거 이력 대상 종목코드: 현재 유니버스(시총 순) → KRX 월말 종목기본정보에 나타난 과거 보통주(상장폐지 포함)."""
+    out = [u["stock_code"] for u in uni]
+    seen = set(out)
+    for api in ("sto_stk_isu_base_info", "sto_ksq_isu_base_info"):
+        for p in sorted((L0 / "krx" / api).glob("*.json.gz"), reverse=True):
+            rec = load_l0(p)
+            for b in rec["payload"] if rec["meta"].get("rows") else []:
+                c = b["ISU_SRT_CD"]
+                if c in seen or b.get("KIND_STKCERT_TP_NM") != "보통주" or b.get("SECUGRP_NM") != "주권":
+                    continue
+                if "SPAC" in (b.get("SECT_TP_NM") or "") or "스팩" in (b.get("ISU_ABBRV") or ""):
+                    continue
+                seen.add(c)
+                out.append(c)
+    return out
+
+
+def collect_history(d: DART, uni: list[dict], corp: dict[str, str]) -> dict:
+    targets = history_targets(uni)
+    stat, done, stopped = {}, 0, None
+    try:
+        for code in targets:
+            if elapsed_min() > COLLECT_UNTIL_MIN:
+                stopped = f"시간 예산 {COLLECT_UNTIL_MIN}분 — 과거 이력은 다음 실행에서 이어받음"
+                break
+            cc = corp.get(code)
+            r = collect_one(d, cc, since=HISTORY_SINCE) if cc else {"status": "no_corp_code"}
+            stat[r["status"]] = stat.get(r["status"], 0) + 1
+            done += 1
+    except BudgetExceeded as e:
+        stopped = str(e)
+    res = {"targets": len(targets), "processed": done, "status": stat, "stopped": stopped,
+           "complete": stopped is None and done == len(targets)}
+    write_gz_json(L1 / "history_progress.json.gz", {"asof": today_kst().isoformat(), **res})
+    log(f"과거 이력 수집: {json.dumps(res, ensure_ascii=False)}")
+    return res
+
+
 def run(d: DART) -> dict:
     uni = universe()
     corp = {c["stock_code"]: c["corp_code"] for c in d.corpcode() if c["stock_code"]}
     rows, stat, stopped, recent = [], {}, None, None
-    t0 = time.monotonic()
     try:
         recent = update_recent(d, {corp[u["stock_code"]] for u in uni if u["stock_code"] in corp})
         for u in uni:
@@ -178,10 +226,15 @@ def run(d: DART) -> dict:
     except BudgetExceeded as e:
         stopped = str(e)
         log(f"전 종목 수집 중단(다음 실행에서 이어받음): {e}")
+    # 과거 이력 단계 (백테스트용): 현재 종목이 모두 끝난 뒤, 2015년~ 재무를 현재 종목 → 과거 상장(폐지 포함) 순으로
+    hist = None
+    if stopped is None:
+        hist = collect_history(d, uni, corp)
+        stopped = hist.get("stopped")
     # 수집 완료 목록 (평가 대상) — 중단돼도 지금까지 끝난 회사로 갱신
     write_gz_json(L1 / "universe.json.gz", {"asof": today_kst().isoformat(), "total": len(uni), "rows": rows,
-                                            "complete": stopped is None})
-    res = {"universe": len(uni), "processed": len(rows), "stopped": stopped, "status": stat, "recent": recent,
+                                            "complete": len(rows) == len(uni)})
+    res = {"universe": len(uni), "processed": len(rows), "stopped": stopped, "status": stat, "recent": recent, "history": hist,
            **d.http.stats()}
     log(f"전 종목 수집: {json.dumps(res, ensure_ascii=False)}")
     return res
