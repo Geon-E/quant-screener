@@ -1,0 +1,22 @@
+{
+ "command": "phase1",
+ "started": "2026-10-25T03:17:31.311921+09:00",
+ "finished": "2026-10-25T03:17:47.977422+09:00",
+ "ok": false,
+ "secret_scan_hits": [],
+ "results": {
+  "cmd_krx": {
+   "error": "RuntimeError: 코스피 일별시세 의심 빈 응답 ['20261023'] — 다음 실행에서 재수집 (파생 데이터는 교체하지 않음)",
+   "trace": "Traceback (most recent call last):\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/cli.py\", line 117, in main\n    results[name] = fn(args)\n                    ^^^^^^^^\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/cli.py\", line 34, in cmd_krx\n    return krx.run_backfill(start, budget=args.krx_budget)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/collect/krx.py\", line 123, in run_backfill\n    raise RuntimeError(f\"코스피 일별시세 의심 빈 응답 {bad} — 다음 실행에서 재수집 (파생 데이터는 교체하지 않음)\")\nRuntimeError: 코스피 일별시세 의심 빈 응답 ['20261023'] — 다음 실행에서 재수집 (파생 데이터는 교체하지 않음)\n"
+  }
+ },
+ "log": [
+  "[03:17:34] KRX sto/ksq_bydd_trd 20261023: 재수집이 빈 응답 → 기존 정상 파일 유지",
+  "[03:17:35] KRX idx/kospi_dd_trd 20261023: 재수집이 빈 응답 → 기존 정상 파일 유지",
+  "[03:17:35] KRX idx/kosdaq_dd_trd 20261023: 재수집이 빈 응답 → 기존 정상 파일 유지",
+  "[03:17:35] KRX sto/stk_isu_base_info 20261023: 재수집이 빈 응답 → 기존 정상 파일 유지",
+  "[03:17:36] KRX sto/ksq_isu_base_info 20261023: 재수집이 빈 응답 → 기존 정상 파일 유지",
+  "[03:17:46] KRX 백필 결과: {'start': '2025-09-01', 'end': '2026-10-25', 'saved': 7, 'skipped': 1150, 'trading_days_touched': 278, 'stopped': None, 'kept_nonempty': ['sto/ksq_bydd_trd 20261023', 'idx/kospi_dd_trd 20261023', 'idx/kosdaq_dd_trd 20261023', 'sto/stk_isu_base_info 20261023', 'sto/ksq_isu_base_info 20261023'], 'suspicious_empty_days': ['20261023'], 'calls': 12, 'errors': 0, 'budget': 3000}",
+  "[03:17:46] !! cmd_krx 실패: 코스피 일별시세 의심 빈 응답 ['20261023'] — 다음 실행에서 재수집 (파생 데이터는 교체하지 않음)"
+ ]
+}
