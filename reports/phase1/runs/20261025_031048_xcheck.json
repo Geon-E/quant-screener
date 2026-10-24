@@ -1,0 +1,92 @@
+{
+ "command": "xcheck",
+ "started": "2026-10-25T03:10:48.499641+09:00",
+ "finished": "2026-10-25T03:10:50.086028+09:00",
+ "ok": true,
+ "secret_scan_hits": [],
+ "results": {
+  "cmd_xcheck": {
+   "rows": 368,
+   "status": {
+    "정확 일치": 365,
+    "설명됨: 회사 단위 표기 오류": 1,
+    "설명됨: 회사가 전체 순이익 기재": 2
+   },
+   "by_item": {
+    "revenue": {
+     "정확 일치": 49
+    },
+    "op_income": {
+     "정확 일치": 49
+    },
+    "ni_total": {
+     "정확 일치": 49
+    },
+    "assets": {
+     "정확 일치": 49
+    },
+    "liabilities": {
+     "정확 일치": 49
+    },
+    "equity_total": {
+     "정확 일치": 49
+    },
+    "equity_owners": {
+     "정확 일치": 49
+    },
+    "ni_owners": {
+     "정확 일치": 22,
+     "설명됨: 회사 단위 표기 오류": 1,
+     "설명됨: 회사가 전체 순이익 기재": 2
+    }
+   },
+   "flagged": [
+    {
+     "name": "한주라이트메탈",
+     "period": "2025Q4",
+     "item": "ni_owners",
+     "ours": -2741692510.0,
+     "external": -2741692510000000.0,
+     "diff_pct": 99.9999,
+     "status": "설명됨: 회사 단위 표기 오류",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_ProfitLossAttributableToOwnersOfParent:지배기업의 소유주에게 귀속되는 당기순이익(손실)",
+     "source": "사업보고서 배당 항목 (연결)당기순이익(백만원)",
+     "note": "배당 항목에 원 단위 금액을 백만원 칸에 기재 — 우리 값과 원 단위로 정확히 일치"
+    },
+    {
+     "name": "에이프로젠바이오로직스",
+     "period": "2025Q4",
+     "item": "ni_owners",
+     "ours": -170330530390.0,
+     "external": -168297000000.0,
+     "diff_pct": 1.2083,
+     "status": "설명됨: 회사가 전체 순이익 기재",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_ProfitLossAttributableToOwnersOfParent:지배기업 소유주지분",
+     "source": "사업보고서 배당 항목 (연결)당기순이익(백만원)",
+     "note": "배당 항목 값이 지배+비지배 합계(당기순이익 -168,296,872,201)와 일치 — 지배 귀속분이 아님"
+    },
+    {
+     "name": "다산네트웍스",
+     "period": "2025Q4",
+     "item": "ni_owners",
+     "ours": -7170811062.0,
+     "external": 4191000000.0,
+     "diff_pct": 271.1002,
+     "status": "설명됨: 회사가 전체 순이익 기재",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_ProfitLossAttributableToOwnersOfParent:지배기업의 소유주지분",
+     "source": "사업보고서 배당 항목 (연결)당기순이익(백만원)",
+     "note": "배당 항목 값이 지배+비지배 합계(당기순이익 4,191,427,824)와 일치 — 지배 귀속분이 아님"
+    }
+   ],
+   "calls": 0,
+   "errors": 0,
+   "budget": 15000
+  }
+ },
+ "log": [
+  "[03:10:48] 원천값 대조: {'정확 일치': 365, '설명됨: 회사 단위 표기 오류': 1, '설명됨: 회사가 전체 순이익 기재': 2}"
+ ]
+}
