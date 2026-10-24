@@ -337,3 +337,42 @@ def test_new_debt_ids():
             _r("BS", "dart_NoncurrentBondsIssued", "장기 사채", "30")]
     x = extract(rows, "CFS")
     assert x["debt"].value == 60 and x["lt_debt"].value == 50
+
+
+# ── 수정주가 (D-16) ──
+from qs.adjust import adjusted, classify, detect_events, verified_for
+
+
+def _day(d, close, cmp, shares, fluc=None):
+    return {"d": d, "close": close, "cmp": cmp, "fluc": fluc, "shares": shares, "name": "X", "mkt": "KOSPI"}
+
+
+def test_split_detected_and_adjusted():
+    # 5:1 액면분할: 전일 종가 10000 → 기준가 2000, 당일 2100(+100)
+    s = {"A": [_day("20250101", 10000, 0, 100), _day("20250102", 2100, 100, 500), _day("20250103", 2200, 100, 500)]}
+    ev = detect_events(s)
+    assert len(ev) == 1 and ev[0]["class"] == "주식분할" and abs(ev[0]["factor"] - 0.2) < 1e-12
+    adj = adjusted(s["A"], ev)
+    assert adj[0][1] == pytest.approx(2000) and adj[1][1] == 2100 and adj[2][1] == 2200
+    assert adj[1][1] / adj[0][1] - 1 == pytest.approx(0.05)
+
+
+def test_reverse_split_and_rights():
+    assert classify(2.0, 0.5) == "주식병합"
+    assert classify(0.93, 1.0) == "권리락(증자·주식배당 등)"
+    assert classify(1.0005, 1.0) == "미세 기준가 조정"
+    assert classify(1.47, 0.65) == "인적분할·감자 등 복합"
+
+
+def test_no_event_when_base_equals_prev_close():
+    s = {"A": [_day("20250101", 1000, 0, 100), _day("20250102", 1010, 10, 100)]}
+    assert detect_events(s) == []
+
+
+def test_verified_requires_confirmation_for_rights():
+    ev = [{"code": "A", "date": "20250601", "class": "권리락(증자·주식배당 등)"},
+          {"code": "A", "date": "20250301", "class": "주식분할"}]
+    ok, rel = verified_for("A", ev, "20250101", "20251231")
+    assert ok is False and len(rel) == 2
+    ev[0]["confirmed_by"] = "DART 공시"
+    assert verified_for("A", ev, "20250101", "20251231")[0] is True

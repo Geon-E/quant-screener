@@ -64,6 +64,37 @@ class Prices:
         return None
 
 
+# ── 수정주가·모멘텀 (D-16) ──
+_ADJ = {}
+
+
+def _adj_state():
+    if not _ADJ:
+        from .adjust import load_series
+        p = L1 / "krx" / "adj_events.json.gz"
+        _ADJ["events"] = load_l0(p) if p.exists() else None   # write_gz_json 형식 그대로 읽음
+        _ADJ["series"] = load_series()
+    return _ADJ
+
+
+def _momentum(code: str, last_bd: str, px) -> Metric:
+    from .adjust import adjusted, verified_for
+    st = _adj_state()
+    if st["events"] is None:
+        return momentum_12_1([], adjustment_verified=False)
+    s = [x for x in st["series"].get(code, []) if x["d"] <= last_bd]
+    ev = [e for e in st["events"] if e["code"] == code]
+    closes = [a for _, a in adjusted(s, ev)]
+    if len(s) < 253:
+        return momentum_12_1(closes, adjustment_verified=True)  # → 가격 이력 부족
+    ok, rel = verified_for(code, ev, s[-253]["d"], last_bd)
+    m = momentum_12_1(closes, adjustment_verified=ok)
+    if not ok:
+        m.reason = "수정주가 미검증(미확인 기업행위: " + ", ".join(f"{e['date']} {e['class']}" for e in rel
+                                                    if not e.get("confirmed_by")) + ")"
+    return m
+
+
 # ── 회사 1개 ──
 def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
     cc, code = row["corp_code"], row["stock_code"]
@@ -191,7 +222,7 @@ def build_company(row: dict, cal: TradingCalendar, px: Prices) -> dict:
         "CFO/NI": earnings_quality(T["cfo"], T["ni_total"]),
         "이자보상배율": interest_coverage(T["op_income"], interest),
         "영업이익증가율": Metric(yoy_ttm_growth(qs["op_income"], *P)),
-        "12-1모멘텀": momentum_12_1([], adjustment_verified=False),
+        "12-1모멘텀": _momentum(code, last_bd, px),
     }
     fs_cur = {"ni": T["ni_total"], "cfo": T["cfo"], "assets_begin": S_prev["assets"], "assets_end": S["assets"],
               "lt_debt": S["lt_debt"], "avg_assets": None if S_prev["assets"] is None or S["assets"] is None else (S_prev["assets"] + S["assets"]) / 2,
