@@ -153,7 +153,11 @@ def run(confirm_codes: set[str] | None = None, dart=None) -> dict:
         from .collect.dart import DART  # noqa: F401
         corp = {c["stock_code"]: c["corp_code"] for c in dart.corpcode() if c["stock_code"]}
         target = [e for e in events if confirm_codes is None or e["code"][:5] + "0" in confirm_codes or e["code"] in confirm_codes]
-        confirm_with_dart(target, dart, corp)
+        from .http import BudgetExceeded
+        try:
+            confirm_with_dart(target, dart, corp)
+        except BudgetExceeded as ex:   # DART 일 한도 소진 → 남은 사건은 미확인(해당 종목 모멘텀 무효), 다음 실행에서 이어서 확인
+            log(f"공시 확인 중단(다음 실행에서 이어받음): {ex}")
 
     # 독립 교차검증: 표본 종목 + 사건이 있는 종목 일부
     xcodes = sorted(set(list(confirm_codes or [])[:40]) | {e["code"] for e in events if e["class"] != "미세 기준가 조정"})[:80]
