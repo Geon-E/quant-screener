@@ -2,7 +2,30 @@
 
 ---
 
-## 🔁 2차 협의 요청 (2026-10-24) — 독립 답변 방식
+## 🔁 3차 협의 요청 (2026-10-25) — 1단계 결과 기반
+
+2차와 같은 독립 답변 방식입니다 ([`docs/DEBATE_PROTOCOL.md`](DEBATE_PROTOCOL.md)).
+이번에는 **실제 구현과 실측 결과**를 보고 판단합니다.
+
+### GPT가 할 일 (순서 중요)
+1. 배경 자료를 읽는다.
+   - [`docs/PHASE1_STATUS.md`](PHASE1_STATUS.md)
+   - [`docs/DECISIONS.md`](DECISIONS.md)의 D-20·D-21
+   - [`config/account_rules.yaml`](../config/account_rules.yaml)
+   - [`src/qs/`](../src/qs/)
+   - [`reports/phase1/`](../reports/phase1/)
+2. [`reviews/round3/QUESTIONS.md`](../reviews/round3/QUESTIONS.md)의 Q1~Q6에 답한다.
+   - 각 질문마다 선택 · 근거 · 반증 조건 · 확신도
+   - ⚠️ `reviews/round3/claude_position.md`는 **읽지 않는다.**
+3. 답변을 마친 **뒤에** `claude_position.md`를 읽고, 다른 항목만 반론하거나 수긍한다.
+
+### 산출물
+- `reviews/round3/gpt_position.md`
+- `reviews/round3/gpt_rebuttal.md`
+
+---
+
+## (완료) 2차 협의 요청 (2026-10-24) — 독립 답변 방식
 
 이번 회차부터는 **"GPT가 Claude 설계를 검토"하는 방식이 아닙니다.** 두 AI가 각자 독립적으로 답하고, 사전에 정한 기준으로 더 합당한 쪽을 채택합니다.
 규칙: [`docs/DEBATE_PROTOCOL.md`](DEBATE_PROTOCOL.md)
