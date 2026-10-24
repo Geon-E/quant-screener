@@ -1,0 +1,25 @@
+{
+ "command": "universe",
+ "started": "2026-10-25T06:45:52.257029+09:00",
+ "finished": "2026-10-25T08:06:06.464901+09:00",
+ "ok": true,
+ "secret_scan_hits": [],
+ "results": {
+  "cmd_universe": {
+   "universe": 2534,
+   "processed": 393,
+   "stopped": "시간 제한 80분 — 다음 실행에서 이어받음",
+   "status": {
+    "ok": 390,
+    "non_dec": 1,
+    "no_reports": 2
+   },
+   "calls": 4537,
+   "errors": 0,
+   "budget": 16000
+  }
+ },
+ "log": [
+  "[08:06:04] 전 종목 수집: {\"universe\": 2534, \"processed\": 393, \"stopped\": \"시간 제한 80분 — 다음 실행에서 이어받음\", \"status\": {\"ok\": 390, \"non_dec\": 1, \"no_reports\": 2}, \"calls\": 4537, \"errors\": 0, \"budget\": 16000}"
+ ]
+}
