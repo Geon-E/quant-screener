@@ -67,7 +67,8 @@ def write_gz_json(path: Path, obj) -> str:
     data = canonical_json(obj)
     tmp = path.with_suffix(path.suffix + ".tmp")
     with open(tmp, "wb") as raw:
-        with gzip.GzipFile(fileobj=raw, mode="wb", mtime=0) as gz:
+        # filename=""·mtime=0: gzip 헤더에 파일명·시각이 들어가지 않게 해 같은 내용 = 같은 바이트 (결정성)
+        with gzip.GzipFile(filename="", fileobj=raw, mode="wb", mtime=0) as gz:
             gz.write(data)
     tmp.replace(path)
     return sha256_bytes(data)
