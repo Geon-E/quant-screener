@@ -99,6 +99,16 @@ class DART:
                 return fs_div, js
         return None, last
 
+    # ── 감사·검토의견 ──
+    def audit(self, corp_code: str, year: int, reprt: str) -> dict:
+        """회계감사인의 명칭 및 감사의견 (정기보고서 주요정보). 사업보고서=감사의견, 반기=검토의견."""
+        path = dart_path("audit", corp_code, f"{year}_{reprt}.json.gz")
+        if not exists(path):
+            js = self._json("accnutAdtorNmNdAdtOpinion.json", {"corp_code": corp_code, "bsns_year": str(year), "reprt_code": reprt})
+            save_l0(path, source={"provider": "DART", "api": "accnutAdtorNmNdAdtOpinion", "corp_code": corp_code,
+                                  "bsns_year": year, "reprt_code": reprt, "status": js.get("status")}, payload=js)
+        return load_l0(path)["payload"]
+
     # ── 원본 XBRL ──
     def xbrl(self, rcept_no: str, reprt: str) -> dict:
         path = dart_path("xbrl", f"{rcept_no}.zip")
@@ -120,6 +130,19 @@ class DART:
             info["body_head"] = r.text[:300]
         save_l0(meta_path, source={"provider": "DART", "api": "fnlttXbrl.xml", "rcept_no": rcept_no}, payload=info)
         return info
+
+
+def audit_opinion(js: dict) -> tuple[str | None, bool | None]:
+    """감사의견 응답 → (당기 의견 원문, 적정 여부). 판단 불가면 (None, None)."""
+    rows = js.get("list") or [] if js.get("status") == "000" else []
+    cur = [r for r in rows if "당기" in (r.get("bsns_year") or "")] or rows[:1]
+    for r in cur:
+        op = (r.get("adt_opinion") or "").strip()
+        if not op or op == "-":
+            continue
+        bad = any(k in op for k in ("한정", "부적정", "거절", "범위제한"))
+        return op, (not bad) and ("적정" in op or "Unqualified" in op or "unqualified" in op)
+    return None, None
 
 
 # ── 정기보고서 이름 해석 ──
@@ -182,6 +205,11 @@ def collect_company(d: DART, corp_code: str) -> dict:
             res["fs_ok"] += 1
         else:
             res["fs_none"] += 1
+        if code in ("11011", "11012") and fs_div:
+            a = d.audit(corp_code, y, code)
+            if "audit_probe" not in res and a.get("list"):
+                res["audit_probe"] = {"keys": sorted(a["list"][0].keys()), "first": {k: a["list"][0].get(k) for k in ("bsns_year", "adt_opinion")},
+                                      "parsed": audit_opinion(a)}
         vs = versions.get((y, code), [])
         if len(vs) > 1:
             res["amended"] += 1

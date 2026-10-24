@@ -177,7 +177,14 @@ def company_periods(row: dict, cal: TradingCalendar) -> tuple[dict, dict | None]
                     first_vals = {k: v.value for k, v in fx.items()}
                 except Exception:  # noqa: BLE001 — 해석 실패 시 최신 정정본만 사용 (시점 정합성 플래그 유지)
                     first_vals = None
+        aud_op, aud_ok = None, None
+        if code_r in ("11011", "11012"):
+            ap = dart_path("audit", cc, f"{y}_{code_r}.json.gz")
+            if exists(ap):
+                from .collect.dart import audit_opinion
+                aud_op, aud_ok = audit_opinion(load_l0(ap)["payload"])
         periods[(y, q)] = {
+            "audit_opinion": aud_op, "audit_clean": aud_ok,
             "values_first": first_vals,
             "rcept_dt_second": vs[1]["rcept_dt"] if len(vs) > 1 else None,
             "year": y, "q": q, "reprt_code": code_r, "fs_div": fs_div,
@@ -234,6 +241,11 @@ def evaluate_company(out: dict, periods: dict, px) -> dict:
         return out
     P = max(usable)
     out["period"] = f"{P[0]}Q{P[1]}"
+    # 가장 최근 감사·검토의견 (기준일에 공시된 사업·반기보고서 중)
+    aud = [k for k in usable if periods[k].get("audit_clean") is not None]
+    if aud:
+        ka = max(aud)
+        out["audit"] = {"period": f"{ka[0]}Q{ka[1]}", "opinion": periods[ka]["audit_opinion"], "clean": periods[ka]["audit_clean"]}
     target_div = periods[P]["fs_div"]
     out["fs_div"] = target_div
 

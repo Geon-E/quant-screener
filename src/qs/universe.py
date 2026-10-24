@@ -161,6 +161,10 @@ def collect_one(d: DART, cc: str, since: int = SINCE_YEAR) -> dict:
             got += 1
         elif _ok(_fs_one(d, cc, y, r, "OFS")):
             got += 1
+    # 감사의견(사업보고서)·검토의견(반기) — 위험 필터·관리종목 판정용
+    for y, r in keys:
+        if r in ("11011", "11012"):
+            d.audit(cc, y, r)
     # D-17: 정정 이력이 있는 보고서는 최초본 XBRL을 받아 둔다 (백테스트 시점 정합성)
     xb = 0
     for key in keys:

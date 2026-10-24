@@ -119,6 +119,9 @@ def risk_flags(r: dict, debt_top10: float | None, exclude_loss: bool = True, exc
         r["exclude"].append("자본잠식(지배주주 자본 ≤ 0)")
     if ni is not None and ni < 0:
         (r["exclude"] if exclude_loss else r["warn"]).append("적자(TTM 지배주주 순이익 < 0)")
+    a = r.get("audit") or {}
+    if a.get("clean") is False:
+        r["exclude"].append(f"감사·검토의견 비적정({a.get('opinion')}, {a.get('period')})")
     items = r.get("fscore_items") or {}
     if r.get("fscore") is not None and sum(v is not None for v in items.values()) >= 7 and r["fscore"] <= 3:
         (r["exclude"] if exclude_fscore else r["warn"]).append(f"F-스코어 {r['fscore']:.1f} ≤ 3")

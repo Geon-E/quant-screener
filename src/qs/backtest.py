@@ -323,7 +323,7 @@ VARIANTS = {
     "전체시장": {"grouping": "market"},
 }
 KEEP = ("stock_code", "corp_code", "name", "status", "error", "induty_code", "mcap", "close", "metrics", "ttm", "stock",
-        "fscore", "fscore_items", "interest_basis", "period", "flags", "fs_div")
+        "fscore", "fscore_items", "interest_basis", "period", "flags", "fs_div", "audit")
 
 
 def _index_series(store: PriceStore) -> dict[str, dict[str, float]]:

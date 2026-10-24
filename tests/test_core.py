@@ -680,3 +680,12 @@ def test_summarize_benchmarks_beta_and_yearly():
     assert abs(r["benchmark_universe_ew"]["total_return"] - (1.05 * 1.02 - 1)) < 1e-12
     assert abs(r["hit_rate"] - 2 / 3) < 1e-12 and r["ic"]["n"] == 2
     assert "benchmark_KOSPI" in r and set(r["yearly"]) == {"2019", "2020"}
+
+
+def test_audit_opinion_parse():
+    from qs.collect.dart import audit_opinion
+    ok = {"status": "000", "list": [{"bsns_year": "제57기(당기)", "adt_opinion": "적정"}, {"bsns_year": "제56기(전기)", "adt_opinion": "한정"}]}
+    assert audit_opinion(ok) == ("적정", True)
+    assert audit_opinion({"status": "000", "list": [{"bsns_year": "제10기(당기)", "adt_opinion": "의견거절"}]})[1] is False
+    assert audit_opinion({"status": "000", "list": [{"bsns_year": "당기", "adt_opinion": "한정의견"}]})[1] is False
+    assert audit_opinion({"status": "013"}) == (None, None)

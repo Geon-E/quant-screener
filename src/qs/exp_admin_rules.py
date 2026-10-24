@@ -8,7 +8,8 @@
   R4 법인세비용차감전손실이 자기자본의 50% 초과인 해가 최근 3개 사업연도 중 2회 이상 (최근 연도 포함)
   R5 최근 4개 사업연도 연속 영업손실
   R6 시가총액 40억 미만 30거래일 연속
-판정 못 하는 요건: 감사·검토의견(추가 수집 필요), 공시·지배구조·거래량 요건, 기술성장기업 등 유예 → 누락 원인으로 집계
+  R7 최근 감사의견(사업)·검토의견(반기) 비적정 (한정·부적정·의견거절)
+판정 못 하는 요건: 공시·지배구조·거래량 요건, 기술성장기업 등 유예 → 누락 원인으로 집계
 사전 기준 (claude_position.md Q1): 재현율 ≥ 90%, 정밀도 ≥ 80%
 """
 from __future__ import annotations
@@ -71,6 +72,8 @@ def judge(periods: dict, asof: dt.date, mcap_hist: list[float], tech: bool = Fal
     else:
         res["R5"] = None
     res["R6"] = (len(mcap_hist) >= 30 and all(m < 4.0e9 for m in mcap_hist[-30:])) if mcap_hist else None
+    aud = [k for k in avail if avail[k].get("audit_clean") is not None]
+    res["R7"] = (avail[max(aud)]["audit_clean"] is False) if aud else None
     if tech:
         for k in ("R1", "R4", "R5"):
             res[k] = False
