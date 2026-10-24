@@ -7,7 +7,7 @@
 **"정량 기준상 저평가 후보"** 로 골라 근거와 함께 보여줍니다.
 
 > **현재 상태: 0단계(데이터 확보 검증) 거의 완료 — 1단계 착수 가능**
-> - 1차 외부 검토(GPT) 반영 완료 (설계 v0.2)
+> - GPT 1차 검토 반영(v0.2) → 0단계 실측 + 2차 협의 반영(v0.3)
 > - 0단계 실측 결과: [docs/PHASE0_FINDINGS.md](docs/PHASE0_FINDINGS.md). 데이터 제공 시각만 평일 측정 중
 > - 다음 단계: 1단계 (국내 최소 파이프라인 + 계산 검증)
 
@@ -21,8 +21,9 @@
 
 | 파일 | 내용 |
 |---|---|
-| [docs/DESIGN.md](docs/DESIGN.md) | 설계안 본문 (v0.2) |
-| [docs/DECISIONS.md](docs/DECISIONS.md) | 확정 사항 · 확정 대기 · 열린 질문 |
+| [docs/DESIGN.md](docs/DESIGN.md) | 설계안 본문 (v0.3) |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | 확정 사항 · 열린 질문 |
+| [docs/DEBATE_PROTOCOL.md](docs/DEBATE_PROTOCOL.md) | Claude·GPT 공동 의사결정 방식 |
 | [docs/EXPERIMENTS.md](docs/EXPERIMENTS.md) | 실험 기록 규칙과 이력 (과최적화 방지) |
 | [docs/PHASE0_FINDINGS.md](docs/PHASE0_FINDINGS.md) | 0단계 데이터 확보 가능성 실측 결과 |
 | [reports/phase0/](reports/phase0/) | 0단계 자동 점검 원자료 |
@@ -36,7 +37,7 @@
 | 회차 | 일자 | 검토자 | 의견 | 응답 | 결과 |
 |---|---|---|---|---|---|
 | 1 | 2026-10-24 | GPT 검토 | [의견](reviews/2026-10-24_gpt.md) | [응답](reviews/2026-10-24_claude-response.md) | 대부분 수용 → v0.2 |
-| 2 | 2026-10-24~ | Claude·GPT 독립 답변 후 채택 ([방식](docs/DEBATE_PROTOCOL.md)) | [질문지](reviews/round2/QUESTIONS.md) | [Claude 답변(봉인)](reviews/round2/claude_position.md) | GPT 답변 대기 |
+| 2 | 2026-10-24 | Claude·GPT 독립 답변 후 채택 ([방식](docs/DEBATE_PROTOCOL.md)) | [GPT 독립](reviews/round2/gpt_position.md) · [GPT 교차](reviews/round2/gpt_rebuttal.md) | [Claude 봉인](reviews/round2/claude_position.md) · [Claude 교차](reviews/round2/claude_rebuttal.md) | [10개 항목 수렴](reviews/round2/RESULT.md) → v0.3 |
 
 ---
 ※ 개인 투자 판단을 돕는 도구이며 투자 권유가 아닙니다. 투자 판단과 결과의 책임은 투자자 본인에게 있습니다.
