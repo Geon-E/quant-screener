@@ -960,14 +960,170 @@
  },
  "dart_amendment": {
   "ok": true,
-  "searched": 0,
-  "amended_candidates": 0,
-  "samples": [],
-  "tally": {}
+  "searched": 3000,
+  "amended_candidates": 110,
+  "samples": [
+   {
+    "corp_name": "한주라이트메탈",
+    "stock_code": "198940",
+    "versions": [
+     {
+      "rcept_no": "20250319000483",
+      "rcept_dt": "20250319",
+      "report_nm": "사업보고서 (2024.12)"
+     },
+     {
+      "rcept_no": "20250624000171",
+      "rcept_dt": "20250624",
+      "report_nm": "[기재정정]사업보고서 (2024.12)"
+     }
+    ],
+    "fs_div": "CFS",
+    "returned_rcept_no": [
+     "20250624000171"
+    ],
+    "verdict": "정정본(최신)"
+   },
+   {
+    "corp_name": "신세계건설",
+    "stock_code": "034300",
+    "versions": [
+     {
+      "rcept_no": "20250312001005",
+      "rcept_dt": "20250312",
+      "report_nm": "사업보고서 (2024.12)"
+     },
+     {
+      "rcept_no": "20250623000339",
+      "rcept_dt": "20250623",
+      "report_nm": "[기재정정]사업보고서 (2024.12)"
+     },
+     {
+      "rcept_no": "20250814001882",
+      "rcept_dt": "20250814",
+      "report_nm": "[기재정정]사업보고서 (2024.12)"
+     }
+    ],
+    "fs_div": "CFS",
+    "returned_rcept_no": [
+     "20250814001882"
+    ],
+    "verdict": "정정본(최신)"
+   },
+   {
+    "corp_name": "메쎄이상",
+    "stock_code": "408920",
+    "versions": [
+     {
+      "rcept_no": "20250321001520",
+      "rcept_dt": "20250321",
+      "report_nm": "사업보고서 (2024.12)"
+     },
+     {
+      "rcept_no": "20250620000624",
+      "rcept_dt": "20250620",
+      "report_nm": "[기재정정]사업보고서 (2024.12)"
+     }
+    ],
+    "fs_div": "CFS",
+    "returned_rcept_no": [
+     "20250620000624"
+    ],
+    "verdict": "정정본(최신)"
+   },
+   {
+    "corp_name": "진양제약",
+    "stock_code": "007370",
+    "versions": [
+     {
+      "rcept_no": "20250312001044",
+      "rcept_dt": "20250312",
+      "report_nm": "[첨부추가]사업보고서 (2024.12)"
+     },
+     {
+      "rcept_no": "20250314000957",
+      "rcept_dt": "20250314",
+      "report_nm": "[기재정정]사업보고서 (2024.12)"
+     },
+     {
+      "rcept_no": "20250620000414",
+      "rcept_dt": "20250620",
+      "report_nm": "[기재정정]사업보고서 (2024.12)"
+     }
+    ],
+    "fs_div": "OFS",
+    "returned_rcept_no": [
+     "20250620000414"
+    ],
+    "verdict": "정정본(최신)"
+   },
+   {
+    "corp_name": "롯데지주",
+    "stock_code": "004990",
+    "versions": [
+     {
+      "rcept_no": "20250318001273",
+      "rcept_dt": "20250318",
+      "report_nm": "사업보고서 (2024.12)"
+     },
+     {
+      "rcept_no": "20250620000111",
+      "rcept_dt": "20250620",
+      "report_nm": "[기재정정]사업보고서 (2024.12)"
+     }
+    ],
+    "fs_div": "CFS",
+    "returned_rcept_no": [
+     "20250620000111"
+    ],
+    "verdict": "정정본(최신)"
+   },
+   {
+    "corp_name": "롯데웰푸드",
+    "stock_code": "280360",
+    "versions": [
+     {
+      "rcept_no": "20250317000383",
+      "rcept_dt": "20250317",
+      "report_nm": "사업보고서 (2024.12)"
+     },
+     {
+      "rcept_no": "20250402003166",
+      "rcept_dt": "20250402",
+      "report_nm": "[기재정정]사업보고서 (2024.12)"
+     },
+     {
+      "rcept_no": "20250617000244",
+      "rcept_dt": "20250617",
+      "report_nm": "[기재정정]사업보고서 (2024.12)"
+     }
+    ],
+    "fs_div": "CFS",
+    "returned_rcept_no": [
+     "20250617000244"
+    ],
+    "verdict": "정정본(최신)"
+   }
+  ],
+  "tally": {
+   "정정본(최신)": 6
+  }
  },
  "dart_xbrl_original": {
-  "ok": false,
-  "error": "정정 표본 없음"
+  "ok": true,
+  "rcept_no": "20250319000483",
+  "status": 200,
+  "content_type": "application/x-msdownload;charset=UTF-8",
+  "bytes": 79302,
+  "zip_files": [
+   "entity00156600_2024-12-31.xbrl",
+   "entity00156600_2024-12-31.xsd",
+   "entity00156600_2024-12-31_def.xml",
+   "entity00156600_2024-12-31_cal.xml",
+   "entity00156600_2024-12-31_pre.xml",
+   "entity00156600_2024-12-31_lab-ko.xml",
+   "entity00156600_2024-12-31_lab-en.xml"
+  ]
  },
  "dart_filing_lag": {
   "ok": true,
@@ -1084,5 +1240,11 @@
   "krx": 36,
   "dart": 43,
   "other": 2
+ },
+ "amend_rerun_at": "2026-10-24T21:52:52.135513+09:00",
+ "calls_amend": {
+  "krx": 0,
+  "dart": 45,
+  "other": 0
  }
 }
