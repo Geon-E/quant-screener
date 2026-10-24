@@ -772,3 +772,17 @@ def test_financial_holding_companies_excluded():
                                  {}, dt.date(2026, 10, 22), {}, set(), load_groups())
     g = {r["stock_code"]: r["group_id"] for r in out}
     assert g == {"105560": "EX", "999990": "EX", "003550": "G30"}
+
+
+def test_parse_dividend_common_stock():
+    from qs.collect.dart import parse_dividend
+    js = {"status": "000", "list": [
+        {"se": "주당액면가액(원)", "stock_knd": "", "thstrm": "100"},
+        {"se": "(연결)현금배당성향(%)", "stock_knd": "", "thstrm": "25.1"},
+        {"se": "현금배당금총액(백만원)", "stock_knd": "", "thstrm": "9,809,438"},
+        {"se": "주당 현금배당금(원)", "stock_knd": "보통주", "thstrm": "1,446"},
+        {"se": "주당 현금배당금(원)", "stock_knd": "우선주", "thstrm": "1,447"},
+        {"se": "현금배당수익률(%)", "stock_knd": "보통주", "thstrm": "2.7"}]}
+    d = parse_dividend(js)
+    assert d == {"dps": 1446.0, "yield_pct": 2.7, "payout_pct": 25.1, "total_mn": 9809438.0}
+    assert parse_dividend({"status": "013"})["dps"] is None

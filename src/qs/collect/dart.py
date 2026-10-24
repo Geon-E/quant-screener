@@ -109,6 +109,16 @@ class DART:
                                   "bsns_year": year, "reprt_code": reprt, "status": js.get("status")}, payload=js)
         return load_l0(path)["payload"]
 
+    # ── 배당에 관한 사항 (사업보고서) ──
+    def dividend(self, corp_code: str, year: int) -> dict:
+        """주당 현금배당금·배당수익률·배당성향 등. 원천값 대조(xcheck)와 같은 L0 경로를 써서 중복 호출을 피한다."""
+        path = dart_path("xcheck", "alotMatter", corp_code, f"{year}_11011.json.gz")
+        if not exists(path):
+            js = self._json("alotMatter.json", {"corp_code": corp_code, "bsns_year": str(year), "reprt_code": "11011"})
+            save_l0(path, source={"provider": "DART", "api": "alotMatter", "corp_code": corp_code, "bsns_year": year,
+                                  "reprt_code": "11011", "status": js.get("status"), "rows": len(js.get("list") or [])}, payload=js)
+        return load_l0(path)["payload"]
+
     # ── 원본 XBRL ──
     def xbrl(self, rcept_no: str, reprt: str) -> dict:
         path = dart_path("xbrl", f"{rcept_no}.zip")
@@ -143,6 +153,28 @@ def audit_opinion(js: dict) -> tuple[str | None, bool | None]:
         bad = any(k in op for k in ("한정", "부적정", "거절", "범위제한"))
         return op, (not bad) and ("적정" in op or "Unqualified" in op or "unqualified" in op)
     return None, None
+
+
+def parse_dividend(js: dict) -> dict:
+    """배당 항목 → 당기 보통주 기준 {dps, yield_pct, payout_pct, total_mn}. 분기·중간배당은 사업보고서의 연간 합계를 따른다."""
+    from ..util import to_num
+    out = {"dps": None, "yield_pct": None, "payout_pct": None, "total_mn": None}
+    if js.get("status") != "000":
+        return out
+    for r in js.get("list") or []:
+        se = (r.get("se") or "").replace(" ", "")
+        knd = (r.get("stock_knd") or "").replace(" ", "")
+        common = (not knd) or ("보통" in knd)
+        v = to_num(r.get("thstrm"))
+        if "주당현금배당금" in se and common and out["dps"] is None:
+            out["dps"] = v
+        elif "현금배당수익률" in se and common and out["yield_pct"] is None:
+            out["yield_pct"] = v
+        elif "현금배당성향" in se and out["payout_pct"] is None and ("연결" in se or "(" not in se):
+            out["payout_pct"] = v
+        elif "현금배당금총액" in se and out["total_mn"] is None:
+            out["total_mn"] = v
+    return out
 
 
 # ── 정기보고서 이름 해석 ──
