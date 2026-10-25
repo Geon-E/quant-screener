@@ -795,3 +795,10 @@ def test_business_holding_registered_as_649_not_excluded():
                                  {}, dt.date(2026, 10, 22), {}, set(), load_groups())
     g = {r["stock_code"]: r["group_id"] for r in out}
     assert g == {"999991": "G30", "999992": "EX", "004800": "G30"}
+
+
+def test_review_opinion_no_exception_is_clean():
+    from qs.collect.dart import audit_opinion
+    for t in ("예외사항 없음", "해당사항없음", "적정의견"):
+        assert audit_opinion({"status": "000", "list": [{"bsns_year": "당기", "adt_opinion": t}]})[1] is True
+    assert audit_opinion({"status": "000", "list": [{"bsns_year": "당기", "adt_opinion": "한정(범위제한)"}]})[1] is False

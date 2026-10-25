@@ -150,8 +150,10 @@ def audit_opinion(js: dict) -> tuple[str | None, bool | None]:
         op = (r.get("adt_opinion") or "").strip()
         if not op or op == "-":
             continue
-        bad = any(k in op for k in ("한정", "부적정", "거절", "범위제한"))
-        return op, (not bad) and ("적정" in op or "Unqualified" in op or "unqualified" in op)
+        # 비적정 = 한정·부적정·의견거절·범위제한이 명시된 경우만. 반기 검토의견의 '예외사항 없음'·'해당사항 없음'은 적정
+        # (2026-10-25 실데이터: 처음엔 '적정' 문구가 있어야 적정으로 봐서 검토의견 2건을 잘못 제외)
+        bad = any(k in op for k in ("한정", "부적정", "거절", "범위제한", "의견표명 안함", "Qualified", "Adverse", "Disclaimer"))
+        return op, not bad
     return None, None
 
 
