@@ -60,6 +60,7 @@ h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balan
 .star.on{color:#d39a00}
 table.gt{min-width:760px} .gt tbody tr{cursor:pointer} .gt tbody tr:hover{background:var(--soft)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[hidden]{display:none!important}
 .tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
 table{border-collapse:collapse;width:100%;min-width:980px;font-size:13.5px}
 th,td{padding:7px 10px;border-bottom:1px solid var(--soft);text-align:right;white-space:nowrap;vertical-align:middle}
@@ -328,7 +329,7 @@ function groupView(){
 function tab(which){
   const list=which==="list";
   document.getElementById("tab-list").setAttribute("aria-selected",list); document.getElementById("tab-grp").setAttribute("aria-selected",!list);
-  document.getElementById("listbox").hidden=!list; document.getElementById("ctl").hidden=!list; document.getElementById("more").hidden=!list||document.getElementById("more").hidden;
+  document.getElementById("listbox").hidden=!list; document.getElementById("ctl").hidden=!list; document.querySelector(".legend").hidden=!list; document.getElementById("more").hidden=!list||document.getElementById("more").hidden;
   document.getElementById("grpbox").hidden=list; if(!list) groupView(); else render();
 }
 document.getElementById("tab-list").addEventListener("click",()=>tab("list"));
