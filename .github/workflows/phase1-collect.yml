@@ -94,8 +94,10 @@ jobs:
       - name: Commit reports
         if: steps.run.outputs.code != '2'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Vercel Hobby는 계정 소유자(GitHub Geon-E)와 연결된 작성자의 커밋만 배포한다 → 봇 대신 저장소 소유자 계정의 GitHub noreply 주소로 커밋
+          # (2026-10-25: github-actions[bot]·연결 안 된 이메일 커밋은 모두 BLOCKED)
+          git config user.name "Geon-E"
+          git config user.email "326496254+Geon-E@users.noreply.github.com"
           # 없는 경로가 하나라도 있으면 git add 전체가 실패한다 → 경로별로 있는 것만 추가 (2026-10-25: reports/backtest 미존재로 커밋 누락)
           for p in reports/phase1 reports/screen/screen.json reports/backtest site config/sample_v1.csv; do
             if [ -e "$p" ]; then git add "$p"; fi
