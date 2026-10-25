@@ -9,19 +9,25 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "214500",
-  "mcap_common": 1254026761416000.0,
-  "mcap_pref": 134076228021300.0,
-  "mcap": 1388102989437300.0,
+  "close": "215500",
+  "mcap_common": 1259873040024000.0,
+  "mcap_pref": 134718124983700.0,
+  "mcap": 1394591165007700.0,
   "pref_codes": [
    "005935"
   ],
   "status": "ok",
   "ttm": {
    "revenue": 485272032000000.0,
+   "pretax": 187842005000000.0,
    "gross_profit": 278956986000000.0,
    "op_income": 178964931000000.0,
    "ni_total": 150717225000000.0,
@@ -33,6 +39,7 @@
   },
   "ttm_prev": {
    "revenue": 308593820000000.0,
+   "pretax": 33135372000000.0,
    "gross_profit": 112150413000000.0,
    "op_income": 27037403000000.0,
    "ni_total": 31194611000000.0,
@@ -46,6 +53,7 @@
    "assets": 759480516000000.0,
    "liabilities": 180170840000000.0,
    "equity_total": 579309676000000.0,
+   "capital_stock": 897514000000.0,
    "equity_owners": 565064740000000.0,
    "cur_assets": 379711982000000.0,
    "cur_liab": 134189617000000.0,
@@ -58,6 +66,7 @@
    "assets": 504875185000000.0,
    "liabilities": 105313218000000.0,
    "equity_total": 399561967000000.0,
+   "capital_stock": 897514000000.0,
    "equity_owners": 388694117000000.0,
    "cur_assets": 212160671000000.0,
    "cur_liab": 84402645000000.0,
@@ -68,6 +77,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -79,6 +89,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -92,6 +103,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익"
     ]
    ],
    "gross_profit": [
@@ -155,6 +172,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -214,19 +237,19 @@
     ]
    ]
   },
-  "ev": 1220558682437300.0,
+  "ev": 1227046858007700.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.10782281584212415,
-   "B/P": 0.40707695632084345,
-   "EBIT/EV": 0.14662542127235526,
+   "E/P": 0.10732118254827294,
+   "B/P": 0.4051830774339375,
+   "EBIT/EV": 0.1458501196038896,
    "EBITDA/EV(실험)": null,
    "ROE": 0.3138511834548552,
    "GP/A": 0.44126346055839866,
    "CFO/NI": 1.3052876869249683,
    "이자보상배율": 100.0,
    "영업이익증가율": 5.619161278174535,
-   "12-1모멘텀": 1.6747881355932202
+   "12-1모멘텀": 1.797427652733119
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음"
@@ -262,7 +285,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814003284",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -292,7 +315,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814003156",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -347,6 +370,11 @@
     "annual_prev": 333605938000000.0,
     "ytd_P_prevyear": 153706820000000.0
    },
+   "pretax": {
+    "ytd_P": 153268239000000.0,
+    "annual_prev": 49481471000000.0,
+    "ytd_P_prevyear": 14907705000000.0
+   },
    "gross_profit": {
     "ytd_P": 201213884000000.0,
     "annual_prev": 131370425000000.0,
@@ -399,6 +427,10 @@
     "P": 579309676000000.0,
     "P_prevyear": 399561967000000.0
    },
+   "capital_stock": {
+    "P": 897514000000.0,
+    "P_prevyear": 897514000000.0
+   },
    "equity_owners": {
     "P": 565064740000000.0,
     "P_prevyear": 388694117000000.0
@@ -439,17 +471,23 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2026Q2",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "1223000",
-  "mcap_common": 893392162395000.0,
+  "close": "1277000",
+  "mcap_common": 932838750105000.0,
   "mcap_pref": 0.0,
-  "mcap": 893392162395000.0,
+  "mcap": 932838750105000.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 189170615000000.0,
+   "pretax": 206768953000000.0,
    "gross_profit": 144276245000000.0,
    "op_income": 128705855000000.0,
    "ni_total": 162111993000000.0,
@@ -461,6 +499,7 @@
   },
   "ttm_prev": {
    "revenue": 77211197000000.0,
+   "pretax": 34482400000000.0,
    "gross_profit": 41622352000000.0,
    "op_income": 31766109000000.0,
    "ni_total": 28864271000000.0,
@@ -474,6 +513,7 @@
    "assets": 348862214000000.0,
    "liabilities": 86168986000000.0,
    "equity_total": 262693228000000.0,
+   "capital_stock": 3657652000000.0,
    "equity_owners": 262380610000000.0,
    "cur_assets": 156155954000000.0,
    "cur_liab": 60257051000000.0,
@@ -486,6 +526,7 @@
    "assets": 129087781000000.0,
    "liabilities": 41945296000000.0,
    "equity_total": 87142485000000.0,
+   "capital_stock": 3657652000000.0,
    "equity_owners": 87127160000000.0,
    "cur_assets": 45203170000000.0,
    "cur_liab": 25324404000000.0,
@@ -496,6 +537,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -507,6 +549,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -520,6 +563,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세차감전순이익"
     ]
    ],
    "gross_profit": [
@@ -583,6 +632,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -638,19 +693,19 @@
     ]
    ]
   },
-  "ev": 865271756395000.0,
+  "ev": 904718344105000.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.18129260230558125,
-   "B/P": 0.2936902975470612,
-   "EBIT/EV": 0.1487461644838957,
+   "E/P": 0.1736263528737086,
+   "B/P": 0.2812711306969897,
+   "EBIT/EV": 0.14226068901844066,
    "EBITDA/EV(실험)": null,
    "ROE": 0.9268199674073054,
    "GP/A": 0.6037294550029235,
    "CFO/NI": 0.7829512403810864,
    "이자보상배율": 100.0,
    "영업이익증가율": 3.051672019383929,
-   "12-1모멘텀": 3.0771028037383177
+   "12-1모멘텀": 3.474698795180723
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음"
@@ -686,7 +741,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814001887",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -716,7 +771,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814003049",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -771,6 +826,11 @@
     "annual_prev": 97146675000000.0,
     "ytd_P_prevyear": 39871093000000.0
    },
+   "pretax": {
+    "ytd_P": 174325213000000.0,
+    "annual_prev": 50465552000000.0,
+    "ytd_P_prevyear": 18021812000000.0
+   },
    "gross_profit": {
     "ytd_P": 107670770000000.0,
     "annual_prev": 58690790000000.0,
@@ -823,6 +883,10 @@
     "P": 262693228000000.0,
     "P_prevyear": 87142485000000.0
    },
+   "capital_stock": {
+    "P": 3657652000000.0,
+    "P_prevyear": 3657652000000.0
+   },
    "equity_owners": {
     "P": 262380610000000.0,
     "P_prevyear": 87127160000000.0
@@ -863,13 +927,18 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2023Q4",
+   "opinion": "적정",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "301500",
-  "mcap_common": 61345147338000.0,
-  "mcap_pref": 9602125424300.0,
-  "mcap": 70947272762300.0,
+  "close": "295500",
+  "mcap_common": 60124348386000.0,
+  "mcap_pref": 9437109224500.0,
+  "mcap": 69561457610500.0,
   "pref_codes": [
    "005387",
    "005389",
@@ -878,6 +947,7 @@
   "status": "ok",
   "ttm": {
    "revenue": 188714248000000.0,
+   "pretax": 12159213000000.0,
    "gross_profit": 32880438000000.0,
    "op_income": 9598219000000.0,
    "ni_total": 9205099000000.0,
@@ -889,6 +959,7 @@
   },
   "ttm_prev": {
    "revenue": 182246471000000.0,
+   "pretax": 16338524000000.0,
    "gross_profit": 35673522000000.0,
    "op_income": 13638300000000.0,
    "ni_total": 12312571000000.0,
@@ -902,6 +973,7 @@
    "assets": 394512167000000.0,
    "liabilities": 259095722000000.0,
    "equity_total": 135416445000000.0,
+   "capital_stock": 1488993000000.0,
    "equity_owners": 122327997000000.0,
    "cur_assets": 129045681000000.0,
    "cur_liab": 97136454000000.0,
@@ -914,6 +986,7 @@
    "assets": 339702469000000.0,
    "liabilities": 218165355000000.0,
    "equity_total": 121537114000000.0,
+   "capital_stock": 1488993000000.0,
    "equity_owners": 110277190000000.0,
    "cur_assets": 113694952000000.0,
    "cur_liab": 81320097000000.0,
@@ -924,6 +997,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -935,6 +1009,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -948,6 +1023,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익"
     ]
    ],
    "gross_profit": [
@@ -1009,6 +1090,12 @@
     [
      "ifrs-full_Equity",
      "자본총계"
+    ]
+   ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
     ]
    ],
    "equity_owners": [
@@ -1078,19 +1165,19 @@
     ]
    ]
   },
-  "ev": 235372016762300.0,
+  "ev": 233986201610500.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.11482593597775245,
-   "B/P": 1.7242099976111092,
-   "EBIT/EV": 0.04077893001908189,
+   "E/P": 0.11711351774161656,
+   "B/P": 1.7585600015019685,
+   "EBIT/EV": 0.0410204487868796,
    "EBITDA/EV(실험)": null,
    "ROE": 0.07004647751040909,
    "GP/A": 0.08956628317608205,
    "CFO/NI": -0.22827217827858234,
    "이자보상배율": 1.2195220466970487,
    "영업이익증가율": -0.29623054192971265,
-   "12-1모멘텀": 0.6728110599078341
+   "12-1모멘텀": 0.6704805491990846
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음"
@@ -1126,7 +1213,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814004199",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -1156,7 +1243,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814003906",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -1211,6 +1298,11 @@
     "annual_prev": 186254472000000.0,
     "ytd_P_prevyear": 92694438000000.0
    },
+   "pretax": {
+    "ytd_P": 7167251000000.0,
+    "annual_prev": 13841903000000.0,
+    "ytd_P_prevyear": 8849941000000.0
+   },
    "gross_profit": {
     "ytd_P": 16752940000000.0,
     "annual_prev": 34216836000000.0,
@@ -1263,6 +1355,10 @@
     "P": 135416445000000.0,
     "P_prevyear": 121537114000000.0
    },
+   "capital_stock": {
+    "P": 1488993000000.0,
+    "P_prevyear": 1488993000000.0
+   },
    "equity_owners": {
     "P": 122327997000000.0,
     "P_prevyear": 110277190000000.0
@@ -1303,17 +1399,23 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "176400",
-  "mcap_common": 26832008548800.0,
+  "close": "173600",
+  "mcap_common": 26406103651200.0,
   "mcap_pref": 0.0,
-  "mcap": 26832008548800.0,
+  "mcap": 26406103651200.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 12962954994050.0,
+   "pretax": 2451952188688.0,
    "gross_profit": null,
    "op_income": 2243349860301.0,
    "ni_total": 1893020859551.0,
@@ -1325,6 +1427,7 @@
   },
   "ttm_prev": {
    "revenue": 11303046336699.0,
+   "pretax": 2458385116248.0,
    "gross_profit": null,
    "op_income": 2094140268680.0,
    "ni_total": 1965136168993.0,
@@ -1338,6 +1441,7 @@
    "assets": 44656683622468.0,
    "liabilities": 13626888366640.0,
    "equity_total": 31029795255828.0,
+   "capital_stock": 16490499900.0,
    "equity_owners": 29539564060069.0,
    "cur_assets": 11320878049411.0,
    "cur_liab": 7614541505993.0,
@@ -1350,6 +1454,7 @@
    "assets": 39351060803109.0,
    "liabilities": 11415295638497.0,
    "equity_total": 27935765164612.0,
+   "capital_stock": 16481339500.0,
    "equity_owners": 26401621734922.0,
    "cur_assets": 9933739423065.0,
    "cur_liab": 7643738252006.0,
@@ -1360,6 +1465,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "none",
    "op_income": "id",
    "ni_total": "id",
@@ -1371,6 +1477,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -1384,6 +1491,12 @@
     [
      "ifrs-full_Revenue",
      "영업수익"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익"
     ]
    ],
    "gross_profit": [],
@@ -1440,6 +1553,12 @@
     [
      "ifrs-full_Equity",
      "자본총계"
+    ]
+   ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
     ]
    ],
    "equity_owners": [
@@ -1505,19 +1624,19 @@
     ]
    ]
   },
-  "ev": 23325271339458.0,
+  "ev": 22899366441858.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.07541508464305771,
-   "B/P": 1.100907671758702,
-   "EBIT/EV": 0.0961767958731548,
+   "E/P": 0.07663145697601025,
+   "B/P": 1.1186642471096488,
+   "EBIT/EV": 0.09796558634043065,
    "EBITDA/EV(실험)": null,
    "ROE": 0.07234520209373854,
    "GP/A": null,
    "CFO/NI": 1.6679277292136652,
    "이자보상배율": 19.05483473312093,
    "영업이익증가율": 0.0712510015936283,
-   "12-1모멘텀": -0.25607476635514015
+   "12-1모멘텀": -0.24685714285714289
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -1554,7 +1673,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814002406",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -1584,7 +1703,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814002281",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -1639,6 +1758,11 @@
     "annual_prev": 12035007218975.0,
     "ytd_P_prevyear": 5701868408120.0
    },
+   "pretax": {
+    "ytd_P": 1295534806537.0,
+    "annual_prev": 2420143293070.0,
+    "ytd_P_prevyear": 1263725910919.0
+   },
    "gross_profit": {
     "ytd_P": null,
     "annual_prev": null,
@@ -1691,6 +1815,10 @@
     "P": 31029795255828.0,
     "P_prevyear": 27935765164612.0
    },
+   "capital_stock": {
+    "P": 16490499900.0,
+    "P_prevyear": 16481339500.0
+   },
    "equity_owners": {
     "P": 29539564060069.0,
     "P_prevyear": 26401621734922.0
@@ -1731,19 +1859,25 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "238000",
-  "mcap_common": 16800977158000.0,
-  "mcap_pref": 834347627400.0,
-  "mcap": 17635324785400.0,
+  "close": "229000",
+  "mcap_common": 16165646089000.0,
+  "mcap_pref": 796702108300.0,
+  "mcap": 16962348197300.0,
   "pref_codes": [
    "051915"
   ],
   "status": "ok",
   "ttm": {
    "revenue": 48815994000000.0,
+   "pretax": -2169503000000.0,
    "gross_profit": 9199996000000.0,
    "op_income": 816347000000.0,
    "ni_total": -1840652000000.0,
@@ -1755,6 +1889,7 @@
   },
   "ttm_prev": {
    "revenue": 48545863000000.0,
+   "pretax": -526706000000.0,
    "gross_profit": 7676730000000.0,
    "op_income": 1160757000000.0,
    "ni_total": 262004000000.0,
@@ -1768,6 +1903,7 @@
    "assets": 112209782000000.0,
    "liabilities": 63338859000000.0,
    "equity_total": 48870923000000.0,
+   "capital_stock": 391406000000.0,
    "equity_owners": 35430227000000.0,
    "cur_assets": 37485351000000.0,
    "cur_liab": 27574102000000.0,
@@ -1780,6 +1916,7 @@
    "assets": 93952004000000.0,
    "liabilities": 49364724000000.0,
    "equity_total": 44587280000000.0,
+   "capital_stock": 391406000000.0,
    "equity_owners": 31447235000000.0,
    "cur_assets": 27024817000000.0,
    "cur_liab": 21631159000000.0,
@@ -1790,6 +1927,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -1801,6 +1939,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -1814,6 +1953,12 @@
     [
      "ifrs-full_Revenue",
      "매출"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -1877,6 +2022,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -1919,19 +2070,19 @@
     ]
    ]
   },
-  "ev": 46837910785400.0,
+  "ev": 46164934197300.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": -0.08575464406825202,
-   "B/P": 2.009048737754584,
-   "EBIT/EV": 0.017429193281918675,
+   "E/P": -0.08915693643411493,
+   "B/P": 2.088757204361578,
+   "EBIT/EV": 0.017683270087878622,
    "EBITDA/EV(실험)": null,
    "ROE": -0.04522632751823028,
    "GP/A": 0.08925025513700197,
    "CFO/NI": null,
    "이자보상배율": 0.6328565669721072,
    "영업이익증가율": -0.2967115425536956,
-   "12-1모멘텀": -0.03942652329749108
+   "12-1모멘텀": -0.05319148936170215
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -1968,7 +2119,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814002178",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -1998,7 +2149,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814003066",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -2053,6 +2204,11 @@
     "annual_prev": 45932167000000.0,
     "ytd_P_prevyear": 23538863000000.0
    },
+   "pretax": {
+    "ytd_P": -137159000000.0,
+    "annual_prev": -1780425000000.0,
+    "ytd_P_prevyear": 251919000000.0
+   },
    "gross_profit": {
     "ytd_P": 5310720000000.0,
     "annual_prev": 7809460000000.0,
@@ -2105,6 +2261,10 @@
     "P": 48870923000000.0,
     "P_prevyear": 44587280000000.0
    },
+   "capital_stock": {
+    "P": 391406000000.0,
+    "P_prevyear": 391406000000.0
+   },
    "equity_owners": {
     "P": 35430227000000.0,
     "P_prevyear": 31447235000000.0
@@ -2145,17 +2305,23 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "30350",
-  "mcap_common": 13445065478500.0,
+  "close": "29950",
+  "mcap_common": 13267865274500.0,
   "mcap_pref": 0.0,
-  "mcap": 13445065478500.0,
+  "mcap": 13267865274500.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 8247637405164.0,
+   "pretax": 930054341837.0,
    "gross_profit": null,
    "op_income": 929123712999.0,
    "ni_total": 390626813118.0,
@@ -2167,6 +2333,7 @@
   },
   "ttm_prev": {
    "revenue": 7770487540747.0,
+   "pretax": 79507463261.0,
    "gross_profit": null,
    "op_income": 497280667712.0,
    "ni_total": 55454848319.0,
@@ -2180,6 +2347,7 @@
    "assets": 27672994899114.0,
    "liabilities": 12599593717147.0,
    "equity_total": 15073401181967.0,
+   "capital_stock": 44348107000.0,
    "equity_owners": 11782230191255.0,
    "cur_assets": 15421832259870.0,
    "cur_liab": 10059048366287.0,
@@ -2192,6 +2360,7 @@
    "assets": 26562575454793.0,
    "liabilities": 11973025091591.0,
    "equity_total": 14589550363202.0,
+   "capital_stock": 44251372200.0,
    "equity_owners": 10574934599909.0,
    "cur_assets": 11267555824236.0,
    "cur_liab": 8189436812779.0,
@@ -2202,6 +2371,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "none",
    "op_income": "id",
    "ni_total": "id",
@@ -2213,6 +2383,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -2226,6 +2397,12 @@
     [
      "ifrs-full_Revenue",
      "영업수익"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [],
@@ -2284,6 +2461,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -2339,19 +2522,19 @@
     ]
    ]
   },
-  "ev": 6655847137917.0,
+  "ev": 6478646933917.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.025765696038443434,
-   "B/P": 0.8763237494154239,
-   "EBIT/EV": 0.1395951099456555,
+   "E/P": 0.02610981217919059,
+   "B/P": 0.8880275724460138,
+   "EBIT/EV": 0.14341323465781927,
    "EBITDA/EV(실험)": null,
    "ROE": 0.030989749690704317,
    "GP/A": null,
    "CFO/NI": 2.9208178701812346,
    "이자보상배율": 5.660206416332869,
    "영업이익증가율": 0.8684090762545023,
-   "12-1모멘텀": -0.46054750402576494
+   "12-1모멘텀": -0.4389632107023411
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -2418,7 +2601,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814003953",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -2473,6 +2656,11 @@
     "annual_prev": 8099147815086.0,
     "ytd_P_prevyear": 3892043657398.0
    },
+   "pretax": {
+    "ytd_P": 696334006145.0,
+    "annual_prev": 621536394758.0,
+    "ytd_P_prevyear": 387816059066.0
+   },
    "gross_profit": {
     "ytd_P": null,
     "annual_prev": null,
@@ -2525,6 +2713,10 @@
     "P": 15073401181967.0,
     "P_prevyear": 14589550363202.0
    },
+   "capital_stock": {
+    "P": 44348107000.0,
+    "P_prevyear": 44251372200.0
+   },
    "equity_owners": {
     "P": 11782230191255.0,
     "P_prevyear": 10574934599909.0
@@ -2565,19 +2757,25 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "100900",
-  "mcap_common": 15255273203600.0,
-  "mcap_pref": 191512256400.0,
-  "mcap": 15446785460000.0,
+  "close": "99000",
+  "mcap_common": 14968008396000.0,
+  "mcap_pref": 188199937500.0,
+  "mcap": 15156208333500.0,
   "pref_codes": [
    "003555"
   ],
   "status": "ok",
   "ttm": {
    "revenue": 7458946000000.0,
+   "pretax": 1412155000000.0,
    "gross_profit": 1398556000000.0,
    "op_income": 944051000000.0,
    "ni_total": 1060279000000.0,
@@ -2589,6 +2787,7 @@
   },
   "ttm_prev": {
    "revenue": 7461521000000.0,
+   "pretax": 1197812000000.0,
    "gross_profit": 1578211000000.0,
    "op_income": 1149737000000.0,
    "ni_total": 984336000000.0,
@@ -2602,6 +2801,7 @@
    "assets": 35931460000000.0,
    "liabilities": 3209037000000.0,
    "equity_total": 32722423000000.0,
+   "capital_stock": 801312000000.0,
    "equity_owners": 31035798000000.0,
    "cur_assets": 5213484000000.0,
    "cur_liab": 1806560000000.0,
@@ -2614,6 +2814,7 @@
    "assets": 31461920000000.0,
    "liabilities": 2907483000000.0,
    "equity_total": 28554437000000.0,
+   "capital_stock": 801312000000.0,
    "equity_owners": 27092817000000.0,
    "cur_assets": 4544129000000.0,
    "cur_liab": 1779238000000.0,
@@ -2624,6 +2825,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -2635,6 +2837,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -2648,6 +2851,12 @@
     [
      "ifrs-full_Revenue",
      "매출및지분법손익"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익"
     ]
    ],
    "gross_profit": [
@@ -2716,6 +2925,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -2771,19 +2986,19 @@
     ]
    ]
   },
-  "ev": 12903759460000.0,
+  "ev": 12613182333500.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.04906677845449923,
-   "B/P": 2.0092075519769663,
-   "EBIT/EV": 0.07316092669941943,
-   "EBITDA/EV(실험)": 0.09126557292474514,
+   "E/P": 0.05000749417812824,
+   "B/P": 2.047728384110497,
+   "EBIT/EV": 0.07484637699184339,
+   "EBITDA/EV(실험)": 0.09336811035167297,
    "ROE": 0.026077483525110655,
    "GP/A": 0.041504254572184984,
    "CFO/NI": 1.0070632352427993,
    "이자보상배율": 44.867211634428024,
    "영업이익증가율": -0.17889830456878397,
-   "12-1모멘텀": 0.5680224403927068
+   "12-1모멘텀": 0.5628491620111731
   },
   "metric_reasons": {},
   "fscore": 6.75,
@@ -2817,7 +3032,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814004439",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -2847,7 +3062,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814003006",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -2902,6 +3117,11 @@
     "annual_prev": 7252547000000.0,
     "ytd_P_prevyear": 3733846000000.0
    },
+   "pretax": {
+    "ytd_P": 1011414000000.0,
+    "annual_prev": 1334876000000.0,
+    "ytd_P_prevyear": 934135000000.0
+   },
    "gross_profit": {
     "ytd_P": 1157087000000.0,
     "annual_prev": 1353734000000.0,
@@ -2954,6 +3174,10 @@
     "P": 32722423000000.0,
     "P_prevyear": 28554437000000.0
    },
+   "capital_stock": {
+    "P": 801312000000.0,
+    "P_prevyear": 801312000000.0
+   },
    "equity_owners": {
     "P": 31035798000000.0,
     "P_prevyear": 27092817000000.0
@@ -2994,17 +3218,23 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "461500",
-  "mcap_common": 33459997434500.0,
+  "close": "465500",
+  "mcap_common": 33750008246500.0,
   "mcap_pref": 0.0,
-  "mcap": 33459997434500.0,
+  "mcap": 33750008246500.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 140286333000000.0,
+   "pretax": 33328029000000.0,
    "gross_profit": 18044242000000.0,
    "op_income": 9733507000000.0,
    "ni_total": 28002536000000.0,
@@ -3016,6 +3246,7 @@
   },
   "ttm_prev": {
    "revenue": 122239722000000.0,
+   "pretax": 1423580000000.0,
    "gross_profit": 8867705000000.0,
    "op_income": 704090000000.0,
    "ni_total": 3916949000000.0,
@@ -3029,6 +3260,7 @@
    "assets": 244883396000000.0,
    "liabilities": 127104741000000.0,
    "equity_total": 117778655000000.0,
+   "capital_stock": 16143000000.0,
    "equity_owners": 37194940000000.0,
    "cur_assets": 71129243000000.0,
    "cur_liab": 64013378000000.0,
@@ -3041,6 +3273,7 @@
    "assets": 206385526000000.0,
    "liabilities": 128422973000000.0,
    "equity_total": 77962553000000.0,
+   "capital_stock": 16143000000.0,
    "equity_owners": 26144793000000.0,
    "cur_assets": 61560541000000.0,
    "cur_liab": 64862210000000.0,
@@ -3051,6 +3284,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -3062,6 +3296,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -3075,6 +3310,12 @@
     [
      "ifrs-full_Revenue",
      "매출액 및 기타영업수익"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "계속영업법인세비용차감전순이익"
     ]
    ],
    "gross_profit": [
@@ -3138,6 +3379,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -3189,19 +3436,19 @@
     ]
    ]
   },
-  "ev": 78216430434500.0,
+  "ev": 78506441246500.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.24046170403181416,
-   "B/P": 1.1116241139232417,
-   "EBIT/EV": 0.12444325247175571,
+   "E/P": 0.23839543804657837,
+   "B/P": 1.102072027015201,
+   "EBIT/EV": 0.12398354638746209,
    "EBITDA/EV(실험)": null,
    "ROE": 0.2540537390645458,
    "GP/A": 0.07997112639633536,
    "CFO/NI": 0.28379865309341984,
    "이자보상배율": 3.5343483510198896,
    "영업이익증가율": 12.824236958343393,
-   "12-1모멘텀": 1.461187214611872
+   "12-1모멘텀": 1.454954954954955
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음"
@@ -3237,7 +3484,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814004071",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -3267,7 +3514,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814003843",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -3322,6 +3569,11 @@
     "annual_prev": 122703338000000.0,
     "ytd_P_prevyear": 61371896000000.0
    },
+   "pretax": {
+    "ytd_P": 32823523000000.0,
+    "annual_prev": 2636992000000.0,
+    "ytd_P_prevyear": 2132486000000.0
+   },
    "gross_profit": {
     "ytd_P": 12774073000000.0,
     "annual_prev": 9587910000000.0,
@@ -3374,6 +3626,10 @@
     "P": 117778655000000.0,
     "P_prevyear": 77962553000000.0
    },
+   "capital_stock": {
+    "P": 16143000000.0,
+    "P_prevyear": 16143000000.0
+   },
    "equity_owners": {
     "P": 37194940000000.0,
     "P_prevyear": 26144793000000.0
@@ -3414,17 +3670,23 @@
   "flags": [],
   "cfs_quarters": 15,
   "l1_periods": 15,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "1214",
-  "mcap_common": 24241748074.0,
+  "close": "1179",
+  "mcap_common": 23542850889.0,
   "mcap_pref": 0.0,
-  "mcap": 24241748074.0,
+  "mcap": 23542850889.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 259834906609.0,
+   "pretax": -1901995904.0,
    "gross_profit": 11019858590.0,
    "op_income": 761891347.0,
    "ni_total": -1911075835.0,
@@ -3436,6 +3698,7 @@
   },
   "ttm_prev": {
    "revenue": 260317709400.0,
+   "pretax": -11510417925.0,
    "gross_profit": 10609805995.0,
    "op_income": -4900841755.0,
    "ni_total": -7787993000.0,
@@ -3449,6 +3712,7 @@
    "assets": 217097585584.0,
    "liabilities": 168802274378.0,
    "equity_total": 48295311206.0,
+   "capital_stock": 20220904000.0,
    "equity_owners": 48295311206.0,
    "cur_assets": 99522946996.0,
    "cur_liab": 148520048156.0,
@@ -3461,6 +3725,7 @@
    "assets": 217262765598.0,
    "liabilities": 168504584437.0,
    "equity_total": 48758181161.0,
+   "capital_stock": 19836489000.0,
    "equity_owners": 48758181161.0,
    "cur_assets": 98910113157.0,
    "cur_liab": 132224798635.0,
@@ -3471,6 +3736,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -3482,6 +3748,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -3495,6 +3762,12 @@
     [
      "ifrs-full_Revenue",
      "수익"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -3558,6 +3831,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -3617,19 +3896,19 @@
     ]
    ]
   },
-  "ev": 100032693697.0,
+  "ev": 99333796512.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": -0.07883407702968773,
-   "B/P": 1.9922371546216242,
-   "EBIT/EV": 0.00761642337961803,
+   "E/P": -0.08117435921462332,
+   "B/P": 2.051379054886049,
+   "EBIT/EV": 0.0076700113531647796,
    "EBITDA/EV(실험)": null,
    "ROE": -0.039381907613863495,
    "GP/A": 0.050740628420675546,
    "CFO/NI": null,
    "이자보상배율": 0.13917013958956778,
    "영업이익증가율": null,
-   "12-1모멘텀": -0.004888268156424624
+   "12-1모멘텀": -0.030598052851182223
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -3752,6 +4031,11 @@
     "annual_prev": 259464652455.0,
     "ytd_P_prevyear": 135325665657.0
    },
+   "pretax": {
+    "ytd_P": 948514978.0,
+    "annual_prev": -3291811678.0,
+    "ytd_P_prevyear": -441300796.0
+   },
    "gross_profit": {
     "ytd_P": 8104740848.0,
     "annual_prev": 11678757305.0,
@@ -3803,6 +4087,10 @@
    "equity_total": {
     "P": 48295311206.0,
     "P_prevyear": 48758181161.0
+   },
+   "capital_stock": {
+    "P": 20220904000.0,
+    "P_prevyear": 19836489000.0
    },
    "equity_owners": {
     "P": 48295311206.0,
@@ -3858,17 +4146,23 @@
   "flags": [],
   "cfs_quarters": 14,
   "l1_periods": 15,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "2920",
-  "mcap_common": 126238768600.0,
+  "close": "2910",
+  "mcap_common": 125806444050.0,
   "mcap_pref": 0.0,
-  "mcap": 126238768600.0,
+  "mcap": 125806444050.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 78161837991.0,
+   "pretax": 20923932512.0,
    "gross_profit": 29248063782.0,
    "op_income": 20840446389.0,
    "ni_total": 17399652936.0,
@@ -3880,6 +4174,7 @@
   },
   "ttm_prev": {
    "revenue": 72722549881.0,
+   "pretax": 20009621998.0,
    "gross_profit": 29273530670.0,
    "op_income": 20737018478.0,
    "ni_total": 16825172760.0,
@@ -3893,6 +4188,7 @@
    "assets": 109101372956.0,
    "liabilities": 24667760348.0,
    "equity_total": 84433612608.0,
+   "capital_stock": 4323245500.0,
    "equity_owners": 84433612608.0,
    "cur_assets": 79162821885.0,
    "cur_liab": 19182335737.0,
@@ -3905,6 +4201,7 @@
    "assets": 91519256601.0,
    "liabilities": 18828972461.0,
    "equity_total": 72690284140.0,
+   "capital_stock": 4323245500.0,
    "equity_owners": 72734519469.0,
    "cur_assets": 64893068757.0,
    "cur_liab": 13266588458.0,
@@ -3915,6 +4212,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -3926,6 +4224,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -3939,6 +4238,12 @@
     [
      "ifrs-full_Revenue",
      "수익"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -4007,6 +4312,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -4054,19 +4365,19 @@
     ]
    ]
   },
-  "ev": 61762325321.0,
+  "ev": 61330000771.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.13800346891216428,
-   "B/P": 0.6688405910828886,
-   "EBIT/EV": 0.33742975642003514,
-   "EBITDA/EV(실험)": 0.36766201829319883,
+   "E/P": 0.13847770763694836,
+   "B/P": 0.6711390123580876,
+   "EBIT/EV": 0.33980835035068907,
+   "EBITDA/EV(실험)": 0.3702537240589333,
    "ROE": 0.22169109917861585,
    "GP/A": 0.29157583491372796,
    "CFO/NI": 1.402340673101343,
    "이자보상배율": 23.573666777215823,
    "영업이익증가율": 0.004987597957234247,
-   "12-1모멘텀": -0.10015408320493069
+   "12-1모멘텀": -0.08463949843260188
   },
   "metric_reasons": {},
   "fscore": 4.5,
@@ -4100,7 +4411,7 @@
     "rcept_dt_last": "20240821",
     "api_rcept_no": "20240821000124",
     "amended": true,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -4130,7 +4441,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814004442",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -4185,6 +4496,11 @@
     "annual_prev": 72822323336.0,
     "ytd_P_prevyear": 30609513822.0
    },
+   "pretax": {
+    "ytd_P": 12160049356.0,
+    "annual_prev": 18665530495.0,
+    "ytd_P_prevyear": 9901647339.0
+   },
    "gross_profit": {
     "ytd_P": 15947101847.0,
     "annual_prev": 26730413948.0,
@@ -4237,6 +4553,10 @@
     "P": 84433612608.0,
     "P_prevyear": 72690284140.0
    },
+   "capital_stock": {
+    "P": 4323245500.0,
+    "P_prevyear": 4323245500.0
+   },
    "equity_owners": {
     "P": 84433612608.0,
     "P_prevyear": 72734519469.0
@@ -4277,17 +4597,23 @@
   "flags": [],
   "cfs_quarters": 0,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "OFS",
-  "close": "3795",
-  "mcap_common": 53640757665.0,
+  "close": "3630",
+  "mcap_common": 51308550810.0,
   "mcap_pref": 0.0,
-  "mcap": 53640757665.0,
+  "mcap": 51308550810.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 124610545545.0,
+   "pretax": 29114520361.0,
    "gross_profit": 82257494130.0,
    "op_income": 3790300766.0,
    "ni_total": 22804051266.0,
@@ -4299,6 +4625,7 @@
   },
   "ttm_prev": {
    "revenue": 119555923324.0,
+   "pretax": 35904755479.0,
    "gross_profit": 75317917874.0,
    "op_income": 13764794572.0,
    "ni_total": 28740459509.0,
@@ -4312,6 +4639,7 @@
    "assets": 274418265173.0,
    "liabilities": 112259472254.0,
    "equity_total": 162158792919.0,
+   "capital_stock": 7067293500.0,
    "equity_owners": 162158792919.0,
    "cur_assets": 47720254679.0,
    "cur_liab": 91786321039.0,
@@ -4324,6 +4652,7 @@
    "assets": 228769952049.0,
    "liabilities": 102459557819.0,
    "equity_total": 126310394230.0,
+   "capital_stock": 6519689500.0,
    "equity_owners": 126310394230.0,
    "cur_assets": 44558862980.0,
    "cur_liab": 14379107661.0,
@@ -4334,6 +4663,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -4345,6 +4675,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "separate_only",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -4358,6 +4689,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세차감전순이익"
     ]
    ],
    "gross_profit": [
@@ -4421,6 +4758,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_Equity",
@@ -4458,19 +4801,19 @@
    ],
    "lt_debt": []
   },
-  "ev": 128090673717.0,
+  "ev": 125758466862.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.4251254504721396,
-   "B/P": 3.0230518728263007,
-   "EBIT/EV": 0.029590762980716192,
+   "E/P": 0.4444493345845096,
+   "B/P": 3.160463321591133,
+   "EBIT/EV": 0.030139527465448946,
    "EBITDA/EV(실험)": null,
    "ROE": 0.15810389658165647,
    "GP/A": 0.32694523168339246,
    "CFO/NI": 0.47151782573965734,
    "이자보상배율": 1.7736815657806688,
    "영업이익증가율": -0.7246380433667978,
-   "12-1모멘텀": -0.2920353982300885
+   "12-1모멘텀": -0.2876344086021505
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음"
@@ -4506,7 +4849,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814003445",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "OFS",
@@ -4591,6 +4934,11 @@
     "annual_prev": 120686230379.0,
     "ytd_P_prevyear": 61122380211.0
    },
+   "pretax": {
+    "ytd_P": 5599029108.0,
+    "annual_prev": 28100750852.0,
+    "ytd_P_prevyear": 4585259599.0
+   },
    "gross_profit": {
     "ytd_P": 43355170134.0,
     "annual_prev": 78151057747.0,
@@ -4643,6 +4991,10 @@
     "P": 162158792919.0,
     "P_prevyear": 126310394230.0
    },
+   "capital_stock": {
+    "P": 7067293500.0,
+    "P_prevyear": 6519689500.0
+   },
    "equity_owners": {
     "P": 162158792919.0,
     "P_prevyear": 126310394230.0
@@ -4683,19 +5035,25 @@
   "flags": [],
   "cfs_quarters": 37,
   "l1_periods": 37,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "22000",
-  "mcap_common": 2192603072000.0,
-  "mcap_pref": 18851110200.0,
-  "mcap": 2211454182200.0,
+  "close": "21700",
+  "mcap_common": 2162703939200.0,
+  "mcap_pref": 18408028550.0,
+  "mcap": 2181111967750.0,
   "pref_codes": [
    "00499K"
   ],
   "status": "ok",
   "ttm": {
    "revenue": 15626411322658.0,
+   "pretax": -235573722388.0,
    "gross_profit": 4479819735629.0,
    "op_income": 254339977231.0,
    "ni_total": -355764058236.0,
@@ -4707,6 +5065,7 @@
   },
   "ttm_prev": {
    "revenue": 15539810954740.0,
+   "pretax": -924703120396.0,
    "gross_profit": 4457469427417.0,
    "op_income": 266168191998.0,
    "ni_total": -940944099542.0,
@@ -4720,6 +5079,7 @@
    "assets": 23652508149907.0,
    "liabilities": 13758096718385.0,
    "equity_total": 9894411431522.0,
+   "capital_stock": 21142968000.0,
    "equity_owners": 6395557318834.0,
    "cur_assets": 5542217857094.0,
    "cur_liab": 7189896752441.0,
@@ -4732,6 +5092,7 @@
    "assets": 22467936174334.0,
    "liabilities": 13459452355533.0,
    "equity_total": 9008483818801.0,
+   "capital_stock": 21142968000.0,
    "equity_owners": 5940329474021.0,
    "cur_assets": 5388745034834.0,
    "cur_liab": 7119921805678.0,
@@ -4742,6 +5103,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -4753,6 +5115,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -4766,6 +5129,12 @@
     [
      "ifrs-full_Revenue",
      "매출"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -4829,6 +5198,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -4871,19 +5246,19 @@
     ]
    ]
   },
-  "ev": 9621454017637.0,
+  "ev": 9591111803187.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": -0.1811199370391369,
-   "B/P": 2.8920143904910427,
-   "EBIT/EV": 0.026434671595870197,
+   "E/P": -0.18363956008099347,
+   "B/P": 2.932246218167128,
+   "EBIT/EV": 0.02651829969769367,
    "EBITDA/EV(실험)": null,
    "ROE": -0.06493873508583001,
    "GP/A": 0.19426611348904102,
    "CFO/NI": null,
    "이자보상배율": 0.7153528340850033,
    "영업이익증가율": -0.044438874075114376,
-   "12-1모멘텀": -0.11229946524064172
+   "12-1모멘텀": -0.11827956989247312
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -4920,7 +5295,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814004464",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -4950,7 +5325,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814004439",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -5005,6 +5380,11 @@
     "annual_prev": 15539626589471.0,
     "ytd_P_prevyear": 7628438979590.0
    },
+   "pretax": {
+    "ytd_P": 110811429707.0,
+    "annual_prev": -474183614238.0,
+    "ytd_P_prevyear": -127798462143.0
+   },
    "gross_profit": {
     "ytd_P": 2263189109088.0,
     "annual_prev": 4430741650311.0,
@@ -5057,6 +5437,10 @@
     "P": 9894411431522.0,
     "P_prevyear": 9008483818801.0
    },
+   "capital_stock": {
+    "P": 21142968000.0,
+    "P_prevyear": 21142968000.0
+   },
    "equity_owners": {
     "P": 6395557318834.0,
     "P_prevyear": 5940329474021.0
@@ -5101,6 +5485,11 @@
   "l1_periods": 10,
   "asof": "2026-04-14",
   "period": "2025Q4",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "OFS",
   "close": "2100",
   "mcap_common": 10626000000.0,
@@ -5110,6 +5499,7 @@
   "status": "ok",
   "ttm": {
    "revenue": 0.0,
+   "pretax": 148864263.0,
    "gross_profit": null,
    "op_income": -60455970.0,
    "ni_total": 155199091.0,
@@ -5121,6 +5511,7 @@
   },
   "ttm_prev": {
    "revenue": null,
+   "pretax": 199715827.0,
    "gross_profit": null,
    "op_income": -64213879.0,
    "ni_total": 218602597.0,
@@ -5134,6 +5525,7 @@
    "assets": 12441749034.0,
    "liabilities": 2057519897.0,
    "equity_total": 10384229137.0,
+   "capital_stock": 506000000.0,
    "equity_owners": 10384229137.0,
    "cur_assets": 12441749034.0,
    "cur_liab": 264000.0,
@@ -5146,6 +5538,7 @@
    "assets": 12229529128.0,
    "liabilities": 2000499082.0,
    "equity_total": 10229030046.0,
+   "capital_stock": 506000000.0,
    "equity_owners": 10229030046.0,
    "cur_assets": 12229529128.0,
    "cur_liab": 4817900.0,
@@ -5156,6 +5549,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "none",
    "op_income": "id",
    "ni_total": "id",
@@ -5167,6 +5561,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "separate_only",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -5180,6 +5575,12 @@
     [
      "ifrs-full_Revenue",
      "수익(매출액)"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [],
@@ -5231,6 +5632,12 @@
     [
      "ifrs-full_Equity",
      "자본총계"
+    ]
+   ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
     ]
    ],
    "equity_owners": [
@@ -5338,7 +5745,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814004136",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q1": {
     "fs_div": "OFS",
@@ -5413,6 +5820,11 @@
     "annual_prev": 0.0,
     "ytd_P_prevyear": 0.0
    },
+   "pretax": {
+    "ytd_P": 148864263.0,
+    "annual_prev": 199715827.0,
+    "ytd_P_prevyear": 199715827.0
+   },
    "gross_profit": {
     "ytd_P": null,
     "annual_prev": null,
@@ -5465,6 +5877,10 @@
     "P": 10384229137.0,
     "P_prevyear": 10229030046.0
    },
+   "capital_stock": {
+    "P": 506000000.0,
+    "P_prevyear": 506000000.0
+   },
    "equity_owners": {
     "P": 10384229137.0,
     "P_prevyear": 10229030046.0
@@ -5509,6 +5925,11 @@
   "l1_periods": 43,
   "asof": "2026-02-11",
   "period": "2025Q3",
+  "audit": {
+   "period": "2024Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
   "close": "18870",
   "mcap_common": 161715900000.0,
@@ -5518,6 +5939,7 @@
   "status": "ok",
   "ttm": {
    "revenue": 984078377735.0,
+   "pretax": 25216801896.0,
    "gross_profit": 83204645509.0,
    "op_income": 33968363866.0,
    "ni_total": 20314341077.0,
@@ -5529,6 +5951,7 @@
   },
   "ttm_prev": {
    "revenue": 996932562638.0,
+   "pretax": 865920142.0,
    "gross_profit": 61373805689.0,
    "op_income": 11955289874.0,
    "ni_total": 580503511.0,
@@ -5542,6 +5965,7 @@
    "assets": 682313521185.0,
    "liabilities": 331571830411.0,
    "equity_total": 350741690774.0,
+   "capital_stock": 42850000000.0,
    "equity_owners": 336766245910.0,
    "cur_assets": 476224133670.0,
    "cur_liab": 301848717618.0,
@@ -5554,6 +5978,7 @@
    "assets": 667926700116.0,
    "liabilities": 329217943403.0,
    "equity_total": 338708756713.0,
+   "capital_stock": 42850000000.0,
    "equity_owners": 326339033895.0,
    "cur_assets": 478298586460.0,
    "cur_liab": 310356139622.0,
@@ -5564,6 +5989,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -5575,6 +6001,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -5588,6 +6015,12 @@
     [
      "ifrs-full_Revenue",
      "수익(매출액)"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -5649,6 +6082,12 @@
     [
      "ifrs-full_Equity",
      "자본총계"
+    ]
+   ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
     ]
    ],
    "equity_owners": [
@@ -5753,7 +6192,7 @@
     "rcept_dt_last": "20241230",
     "api_rcept_no": "20241230000185",
     "amended": true,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q1": {
     "fs_div": "CFS",
@@ -5793,7 +6232,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814004381",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -5848,6 +6287,11 @@
     "annual_prev": 1008676692070.0,
     "ytd_P_prevyear": 752696198238.0
    },
+   "pretax": {
+    "ytd_P": 20034339682.0,
+    "annual_prev": 14745982605.0,
+    "ytd_P_prevyear": 9563520391.0
+   },
    "gross_profit": {
     "ytd_P": 63970844147.0,
     "annual_prev": 70420743470.0,
@@ -5900,6 +6344,10 @@
     "P": 350741690774.0,
     "P_prevyear": 338708756713.0
    },
+   "capital_stock": {
+    "P": 42850000000.0,
+    "P_prevyear": 42850000000.0
+   },
    "equity_owners": {
     "P": 336766245910.0,
     "P_prevyear": 326339033895.0
@@ -5940,17 +6388,23 @@
   "flags": [],
   "cfs_quarters": 18,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "OFS",
-  "close": "3640",
-  "mcap_common": 29408186080.0,
+  "close": "3600",
+  "mcap_common": 29085019200.0,
   "mcap_pref": 0.0,
-  "mcap": 29408186080.0,
+  "mcap": 29085019200.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 48034447280.0,
+   "pretax": -5426095918.0,
    "gross_profit": 7701536055.0,
    "op_income": -2049526925.0,
    "ni_total": -6278165836.0,
@@ -5962,6 +6416,7 @@
   },
   "ttm_prev": {
    "revenue": 52880598495.0,
+   "pretax": -1096778382.0,
    "gross_profit": 7995612789.0,
    "op_income": -2075664152.0,
    "ni_total": -348452737.0,
@@ -5975,6 +6430,7 @@
    "assets": 53855747777.0,
    "liabilities": 2993359945.0,
    "equity_total": 50862387832.0,
+   "capital_stock": 20197931500.0,
    "equity_owners": 50862387832.0,
    "cur_assets": 21242636847.0,
    "cur_liab": 1695012798.0,
@@ -5987,6 +6443,7 @@
    "assets": 59222615141.0,
    "liabilities": 2425234872.0,
    "equity_total": 56797380269.0,
+   "capital_stock": 20197931500.0,
    "equity_owners": 56797380269.0,
    "cur_assets": 22486426170.0,
    "cur_liab": 1705063848.0,
@@ -5997,6 +6454,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -6008,6 +6466,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "separate_only",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -6021,6 +6480,12 @@
     [
      "ifrs-full_Revenue",
      "매출"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -6084,6 +6549,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_Equity",
@@ -6117,19 +6588,19 @@
    ],
    "lt_debt": []
   },
-  "ev": 28759499155.0,
+  "ev": 28436332275.0,
   "interest_basis": "금융원가 대용(신뢰도 낮음)",
   "metrics": {
-   "E/P": -0.21348361367550214,
-   "B/P": 1.7295316240735648,
-   "EBIT/EV": -0.07126434691904843,
+   "E/P": -0.21585565382745217,
+   "B/P": 1.7487486421188265,
+   "EBIT/EV": -0.0720742360575754,
    "EBITDA/EV(실험)": null,
    "ROE": -0.1166297484518116,
    "GP/A": 0.13621591003373212,
    "CFO/NI": null,
    "이자보상배율": -65.53956065567479,
    "영업이익증가율": null,
-   "12-1모멘텀": -0.6156996587030716
+   "12-1모멘텀": -0.5993031358885017
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -6167,7 +6638,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814002988",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "OFS",
@@ -6197,7 +6668,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814004213",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "OFS",
@@ -6252,6 +6723,11 @@
     "annual_prev": 50919669504.0,
     "ytd_P_prevyear": 25811866461.0
    },
+   "pretax": {
+    "ytd_P": -1491524972.0,
+    "annual_prev": -3834561367.0,
+    "ytd_P_prevyear": 100009579.0
+   },
    "gross_profit": {
     "ytd_P": 3611421447.0,
     "annual_prev": 7221644921.0,
@@ -6304,6 +6780,10 @@
     "P": 50862387832.0,
     "P_prevyear": 56797380269.0
    },
+   "capital_stock": {
+    "P": 20197931500.0,
+    "P_prevyear": 20197931500.0
+   },
    "equity_owners": {
     "P": 50862387832.0,
     "P_prevyear": 56797380269.0
@@ -6344,8 +6824,13 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "의견거절",
+   "clean": false
+  },
   "fs_div": "CFS",
   "close": "798",
   "mcap_common": 39694710510.0,
@@ -6355,6 +6840,7 @@
   "status": "ok",
   "ttm": {
    "revenue": 5798237062.0,
+   "pretax": -17410353567.0,
    "gross_profit": 3040054544.0,
    "op_income": -8136551099.0,
    "ni_total": -17410353567.0,
@@ -6366,6 +6852,7 @@
   },
   "ttm_prev": {
    "revenue": 6736138626.0,
+   "pretax": -4497880523.0,
    "gross_profit": 2982721785.0,
    "op_income": -4953160045.0,
    "ni_total": -6168008692.0,
@@ -6379,6 +6866,7 @@
    "assets": 60849218596.0,
    "liabilities": 995720270.0,
    "equity_total": 59853498326.0,
+   "capital_stock": 24871372500.0,
    "equity_owners": 59853498326.0,
    "cur_assets": 37555592175.0,
    "cur_liab": 796319839.0,
@@ -6391,6 +6879,7 @@
    "assets": 81169554451.0,
    "liabilities": 3972706860.0,
    "equity_total": 77196847591.0,
+   "capital_stock": 24871372500.0,
    "equity_owners": 77196847591.0,
    "cur_assets": 45030688835.0,
    "cur_liab": 2827188560.0,
@@ -6401,6 +6890,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -6412,6 +6902,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -6425,6 +6916,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순손실"
     ]
    ],
    "gross_profit": [
@@ -6488,6 +6985,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -6537,7 +7040,7 @@
    "CFO/NI": null,
    "이자보상배율": -53.258473192157666,
    "영업이익증가율": null,
-   "12-1모멘텀": -0.5384615384615384
+   "12-1모멘텀": -0.566304347826087
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -6575,7 +7078,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814002963",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -6605,7 +7108,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814001655",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -6660,6 +7163,11 @@
     "annual_prev": 7211902064.0,
     "ytd_P_prevyear": 3487501944.0
    },
+   "pretax": {
+    "ytd_P": -6909467351.0,
+    "annual_prev": -30204179171.0,
+    "ytd_P_prevyear": -19703292955.0
+   },
    "gross_profit": {
     "ytd_P": 1106347278.0,
     "annual_prev": 3586087178.0,
@@ -6712,6 +7220,10 @@
     "P": 59853498326.0,
     "P_prevyear": 77196847591.0
    },
+   "capital_stock": {
+    "P": 24871372500.0,
+    "P_prevyear": 24871372500.0
+   },
    "equity_owners": {
     "P": 59853498326.0,
     "P_prevyear": 77196847591.0
@@ -6752,17 +7264,23 @@
   "flags": [],
   "cfs_quarters": 28,
   "l1_periods": 31,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "2560",
-  "mcap_common": 20940800000.0,
+  "close": "2405",
+  "mcap_common": 19672900000.0,
   "mcap_pref": 0.0,
-  "mcap": 20940800000.0,
+  "mcap": 19672900000.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 14630893178.0,
+   "pretax": 1379357215.0,
    "gross_profit": 4586425811.0,
    "op_income": -1022157019.0,
    "ni_total": 1848712223.0,
@@ -6774,6 +7292,7 @@
   },
   "ttm_prev": {
    "revenue": 17302482350.0,
+   "pretax": -2398486430.0,
    "gross_profit": 6359652603.0,
    "op_income": -975264312.0,
    "ni_total": -1625597763.0,
@@ -6787,6 +7306,7 @@
    "assets": 64211897855.0,
    "liabilities": 15275685869.0,
    "equity_total": 48936211986.0,
+   "capital_stock": 4090000000.0,
    "equity_owners": 48936211986.0,
    "cur_assets": 36991518359.0,
    "cur_liab": 14802987877.0,
@@ -6799,6 +7319,7 @@
    "assets": 63832771470.0,
    "liabilities": 16171192857.0,
    "equity_total": 47661578613.0,
+   "capital_stock": 4090000000.0,
    "equity_owners": 47661578613.0,
    "cur_assets": 23180189307.0,
    "cur_liab": 15684889821.0,
@@ -6809,6 +7330,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -6820,6 +7342,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -6833,6 +7356,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -6896,6 +7425,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -6933,19 +7468,19 @@
    ],
    "lt_debt": []
   },
-  "ev": 13548595291.0,
+  "ev": 12280695291.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.08828278876642726,
-   "B/P": 2.3368835949915954,
-   "EBIT/EV": -0.07544376350801428,
+   "E/P": 0.09397253190937788,
+   "B/P": 2.48749355641517,
+   "EBIT/EV": -0.0832328296386521,
    "EBITDA/EV(실험)": null,
    "ROE": 0.03827649082936972,
    "GP/A": 0.07163790316579038,
    "CFO/NI": 0.6258327849006708,
    "이자보상배율": -2.166280394351413,
    "영업이익증가율": null,
-   "12-1모멘텀": -0.3416965352449224
+   "12-1모멘텀": -0.337037037037037
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -6982,7 +7517,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814004529",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -7012,7 +7547,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814000974",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -7067,6 +7602,11 @@
     "annual_prev": 19678962044.0,
     "ytd_P_prevyear": 11145177099.0
    },
+   "pretax": {
+    "ytd_P": 2973189810.0,
+    "annual_prev": -484055226.0,
+    "ytd_P_prevyear": 1109777369.0
+   },
    "gross_profit": {
     "ytd_P": 1749219629.0,
     "annual_prev": 7490087612.0,
@@ -7119,6 +7659,10 @@
     "P": 48936211986.0,
     "P_prevyear": 47661578613.0
    },
+   "capital_stock": {
+    "P": 4090000000.0,
+    "P_prevyear": 4090000000.0
+   },
    "equity_owners": {
     "P": 48936211986.0,
     "P_prevyear": 47661578613.0
@@ -7159,17 +7703,23 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "1408",
-  "mcap_common": 40786499072.0,
+  "close": "1387",
+  "mcap_common": 40178177708.0,
   "mcap_pref": 0.0,
-  "mcap": 40786499072.0,
+  "mcap": 40178177708.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 86180557042.0,
+   "pretax": -73647970458.0,
    "gross_profit": -23536991997.0,
    "op_income": -57740003217.0,
    "ni_total": -72592354080.0,
@@ -7181,6 +7731,7 @@
   },
   "ttm_prev": {
    "revenue": 68324384649.0,
+   "pretax": -185438675539.0,
    "gross_profit": -26487392267.0,
    "op_income": -62858399782.0,
    "ni_total": -185438675539.0,
@@ -7194,6 +7745,7 @@
    "assets": 548412752055.0,
    "liabilities": 280702896063.0,
    "equity_total": 267709855992.0,
+   "capital_stock": 7206187000.0,
    "equity_owners": 194239460560.0,
    "cur_assets": 117752746439.0,
    "cur_liab": 206875390429.0,
@@ -7206,6 +7758,7 @@
    "assets": 600065401483.0,
    "liabilities": 261581525386.0,
    "equity_total": 338483876097.0,
+   "capital_stock": 99203922500.0,
    "equity_owners": 267735466551.0,
    "cur_assets": 135733773609.0,
    "cur_liab": 192473653375.0,
@@ -7216,6 +7769,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -7227,6 +7781,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -7240,6 +7795,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -7303,6 +7864,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -7344,19 +7911,19 @@
    ],
    "lt_debt": []
   },
-  "ev": 208309582127.0,
+  "ev": 207701260763.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": -1.9196510747290452,
-   "B/P": 4.762346977050201,
-   "EBIT/EV": -0.27718361597882557,
+   "E/P": -1.9487157269059088,
+   "B/P": 4.834451725801501,
+   "EBIT/EV": -0.2779954392423497,
    "EBITDA/EV(실험)": null,
    "ROE": -0.3389614551925137,
    "GP/A": -0.040988140565829626,
    "CFO/NI": null,
    "이자보상배율": -6.747072422097844,
    "영업이익증가율": null,
-   "12-1모멘텀": -0.8303157024793388
+   "12-1모멘텀": -0.8294245833333334
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -7394,7 +7961,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814003167",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -7479,6 +8046,11 @@
     "annual_prev": 73226140158.0,
     "ytd_P_prevyear": 31744140230.0
    },
+   "pretax": {
+    "ytd_P": -14213192961.0,
+    "annual_prev": -169377812214.0,
+    "ytd_P_prevyear": -109943034717.0
+   },
    "gross_profit": {
     "ytd_P": -14233943292.0,
     "annual_prev": -27031797009.0,
@@ -7531,6 +8103,10 @@
     "P": 267709855992.0,
     "P_prevyear": 338483876097.0
    },
+   "capital_stock": {
+    "P": 7206187000.0,
+    "P_prevyear": 99203922500.0
+   },
    "equity_owners": {
     "P": 194239460560.0,
     "P_prevyear": 267735466551.0
@@ -7571,17 +8147,23 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2026Q2",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "11040",
-  "mcap_common": 55608325440.0,
+  "close": "10900",
+  "mcap_common": 54903147400.0,
   "mcap_pref": 0.0,
-  "mcap": 55608325440.0,
+  "mcap": 54903147400.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 1272565345835.0,
+   "pretax": -64848708114.0,
    "gross_profit": 113102338586.0,
    "op_income": 58424685981.0,
    "ni_total": -56709539489.0,
@@ -7593,6 +8175,7 @@
   },
   "ttm_prev": {
    "revenue": 1295301033371.0,
+   "pretax": -58377890659.0,
    "gross_profit": 97131606709.0,
    "op_income": 34923931936.0,
    "ni_total": -49003487749.0,
@@ -7606,6 +8189,7 @@
    "assets": 1407804535265.0,
    "liabilities": 1073531437705.0,
    "equity_total": 334273097560.0,
+   "capital_stock": 29350070000.0,
    "equity_owners": 362366317283.0,
    "cur_assets": 828541513988.0,
    "cur_liab": 1026227228629.0,
@@ -7618,6 +8202,7 @@
    "assets": 1315063409627.0,
    "liabilities": 905814126587.0,
    "equity_total": 409249283040.0,
+   "capital_stock": 29350070000.0,
    "equity_owners": 426004692851.0,
    "cur_assets": 769883940907.0,
    "cur_liab": 578120269827.0,
@@ -7628,6 +8213,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -7639,6 +8225,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -7652,6 +8239,12 @@
     [
      "ifrs-full_Revenue",
      "영업수익"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -7720,6 +8313,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -7770,19 +8369,19 @@
    ],
    "lt_debt": []
   },
-  "ev": 662587205199.0,
+  "ev": 661882027159.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": -0.8305266141997316,
-   "B/P": 6.516404053094249,
-   "EBIT/EV": 0.08817659852555236,
-   "EBITDA/EV(실험)": 0.10629063222681483,
+   "E/P": -0.8411939285105539,
+   "B/P": 6.600100985886285,
+   "EBIT/EV": 0.08827054306305401,
+   "EBITDA/EV(실험)": 0.1064038757001658,
    "ROE": -0.11716360357073514,
    "GP/A": 0.0830758897420463,
    "CFO/NI": null,
    "이자보상배율": 1.6670796063640494,
    "영업이익증가율": 0.672912605833341,
-   "12-1모멘텀": -0.14500000000000002
+   "12-1모멘텀": -0.12315634218289084
   },
   "metric_reasons": {
    "CFO/NI": "순이익 ≤ 0"
@@ -7848,7 +8447,7 @@
     "rcept_dt_last": "20250904",
     "api_rcept_no": "20250904000348",
     "amended": true,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -7903,6 +8502,11 @@
     "annual_prev": 1342032374780.0,
     "ytd_P_prevyear": 665992946135.0
    },
+   "pretax": {
+    "ytd_P": 14075503418.0,
+    "annual_prev": -86790480874.0,
+    "ytd_P_prevyear": -7866269342.0
+   },
    "gross_profit": {
     "ytd_P": 59064567570.0,
     "annual_prev": 107852858090.0,
@@ -7955,6 +8559,10 @@
     "P": 334273097560.0,
     "P_prevyear": 409249283040.0
    },
+   "capital_stock": {
+    "P": 29350070000.0,
+    "P_prevyear": 29350070000.0
+   },
    "equity_owners": {
     "P": 362366317283.0,
     "P_prevyear": 426004692851.0
@@ -7995,17 +8603,23 @@
   "flags": [],
   "cfs_quarters": 10,
   "l1_periods": 21,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "2965",
-  "mcap_common": 21761021535.0,
+  "close": "2870",
+  "mcap_common": 21063788130.0,
   "mcap_pref": 0.0,
-  "mcap": 21761021535.0,
+  "mcap": 21063788130.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 69406634842.0,
+   "pretax": -3306869736.0,
    "gross_profit": 26634381265.0,
    "op_income": -3870866513.0,
    "ni_total": -3264861078.0,
@@ -8017,6 +8631,7 @@
   },
   "ttm_prev": {
    "revenue": 79653883821.0,
+   "pretax": 458876456.0,
    "gross_profit": 32443677907.0,
    "op_income": 199239550.0,
    "ni_total": 544288271.0,
@@ -8030,6 +8645,7 @@
    "assets": 73306183597.0,
    "liabilities": 42175439963.0,
    "equity_total": 31130743634.0,
+   "capital_stock": 3669649500.0,
    "equity_owners": 31130743634.0,
    "cur_assets": 50424412016.0,
    "cur_liab": 34421147717.0,
@@ -8042,6 +8658,7 @@
    "assets": 77086244181.0,
    "liabilities": 43022253500.0,
    "equity_total": 34063990681.0,
+   "capital_stock": 3669649500.0,
    "equity_owners": 34063990681.0,
    "cur_assets": 52801377922.0,
    "cur_liab": 34501329209.0,
@@ -8052,6 +8669,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -8063,6 +8681,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -8076,6 +8695,12 @@
     [
      "ifrs-full_Revenue",
      "수익"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -8139,6 +8764,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -8185,19 +8816,19 @@
     ]
    ]
   },
-  "ev": 28890840233.0,
+  "ev": 28193606828.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": -0.15003252824086688,
-   "B/P": 1.430573632948707,
-   "EBIT/EV": -0.13398248309090638,
+   "E/P": -0.15499876175406632,
+   "B/P": 1.4779271155724447,
+   "EBIT/EV": -0.13729589607370543,
    "EBITDA/EV(실험)": null,
    "ROE": -0.10015720172200536,
    "GP/A": 0.35419843483497754,
    "CFO/NI": null,
    "이자보상배율": -6.890693820223894,
    "영업이익증가율": -20.428203451573747,
-   "12-1모멘텀": -0.5104166666666667
+   "12-1모멘텀": -0.505718954248366
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -8319,6 +8950,11 @@
     "annual_prev": 70744057088.0,
     "ytd_P_prevyear": 29042658789.0
    },
+   "pretax": {
+    "ytd_P": -3463603562.0,
+    "annual_prev": -3058873534.0,
+    "ytd_P_prevyear": -3215607360.0
+   },
    "gross_profit": {
     "ytd_P": 10796717907.0,
     "annual_prev": 28178148564.0,
@@ -8371,6 +9007,10 @@
     "P": 31130743634.0,
     "P_prevyear": 34063990681.0
    },
+   "capital_stock": {
+    "P": 3669649500.0,
+    "P_prevyear": 3669649500.0
+   },
    "equity_owners": {
     "P": 31130743634.0,
     "P_prevyear": 34063990681.0
@@ -8411,17 +9051,23 @@
   "flags": [],
   "cfs_quarters": 6,
   "l1_periods": 21,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "7190",
-  "mcap_common": 84768388780.0,
+  "close": "6810",
+  "mcap_common": 80288279220.0,
   "mcap_pref": 0.0,
-  "mcap": 84768388780.0,
+  "mcap": 80288279220.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 116932767393.0,
+   "pretax": -3359909429.0,
    "gross_profit": 28264977961.0,
    "op_income": 1612729591.0,
    "ni_total": -2021695340.0,
@@ -8433,6 +9079,7 @@
   },
   "ttm_prev": {
    "revenue": null,
+   "pretax": null,
    "gross_profit": null,
    "op_income": null,
    "ni_total": null,
@@ -8446,6 +9093,7 @@
    "assets": 138854748079.0,
    "liabilities": 92562073134.0,
    "equity_total": 46292674945.0,
+   "capital_stock": 5909486000.0,
    "equity_owners": 46292674945.0,
    "cur_assets": 84236450199.0,
    "cur_liab": 62829588664.0,
@@ -8458,6 +9106,7 @@
    "assets": 146033056367.0,
    "liabilities": 103530535171.0,
    "equity_total": 42502521196.0,
+   "capital_stock": 5624737000.0,
    "equity_owners": 42502521196.0,
    "cur_assets": 89864436261.0,
    "cur_liab": 78771333458.0,
@@ -8468,6 +9117,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -8479,6 +9129,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -8492,6 +9143,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -8555,6 +9212,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -8609,19 +9272,19 @@
     ]
    ]
   },
-  "ev": 117387165668.0,
+  "ev": 112907056108.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": -0.02384963745443977,
-   "B/P": 0.5461077603485387,
-   "EBIT/EV": 0.013738551244700796,
+   "E/P": -0.02518045422869632,
+   "B/P": 0.5765807337600578,
+   "EBIT/EV": 0.014283691795642615,
    "EBITDA/EV(실험)": null,
    "ROE": -0.04553614222079541,
    "GP/A": 0.19842883773817407,
    "CFO/NI": null,
    "이자보상배율": 0.6201813330567499,
    "영업이익증가율": null,
-   "12-1모멘텀": -0.23977900552486187
+   "12-1모멘텀": -0.18665158371040724
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -8659,7 +9322,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814002807",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "OFS",
@@ -8689,7 +9352,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814002539",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -8744,6 +9407,11 @@
     "annual_prev": 122140313384.0,
     "ytd_P_prevyear": 60210779073.0
    },
+   "pretax": {
+    "ytd_P": -2496856027.0,
+    "annual_prev": 231104743.0,
+    "ytd_P_prevyear": 1094158145.0
+   },
    "gross_profit": {
     "ytd_P": 12398363051.0,
     "annual_prev": 29663072385.0,
@@ -8796,6 +9464,10 @@
     "P": 46292674945.0,
     "P_prevyear": 42502521196.0
    },
+   "capital_stock": {
+    "P": 5909486000.0,
+    "P_prevyear": 5624737000.0
+   },
    "equity_owners": {
     "P": 46292674945.0,
     "P_prevyear": 42502521196.0
@@ -8836,17 +9508,23 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "2100",
-  "mcap_common": 36265263300.0,
+  "close": "2090",
+  "mcap_common": 36092571570.0,
   "mcap_pref": 0.0,
-  "mcap": 36265263300.0,
+  "mcap": 36092571570.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 36734345379.0,
+   "pretax": -699146511.0,
    "gross_profit": 1836495573.0,
    "op_income": -1601719724.0,
    "ni_total": -946829957.0,
@@ -8858,6 +9536,7 @@
   },
   "ttm_prev": {
    "revenue": 14193283764.0,
+   "pretax": -2964021009.0,
    "gross_profit": -820784216.0,
    "op_income": -4496727849.0,
    "ni_total": -3463121874.0,
@@ -8871,6 +9550,7 @@
    "assets": 73741167265.0,
    "liabilities": 18353932387.0,
    "equity_total": 55387234878.0,
+   "capital_stock": 8634586500.0,
    "equity_owners": 55388608224.0,
    "cur_assets": 23625557199.0,
    "cur_liab": 11804846766.0,
@@ -8883,6 +9563,7 @@
    "assets": 82049594443.0,
    "liabilities": 25099949608.0,
    "equity_total": 56949644835.0,
+   "capital_stock": 8634586600.0,
    "equity_owners": 56951007815.0,
    "cur_assets": 34527430421.0,
    "cur_liab": 18131623115.0,
@@ -8893,6 +9574,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -8904,6 +9586,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -8917,6 +9600,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -8980,6 +9669,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -9025,19 +9720,19 @@
    ],
    "lt_debt": []
   },
-  "ev": 34675802881.0,
+  "ev": 34503111151.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": -0.02610800567384823,
-   "B/P": 1.5273185187104377,
-   "EBIT/EV": -0.04619128011243928,
+   "E/P": -0.02623292436128291,
+   "B/P": 1.5346262628191,
+   "EBIT/EV": -0.04642247236749772,
    "EBITDA/EV(실험)": null,
    "ROE": -0.016856274453907742,
    "GP/A": 0.02357643743269142,
    "CFO/NI": null,
    "이자보상배율": -157.2025421409904,
    "영업이익증가율": null,
-   "12-1모멘텀": -0.39900412329957946
+   "12-1모멘텀": -0.4057720383759733
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -9075,7 +9770,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814000538",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -9105,7 +9800,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814001480",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -9160,6 +9855,11 @@
     "annual_prev": 37266321862.0,
     "ytd_P_prevyear": 1276511480.0
    },
+   "pretax": {
+    "ytd_P": -2497583331.0,
+    "annual_prev": -605085320.0,
+    "ytd_P_prevyear": -2403522140.0
+   },
    "gross_profit": {
     "ytd_P": -1652959861.0,
     "annual_prev": 2421253850.0,
@@ -9212,6 +9912,10 @@
     "P": 55387234878.0,
     "P_prevyear": 56949644835.0
    },
+   "capital_stock": {
+    "P": 8634586500.0,
+    "P_prevyear": 8634586600.0
+   },
    "equity_owners": {
     "P": 55388608224.0,
     "P_prevyear": 56951007815.0
@@ -9252,17 +9956,23 @@
   "flags": [],
   "cfs_quarters": 21,
   "l1_periods": 21,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "24350",
-  "mcap_common": 510739594200.0,
+  "close": "23300",
+  "mcap_common": 488715915600.0,
   "mcap_pref": 0.0,
-  "mcap": 510739594200.0,
+  "mcap": 488715915600.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 153816731937.0,
+   "pretax": 17907243498.0,
    "gross_profit": 45289687868.0,
    "op_income": 15432637563.0,
    "ni_total": 15735121179.0,
@@ -9274,6 +9984,7 @@
   },
   "ttm_prev": {
    "revenue": 209597645369.0,
+   "pretax": 22656541389.0,
    "gross_profit": 52005724293.0,
    "op_income": 20364520528.0,
    "ni_total": 18876055113.0,
@@ -9287,6 +9998,7 @@
    "assets": 455811819264.0,
    "liabilities": 145584824418.0,
    "equity_total": 310226994846.0,
+   "capital_stock": 10487466000.0,
    "equity_owners": 310226994846.0,
    "cur_assets": 265970549356.0,
    "cur_liab": 87768373252.0,
@@ -9299,6 +10011,7 @@
    "assets": 437929560652.0,
    "liabilities": 140516345189.0,
    "equity_total": 297413215463.0,
+   "capital_stock": 10487466000.0,
    "equity_owners": 297413215463.0,
    "cur_assets": 276340892611.0,
    "cur_liab": 74576182983.0,
@@ -9309,6 +10022,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -9320,6 +10034,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -9333,6 +10048,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익"
     ]
    ],
    "gross_profit": [
@@ -9396,6 +10117,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -9451,19 +10178,19 @@
     ]
    ]
   },
-  "ev": 574170175500.0,
+  "ev": 552146496900.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.030808500765731314,
-   "B/P": 0.607407372306676,
-   "EBIT/EV": 0.026878159510045817,
+   "E/P": 0.03219686668006684,
+   "B/P": 0.6347798075393802,
+   "EBIT/EV": 0.027950258943316316,
    "EBITDA/EV(실험)": null,
    "ROE": 0.05179091479478721,
    "GP/A": 0.10134853076234791,
    "CFO/NI": 0.7037717423351786,
    "이자보상배율": 9.600235232250899,
    "영업이익증가율": -0.24218016614822602,
-   "12-1모멘텀": -0.002207505518763808
+   "12-1모멘텀": -0.0326797385620915
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음"
@@ -9499,7 +10226,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814002263",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -9529,7 +10256,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814003346",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -9584,6 +10311,11 @@
     "annual_prev": 141057118027.0,
     "ytd_P_prevyear": 73435174603.0
    },
+   "pretax": {
+    "ytd_P": 11355587732.0,
+    "annual_prev": 15203383937.0,
+    "ytd_P_prevyear": 8651728171.0
+   },
    "gross_profit": {
     "ytd_P": 25894379242.0,
     "annual_prev": 41700633014.0,
@@ -9636,6 +10368,10 @@
     "P": 310226994846.0,
     "P_prevyear": 297413215463.0
    },
+   "capital_stock": {
+    "P": 10487466000.0,
+    "P_prevyear": 10487466000.0
+   },
    "equity_owners": {
     "P": 310226994846.0,
     "P_prevyear": 297413215463.0
@@ -9676,17 +10412,23 @@
   "flags": [],
   "cfs_quarters": 43,
   "l1_periods": 43,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2025Q4",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "CFS",
-  "close": "2560",
-  "mcap_common": 109794478080.0,
+  "close": "2440",
+  "mcap_common": 104647861920.0,
   "mcap_pref": 0.0,
-  "mcap": 109794478080.0,
+  "mcap": 104647861920.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 572044290186.0,
+   "pretax": -5179981425.0,
    "gross_profit": 180363213591.0,
    "op_income": 43866162676.0,
    "ni_total": -5130003870.0,
@@ -9698,6 +10440,7 @@
   },
   "ttm_prev": {
    "revenue": 455964060692.0,
+   "pretax": 25098356171.0,
    "gross_profit": 122724073754.0,
    "op_income": 19706997082.0,
    "ni_total": 11644628545.0,
@@ -9711,6 +10454,7 @@
    "assets": 666042045600.0,
    "liabilities": 299582743802.0,
    "equity_total": 366459301798.0,
+   "capital_stock": 22672696500.0,
    "equity_owners": 279143131655.0,
    "cur_assets": 404323439734.0,
    "cur_liab": 271810296420.0,
@@ -9723,6 +10467,7 @@
    "assets": 649454285040.0,
    "liabilities": 298206266100.0,
    "equity_total": 351248018940.0,
+   "capital_stock": 21035453000.0,
    "equity_owners": 286440474766.0,
    "cur_assets": 375492741931.0,
    "cur_liab": 269274651954.0,
@@ -9733,6 +10478,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -9744,6 +10490,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "id",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -9757,6 +10504,12 @@
     [
      "ifrs-full_Revenue",
      "매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "법인세비용차감전순이익(손실)"
     ]
    ],
    "gross_profit": [
@@ -9820,6 +10573,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_EquityAttributableToOwnersOfParent",
@@ -9879,19 +10638,19 @@
     ]
    ]
   },
-  "ev": 157193430458.0,
+  "ev": 152046814298.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": -0.1718710292993999,
-   "B/P": 2.542415033400922,
-   "EBIT/EV": 0.27905849848935294,
+   "E/P": -0.18032370287150154,
+   "B/P": 2.667451838322279,
+   "EBIT/EV": 0.2885043194001139,
    "EBITDA/EV(실험)": null,
    "ROE": -0.0667292677678974,
    "GP/A": 0.27421317625911096,
    "CFO/NI": null,
    "이자보상배율": 5.354541422647065,
    "영업이익증가율": 1.2259181595995936,
-   "12-1모멘텀": -0.15650741350906094
+   "12-1모멘텀": -0.13509060955518948
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음",
@@ -9928,7 +10687,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814003025",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "CFS",
@@ -9958,7 +10717,7 @@
     "rcept_dt_last": "20250814",
     "api_rcept_no": "20250814002857",
     "amended": false,
-    "available_date": "2025-08-15"
+    "available_date": "2025-08-18"
    },
    "2025Q1": {
     "fs_div": "CFS",
@@ -10013,6 +10772,11 @@
     "annual_prev": 541777680410.0,
     "ytd_P_prevyear": 249281576296.0
    },
+   "pretax": {
+    "ytd_P": 18888503507.0,
+    "annual_prev": 7993826985.0,
+    "ytd_P_prevyear": 32062311917.0
+   },
    "gross_profit": {
     "ytd_P": 89538622477.0,
     "annual_prev": 163365542599.0,
@@ -10065,6 +10829,10 @@
     "P": 366459301798.0,
     "P_prevyear": 351248018940.0
    },
+   "capital_stock": {
+    "P": 22672696500.0,
+    "P_prevyear": 21035453000.0
+   },
    "equity_owners": {
     "P": 279143131655.0,
     "P_prevyear": 286440474766.0
@@ -10105,17 +10873,23 @@
   "flags": [],
   "cfs_quarters": 0,
   "l1_periods": 23,
-  "asof": "2026-10-22",
+  "asof": "2026-10-23",
   "period": "2026Q2",
+  "audit": {
+   "period": "2026Q2",
+   "opinion": "적정의견",
+   "clean": true
+  },
   "fs_div": "OFS",
-  "close": "1924",
-  "mcap_common": 20909512520.0,
+  "close": "1955",
+  "mcap_common": 21246412150.0,
   "mcap_pref": 0.0,
-  "mcap": 20909512520.0,
+  "mcap": 21246412150.0,
   "pref_codes": [],
   "status": "ok",
   "ttm": {
    "revenue": 36182790682.0,
+   "pretax": 651637863.0,
    "gross_profit": 14098500120.0,
    "op_income": 1230444378.0,
    "ni_total": 574528623.0,
@@ -10127,6 +10901,7 @@
   },
   "ttm_prev": {
    "revenue": 33561738902.0,
+   "pretax": 278104993.0,
    "gross_profit": 10667446440.0,
    "op_income": 271672688.0,
    "ni_total": 141610396.0,
@@ -10140,6 +10915,7 @@
    "assets": 78879794864.0,
    "liabilities": 34357073274.0,
    "equity_total": 44522721590.0,
+   "capital_stock": 5433865000.0,
    "equity_owners": 44522721590.0,
    "cur_assets": 45343316998.0,
    "cur_liab": 26362199085.0,
@@ -10152,6 +10928,7 @@
    "assets": 69897618335.0,
    "liabilities": 25928101027.0,
    "equity_total": 43969517308.0,
+   "capital_stock": 5433865000.0,
    "equity_owners": 43969517308.0,
    "cur_assets": 42570808885.0,
    "cur_liab": 20664988050.0,
@@ -10162,6 +10939,7 @@
   },
   "confidence_P": {
    "revenue": "id",
+   "pretax": "id",
    "gross_profit": "id",
    "op_income": "id",
    "ni_total": "id",
@@ -10173,6 +10951,7 @@
    "assets": "id",
    "liabilities": "id",
    "equity_total": "id",
+   "capital_stock": "id",
    "equity_owners": "separate_only",
    "cur_assets": "id",
    "cur_liab": "id",
@@ -10186,6 +10965,12 @@
     [
      "ifrs-full_Revenue",
      "I. 매출액"
+    ]
+   ],
+   "pretax": [
+    [
+     "ifrs-full_ProfitLossBeforeTax",
+     "VIII. 법인세비용차감전순손익"
     ]
    ],
    "gross_profit": [
@@ -10244,6 +11029,12 @@
      "자본총계"
     ]
    ],
+   "capital_stock": [
+    [
+     "ifrs-full_IssuedCapital",
+     "자본금"
+    ]
+   ],
    "equity_owners": [
     [
      "ifrs-full_Equity",
@@ -10298,19 +11089,19 @@
     ]
    ]
   },
-  "ev": 42868705932.0,
+  "ev": 43205605562.0,
   "interest_basis": "이자지급(CF)",
   "metrics": {
-   "E/P": 0.027476901838360025,
-   "B/P": 2.1293046190060103,
-   "EBIT/EV": 0.028702624706044975,
+   "E/P": 0.027041206719695496,
+   "B/P": 2.095540709446324,
+   "EBIT/EV": 0.028478813385321346,
    "EBITDA/EV(실험)": null,
    "ROE": 0.012984836414009744,
    "GP/A": 0.18952473788668833,
    "CFO/NI": 8.755051220485493,
    "이자보상배율": 1.2368605960526047,
    "영업이익증가율": 3.529142723393674,
-   "12-1모멘텀": -0.0187353629976581
+   "12-1모멘텀": 0.0
   },
   "metric_reasons": {
    "EBITDA/EV(실험)": "EBITDA 구성 계정 없음"
@@ -10346,7 +11137,7 @@
     "rcept_dt_last": "20240814",
     "api_rcept_no": "20240814000874",
     "amended": false,
-    "available_date": "2024-08-15"
+    "available_date": "2024-08-16"
    },
    "2024Q3": {
     "fs_div": "OFS",
@@ -10431,6 +11222,11 @@
     "annual_prev": 33952962076.0,
     "ytd_P_prevyear": 22355656037.0
    },
+   "pretax": {
+    "ytd_P": 2838317114.0,
+    "annual_prev": 1200606311.0,
+    "ytd_P_prevyear": 3387285562.0
+   },
    "gross_profit": {
     "ytd_P": 10977215662.0,
     "annual_prev": 11806665529.0,
@@ -10482,6 +11278,10 @@
    "equity_total": {
     "P": 44522721590.0,
     "P_prevyear": 43969517308.0
+   },
+   "capital_stock": {
+    "P": 5433865000.0,
+    "P_prevyear": 5433865000.0
    },
    "equity_owners": {
     "P": 44522721590.0,

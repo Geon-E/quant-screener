@@ -91,6 +91,9 @@
   "revenue": {
    "id": 25
   },
+  "pretax": {
+   "id": 25
+  },
   "gross_profit": {
    "id": 22,
    "none": 3
@@ -128,6 +131,9 @@
    "id": 25
   },
   "equity_total": {
+   "id": 25
+  },
+  "capital_stock": {
    "id": 25
   },
   "equity_owners": {
