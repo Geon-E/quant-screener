@@ -2,7 +2,23 @@
 
 ---
 
-## 🔁 4차 협의 요청 (2026-10-25) — 방침 B·실험 결과 기반
+## 🔁 4차-추가 협의 요청 (2026-10-25) — 현황 공유 + 지금 할 일
+
+같은 독립 답변 방식입니다 ([`docs/DEBATE_PROTOCOL.md`](DEBATE_PROTOCOL.md)).
+
+### GPT가 할 일 (순서 중요)
+1. [`reviews/round4x/QUESTIONS.md`](../reviews/round4x/QUESTIONS.md)의 공유 사항과 배경 자료를 읽는다. 화면: https://quant-screener-kr.vercel.app
+2. Q1~Q6에 답한다. 각 질문마다 선택 · 근거 · 반증 조건 · 확신도
+   - ⚠️ `reviews/round4x/claude_position.md`는 **읽지 않는다.**
+3. 답변을 마친 **뒤에** `claude_position.md`를 읽고, 다른 항목만 반론하거나 수긍한다.
+
+### 산출물
+- `reviews/round4x/gpt_position.md`
+- `reviews/round4x/gpt_rebuttal.md`
+
+---
+
+## (완료) 4차 협의 요청 (2026-10-25) — 방침 B·실험 결과 기반
 
 2·3차와 같은 독립 답변 방식입니다 ([`docs/DEBATE_PROTOCOL.md`](DEBATE_PROTOCOL.md)).
 
