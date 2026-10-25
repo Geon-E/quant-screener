@@ -12,6 +12,7 @@ import math
 from collections import defaultdict
 from pathlib import Path
 
+from .screen import primary_exclusion
 from .util import write_text
 
 SHOW = ["E/P", "B/P", "EBIT/EV", "PBR-ROE잔차", "ROE", "GP/A", "CFO/NI", "12-1모멘텀", "영업이익증가율", "이자보상배율"]
@@ -27,6 +28,9 @@ def compact(r: dict) -> dict:
     conf = r.get("confidence_P") or {}
     fallback = sorted({f"{k}:{v}" for k, v in conf.items() if v not in ("id", "zero_default", "id_blank", "none")
                        and k in ("ni_owners", "equity_owners", "op_income", "revenue", "debt", "cash")})
+    px = primary_exclusion(r.get("exclude") or [])
+    pm = (r.get("periods_meta") or {}).get(r.get("period") or "") or {}
+    mr = r.get("metric_reasons") or {}
     return {
         "c": r["stock_code"], "n": r.get("name"), "mk": r.get("market"), "g": r.get("group_name"), "gid": r.get("group_id"),
         "gn": r.get("group_n"), "rel": r.get("reliability"), "rk": r.get("rank"), "grk": r.get("group_rank"),
@@ -37,6 +41,9 @@ def compact(r: dict) -> dict:
         "m": {k: _r(m.get(k)) for k in SHOW}, "p": {k: (r.get("pct") or {}).get(k) for k in SHOW},
         "pd": r.get("period"), "fs": r.get("fs_div"), "fsc": _r(r.get("fscore"), 1), "ksic": r.get("induty_code"),
         "fb": fallback, "ib": r.get("interest_basis"),
+        "xp": px[0] if px else None, "xpf": px[1] if px else None,
+        "fd": pm.get("rcept_dt_first"), "av": pm.get("available_date"),
+        "mr": {k: v for k, v in mr.items() if k in SHOW},
     }
 
 
@@ -54,7 +61,7 @@ def group_medians(rows: list[dict]) -> dict:
         for k, vs in d.items():
             vs = sorted(vs)
             n = len(vs)
-            out[g][k] = vs[n // 2] if n % 2 else (vs[n // 2 - 1] + vs[n // 2]) / 2
+            out[g][k] = [vs[n // 2] if n % 2 else (vs[n // 2 - 1] + vs[n // 2]) / 2, n]   # [중앙값, 유효 표본 수]
     return out
 
 
@@ -103,6 +110,15 @@ header a{font-size:13px;color:var(--accent)}
 h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
 .meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 14px}
 .meta b{color:var(--ink);font-weight:600;font-family:var(--font-num)}
+.sub{color:var(--muted);font-size:13px}
+.sub b{color:var(--ink);font-weight:600}
+.partial{background:var(--warn-soft);color:var(--ink);border-left:3px solid var(--warn);border-radius:4px;padding:6px 10px;font-size:13px}
+.partial b{color:var(--warn)}
+.score.muted{color:var(--muted);font-weight:500}
+.xr{color:var(--bad);font-size:11.5px;font-family:var(--font-body)}
+small.n{color:var(--muted);font-size:10.5px;margin-left:4px}
+.more-data{margin-top:6px;font-size:12.5px} .more-data summary{cursor:pointer;color:var(--muted)}
+.toplink{color:var(--ink);text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 .notice{background:var(--warn-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:6px;padding:8px 12px;font-size:13px}
 .notice summary{cursor:pointer;list-style:none}
 .notice summary::-webkit-details-marker{display:none}
@@ -146,6 +162,7 @@ td.name{overflow:hidden}
 .name .nm{font-weight:600;font-size:14px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .name .cd{color:var(--muted);font-size:11.5px;line-height:1.3}
 .name .gs{display:none}
+.name .fx{display:none}
 td.grp{overflow:hidden;text-overflow:ellipsis}
 .grp{font-family:var(--font-body);color:var(--muted)}
 .grp small{font-family:var(--font-num);margin-left:4px}
@@ -157,7 +174,7 @@ tbody tr.open{background:var(--accent-soft)}
 .bar{height:18px;background:var(--soft);border-radius:2px;position:relative;overflow:hidden}
 .bar i{position:absolute;left:0;right:0;bottom:0;background:var(--accent);opacity:.75}
 .bar.na{background:repeating-linear-gradient(135deg,var(--soft) 0 3px,transparent 3px 6px)}
-.chip{display:inline-block;font-family:var(--font-body);font-size:11px;padding:1px 7px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-weight:500}
+.chip{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;font-family:var(--font-body);font-size:11px;padding:1px 7px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-weight:500}
 .chip.x{background:var(--bad-soft);color:var(--bad)}
 .rel-낮음{color:var(--warn)}
 .up{color:var(--up)} .down{color:var(--down)}
@@ -201,15 +218,18 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
   .meta{font-size:12.5px}
   .wrap{gap:12px;padding-top:14px}
   .name .gs{display:inline}
+  .name .fx{display:block;margin-top:2px}
+  .name .nm{max-width:38vw;display:block}
+  #hdr th:nth-child(11),#tb tr.row td:nth-child(11){display:none}
   .controls input[type=search]{flex-basis:100%}
   .controls select{flex:1 1 40%}
   .count{margin-left:0}
-  .legend span:nth-child(2){display:none}
+  .legend span:nth-child(n+2){display:none}
   #hdr th:nth-child(5),#tb tr.row td:nth-child(5),#hdr th:nth-child(8),#tb tr.row td:nth-child(8),
   #hdr th:nth-child(9),#tb tr.row td:nth-child(9),#hdr th:nth-child(10),#tb tr.row td:nth-child(10),
   #hdr th:nth-child(3),#tb tr.row td:nth-child(3){display:none}
   th,td{padding:8px 5px}
-  .name .nm{white-space:normal;line-height:1.3}
+  .name .nm{white-space:nowrap;line-height:1.3}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -217,14 +237,16 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
 <div class="wrap">
   <div class="top">
     <header>
-      <h1>업종 대비 저평가 스크리너</h1>
+      <h1>업종 대비 저평가 후보 스크리너</h1>
       <a href="backtest.html">과거 성과 검증 결과 →</a>
     </header>
+    <div class="sub">가치·퀄리티·추세·안정성 종합 점수로 고른 <b>후보 탐색용</b> 순위 — 매수 목록이 아닙니다</div>
+    <div class="partial" id="partial" hidden></div>
     <div class="meta" id="meta"></div>
     <div class="status" id="status"></div>
   </div>
   <details class="notice">
-    <summary><strong>점수는 가설입니다.</strong> 과거 성과로 아직 검증되지 않았고, 투자 권유가 아닙니다.<span>자세히</span></summary>
+    <summary><strong>점수는 가설입니다.</strong> 과거 성과 검증 전이며, 투자 권유가 아닙니다.<span>자세히</span></summary>
     <div>가중치: 가치 40%·퀄리티 30%·추세 20%·안정성 10%. <span id="notice2"></span></div>
   </details>
   <div class="tabs" role="tablist">
@@ -241,18 +263,19 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
     <span class="count" id="count"></span>
   </div>
   <div class="legend">
-    <span>막대 4개 = 가치·퀄리티·추세·안정성 (사업군 내 백분위, 빗금은 지표 부족)</span>
+    <span>막대 4개 = 가치·퀄리티·추세·안정성 (사업군 내 백분위, 빗금 = 자료 부족)</span>
+    <span>사업군 옆 숫자 = 비교 대상 수</span>
     <span>PER·PBR은 지배주주 기준, 우선주 시총 합산</span>
   </div>
   <div class="tablebox" id="listbox">
     <table>
-      <colgroup><col class="ck" style="width:52px"><col class="cn"><col class="cg" style="width:190px"><col class="cs" style="width:64px"><col class="cb" style="width:118px"><col class="cp" style="width:62px"><col class="cpb" style="width:62px"><col class="cr" style="width:70px"><col class="cm" style="width:76px"><col class="cc" style="width:104px"><col class="cf" style="width:62px"></colgroup>
+      <colgroup><col class="ck" style="width:52px"><col class="cn"><col class="cg" style="width:170px"><col class="cs" style="width:64px"><col class="cb" style="width:118px"><col class="cp" style="width:62px"><col class="cpb" style="width:62px"><col class="cr" style="width:70px"><col class="cm" style="width:76px"><col class="cc" style="width:104px"><col class="cf" style="width:112px"></colgroup>
       <thead><tr id="hdr"></tr></thead>
       <tbody id="tb"></tbody>
     </table>
   </div>
   <div class="tablebox" id="grpbox" hidden>
-    <table class="gt"><thead><tr><th class="l">사업군</th><th>순위 대상</th><th>신뢰도</th><th>PER 중앙값</th><th>PBR 중앙값</th><th>ROE 중앙값</th><th class="l">1위 종목</th><th>1위 점수</th></tr></thead><tbody id="gtb"></tbody></table>
+    <table class="gt"><thead><tr><th class="l">사업군</th><th>비교 n</th><th>순위 대상 n</th><th>신뢰도</th><th>PER 중앙값(배)</th><th>PBR 중앙값(배)</th><th>ROE 중앙값</th><th class="l">사업군 1위</th><th>1위 점수</th></tr></thead><tbody id="gtb"></tbody></table>
   </div>
   <button class="more" id="more" hidden>더 보기</button>
   <footer>
@@ -264,12 +287,12 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
 <script>
 const DATA = /*__DATA__*/null;
 const S = DATA.summary, ROWS = DATA.rows, MED = DATA.med;
-const LABEL = {"E/P":"이익수익률(E/P)","B/P":"장부가수익률(B/P)","EBIT/EV":"EBIT/EV","PBR-ROE잔차":"예상 PBR 대비","ROE":"ROE","GP/A":"GP/A","CFO/NI":"이익의 질(CFO/NI)","12-1모멘텀":"12-1 모멘텀","영업이익증가율":"영업이익 증가율","이자보상배율":"이자보상배율"};
+const LABEL = {"E/P":"이익수익률(E/P)","B/P":"장부가수익률(B/P)","EBIT/EV":"EBIT/EV","PBR-ROE잔차":"같은 ROE 대비 PBR(모형)","ROE":"ROE","GP/A":"GP/A","CFO/NI":"이익의 질(CFO/NI)","12-1모멘텀":"12-1 모멘텀","영업이익증가율":"영업이익 증가율","이자보상배율":"이자보상배율"};
 const BUCKET = {"E/P":"가치","B/P":"가치","EBIT/EV":"가치","PBR-ROE잔차":"가치","ROE":"퀄리티","GP/A":"퀄리티","CFO/NI":"퀄리티","12-1모멘텀":"추세","영업이익증가율":"추세","이자보상배율":"안정성"};
 const PCTM = new Set(["E/P","B/P","EBIT/EV","ROE","GP/A","12-1모멘텀","영업이익증가율"]);
 const COLS = [
   {k:"rk",t:"순위",a:"c"},{k:"n",t:"종목",a:"l"},{k:"g",t:"사업군",a:"l"},{k:"sc",t:"종합"},{k:"b",t:"묶음 점수",ns:1,a:"c"},
-  {k:"per",t:"PER"},{k:"pbr",t:"PBR"},{k:"roe",t:"ROE"},{k:"mom",t:"모멘텀"},{k:"mc",t:"시총(억)"},{k:"flag",t:"경고",ns:1,a:"c"}
+  {k:"per",t:"PER(배)",s:"PER"},{k:"pbr",t:"PBR(배)",s:"PBR"},{k:"roe",t:"ROE"},{k:"mom",t:"모멘텀"},{k:"mc",t:"시총"},{k:"flag",t:"경고·제외",s:"비고",ns:1,a:"c"}
 ];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num = (v,d=1) => v==null ? '<span class="dash">–</span>' : v.toLocaleString("ko-KR",{maximumFractionDigits:d,minimumFractionDigits:d});
@@ -285,13 +308,19 @@ function fmtMetric(k,v){
 let sortK="rk", sortDir=1, limit=200, openCode=null;
 let WATCH=new Set(); try{WATCH=new Set(JSON.parse(localStorage.getItem("qs-watch")||"[]"));}catch(e){}
 function saveWatch(){try{localStorage.setItem("qs-watch",JSON.stringify([...WATCH]));}catch(e){}}
+const mcap = v => v==null ? '<span class="dash">–</span>' : v>=1e12 ? `${(v/1e12).toLocaleString("ko-KR",{maximumFractionDigits:1,minimumFractionDigits:1})}조` : `${Math.round(v/1e8).toLocaleString()}억`;
+const medv = x => Array.isArray(x) ? x[0] : (x ?? null);
+const medn = x => Array.isArray(x) ? x[1] : null;
+const dfmt = d => d ? (d.includes("-") ? d : `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6)}`) : null;
 const val = (r,k) => k==="roe"?r.m.ROE : k==="mom"?r.m["12-1모멘텀"] : k==="g"?(r.g||"") : k==="n"?(r.n||"") : r[k];
 
 function meta(){
   const fin = S.collection_complete ? "전 종목 수집 완료" : `재무 수집 진행 중 ${S.universe_collected.toLocaleString()}/${S.universe_total.toLocaleString()}개사`;
   const d = S.asof_price; const ds = d ? `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6)}` : "";
   document.getElementById("meta").innerHTML =
-    `<span>시세 기준 <b>${ds}</b></span><span>순위 <b>${S.ranked.toLocaleString()}</b>개 종목</span><span>평가 <b>${S.evaluated.toLocaleString()}</b>개사</span><span>${fin}</span>`;
+    `<span>시세 기준 <b>${ds}</b></span><span>순위 <b>${S.ranked.toLocaleString()}</b>개 종목</span><span>평가 <b>${S.evaluated.toLocaleString()}</b>개사</span>${S.collection_complete?`<span>${fin}</span>`:''}`;
+  if(!S.collection_complete){const el=document.getElementById("partial"); el.hidden=false;
+    el.innerHTML=`<b>잠정 순위</b> · 재무 수집 진행 중 ${S.universe_collected.toLocaleString()}/${S.universe_total.toLocaleString()}개사 — 나머지가 들어오면 순위가 바뀝니다`;}
   const ka=(S.status||{}).kind_admin;
   document.getElementById("notice2").textContent = (ka ? `관리종목 제외: 코스닥은 KRX 소속부, 코스피는 KIND 현재 목록(${ka.date.slice(0,4)}-${ka.date.slice(4,6)}-${ka.date.slice(6)}, ${ka.count}종목) 기준.` : "코스피 관리종목은 아직 걸러내지 못합니다(코스닥은 제외 반영).") + " 결측 지표는 빈칸이며 점수를 채워 넣지 않습니다.";
   const gs=[...new Set(ROWS.filter(r=>r.g&&r.gid!=="EX").map(r=>r.g))].sort((a,b)=>a.localeCompare(b,"ko"));
@@ -302,11 +331,12 @@ function status(){
   const built=(st.built_at||"").replace("T"," ");
   const h=st.history; const hs = h&&h.targets ? `과거 이력(2015~) 수집 ${h.processed.toLocaleString()}/${h.targets.toLocaleString()}개사${h.complete?" 완료":""}` : "과거 이력(2015~) 수집 대기";
   document.getElementById("status").innerHTML =
-    `<span class="ok"><span class="dot ${w.length?'w':''}"></span>${w.length?'갱신됨 · 확인 필요 '+w.length+'건':'정상 갱신'}</span><span>화면 생성 ${esc(built)}</span><span>${hs}</span>`+
+    `<span class="ok"><span class="dot ${w.length||!S.collection_complete?'w':''}"></span>${w.length?'갱신됨 · 확인 필요 '+w.length+'건':(S.collection_complete?'정상 갱신':'갱신됨 · 수집 진행 중')}</span><span>화면 생성 ${esc(built)}</span><span>${hs}</span>`+
     (w.length?`<ul>${w.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"");
 }
 function header(){
-  document.getElementById("hdr").innerHTML = COLS.map(c=>`<th class="${c.a||''}" data-k="${c.k}" ${c.ns?'data-ns="1"':''} ${sortK===c.k?`aria-sort="${sortDir>0?'ascending':'descending'}"`:''}>${c.t}</th>`).join("");
+  const sm = window.matchMedia && matchMedia("(max-width:640px)").matches;
+  document.getElementById("hdr").innerHTML = COLS.map(c=>`<th class="${c.a||''}" data-k="${c.k}" ${c.ns?'data-ns="1"':''} ${sortK===c.k?`aria-sort="${sortDir>0?'ascending':'descending'}"`:''}>${sm&&c.s?c.s:c.t}</th>`).join("");
 }
 function filtered(){
   const q=document.getElementById("q").value.trim().toLowerCase(), mk=document.getElementById("mk").value,
@@ -320,15 +350,16 @@ function filtered(){
 }
 function bars(b){return `<span class="bars" aria-label="가치 ${b[0]??'부족'}, 퀄리티 ${b[1]??'부족'}, 추세 ${b[2]??'부족'}, 안정성 ${b[3]??'부족'}">${b.map(v=>v==null?'<span class="bar na"></span>':`<span class="bar"><i style="height:${v}%"></i></span>`).join("")}</span>`;}
 function row(r){
-  const flag = r.x.length ? `<span class="chip x" title="${esc(r.x.join(' · '))}">제외 ${r.x.length}</span>` : (r.w.length?`<span class="chip" title="${esc(r.w.join(' · '))}">${r.w.length}</span>`:'');
-  return `<tr class="row ${openCode===r.c?'open':''}" data-c="${r.c}" tabindex="0">
-    <td class="c">${r.rk??'<span class="dash">–</span>'}</td>
-    <td class="l name"><button class="star ${WATCH.has(r.c)?'on':''}" data-w="${r.c}" aria-label="관심 종목 ${WATCH.has(r.c)?'해제':'추가'}">★</button><span class="nmw"><span class="nm">${esc(r.n)}</span><span class="cd">${r.c} · ${r.mk==="KOSPI"?"코스피":"코스닥"}<span class="gs"> · ${esc(r.g||'미배정')}</span></span></span></td>
-    <td class="l grp" title="${esc(r.g||'')}">${esc(r.g||'미배정')}${r.gn?`<small class="rel-${r.rel}">${r.gn}</small>`:''}</td>
-    <td class="score">${num(r.sc,1)}</td><td class="c">${bars(r.b)}</td>
+  const xp = r.xp || r.x[0];
+  const flag = r.x.length ? `<span class="chip x" title="${esc(r.x.join(' · '))}">${esc(xp)}${r.x.length>1?` +${r.x.length-1}`:''}</span>` : (r.w.length?`<span class="chip" title="${esc(r.w.join(' · '))}">경고 ${r.w.length}</span>`:'');
+  return `<tr class="row ${openCode===r.c?'open':''} ${r.x.length?'xrow':''}" data-c="${r.c}" tabindex="0">
+    <td class="c">${r.rk??(r.x.length?'<span class="xr">제외</span>':'<span class="dash">–</span>')}</td>
+    <td class="l name"><button class="star ${WATCH.has(r.c)?'on':''}" data-w="${r.c}" aria-label="관심 종목 ${WATCH.has(r.c)?'해제':'추가'}">★</button><span class="nmw"><span class="nm">${esc(r.n)}</span><span class="cd">${r.c} · ${r.mk==="KOSPI"?"코스피":"코스닥"}<span class="gs"> · ${esc(r.g||'미배정')}</span></span>${flag?`<span class="fx">${flag}</span>`:''}</span></td>
+    <td class="l grp" title="${esc(r.g||'')}${r.gn?` · 비교 대상 ${r.gn}개`:''}">${esc(r.g||'미배정')}${r.gn?`<small class="rel-${r.rel}">${r.gn}</small>`:''}</td>
+    <td class="score ${r.rk?'':'muted'}">${num(r.sc,1)}</td><td class="c">${bars(r.b)}</td>
     <td>${r.per==null?'<span class="dash">–</span>':num(r.per,1)}</td><td>${r.pbr==null?'<span class="dash">–</span>':num(r.pbr,2)}</td>
     <td>${pct(r.m.ROE)}</td><td>${pct(r.m["12-1모멘텀"],0,true)}</td>
-    <td>${r.mc==null?'<span class="dash">–</span>':Math.round(r.mc/1e8).toLocaleString()}</td><td class="c">${flag}</td></tr>`;
+    <td>${mcap(r.mc)}</td><td class="c">${flag}</td></tr>`;
 }
 function why(r){
   // 근거 한 줄 요약: 백분위로 강점(상위 20%)·약점(하위 30%)·자료 없음을 뽑아 문장으로 (점수 계산과 같은 값만 사용)
@@ -336,15 +367,18 @@ function why(r){
   const strong=ks.filter(k=>r.p[k]>=80).sort((a,b)=>r.p[b]-r.p[a]).slice(0,3);
   const weak=ks.filter(k=>r.p[k]<=30).sort((a,b)=>r.p[a]-r.p[b]).slice(0,2);
   const miss=Object.keys(LABEL).filter(k=>r.p[k]==null).map(k=>LABEL[k]);
-  const top=k=>`${LABEL[k]} 상위 ${Math.max(1,Math.round(100-r.p[k]))}%`;
+  const top=k=>`${LABEL[k]} 사업군 상위 ${Math.max(1,Math.round(100-r.p[k]))}%`;
   const B=["가치","퀄리티","추세","안정성"];
   const bi=r.b.map((v,i)=>[v,i]).filter(x=>x[0]!=null).sort((a,b)=>b[0]-a[0]);
   let head = r.rk ? `<b>전체 ${r.rk}위</b> · ${esc(r.g)} 사업군 ${r.gn}개 중 ${r.grk}위 (종합 ${r.sc.toFixed(1)})`
-           : r.x.length ? `<b>순위 제외</b> — ${esc(r.x[0])}${r.x.length>1?` 외 ${r.x.length-1}건`:''}` : '<b>점수 없음</b>';
+           : r.x.length ? `<b>순위 제외</b> — ${esc(r.xpf||r.x[0])}${r.x.length>1?` 외 ${r.x.length-1}건`:''}` : '<b>점수 없음</b>';
+  const nv=Object.keys(LABEL).filter(k=>r.m[k]!=null).length;
+  const fin=`재무 ${r.pd||'–'} ${r.fs==="CFS"?"연결":r.fs==="OFS"?"별도":""}${r.fd?` (공시 ${dfmt(r.fd)})`:''}`;
+  head += ` <span class="note">· 지표 ${nv}/10 계산 · ${esc(fin)}</span>`;
   const lines=[head];
   if(bi.length) lines.push(`가장 높은 묶음은 <b>${B[bi[0][1]]}</b>(${bi[0][0].toFixed(0)}점)${bi.length>1?`, 가장 낮은 묶음은 <b>${B[bi[bi.length-1][1]]}</b>(${bi[bi.length-1][0].toFixed(0)}점)`:''}.`);
   if(strong.length) lines.push(`<span class="pos">강점</span> ${strong.map(top).join(" · ")}`);
-  if(weak.length) lines.push(`<span class="neg">약점</span> ${weak.map(k=>`${LABEL[k]} 하위 ${Math.max(1,Math.round(r.p[k]))}%`).join(" · ")}`);
+  if(weak.length) lines.push(`<span class="neg">약점</span> ${weak.map(k=>`${LABEL[k]} 사업군 하위 ${Math.max(1,Math.round(r.p[k]))}%`).join(" · ")}`);
   const notes=[];
   if(miss.length) notes.push(`자료 없음: ${miss.join(", ")}`);
   if(r.rel==="낮음") notes.push(`비교 대상이 ${r.gn}개뿐이라 백분위가 거칠다`);
@@ -355,7 +389,7 @@ function why(r){
 function detail(r){
   const med = MED[r.gid]||{};
   const mrows = Object.keys(LABEL).map(k=>`<tr><td class="l">${LABEL[k]}</td><td class="l" style="color:var(--muted)">${BUCKET[k]}</td>
-    <td>${fmtMetric(k,r.m[k])}</td><td>${k==="PBR-ROE잔차"?'<span class="dash">–</span>':fmtMetric(k,med[k]??null)}</td>
+    <td${r.m[k]==null&&(r.mr||{})[k]?` title="${esc(r.mr[k])}"`:''}>${fmtMetric(k,r.m[k])}</td><td>${k==="PBR-ROE잔차"?'<span class="dash">–</span>':fmtMetric(k,medv(med[k]))+(medn(med[k])?`<small class="n">n=${medn(med[k])}</small>`:'')}</td>
     <td>${r.p[k]==null?'<span class="dash">–</span>':`${r.p[k].toFixed(0)}<span class="pct"><i style="width:${r.p[k]}%"></i></span>`}</td></tr>`).join("");
   const B=["가치","퀄리티","추세","안정성"];
   const list=(a,cls)=>a.length?`<ul>${a.map(x=>`<li class="${cls||''}">${esc(x)}</li>`).join("")}</ul>`:'<div class="dash">없음</div>';
@@ -368,9 +402,11 @@ function detail(r){
       ${r.x.length?`<div><h3>순위 제외 사유</h3>${list(r.x)}</div>`:''}
       <div><h3>경고</h3>${list(r.w)}</div>
       <div><h3>데이터</h3><dl class="kv"><dt>재무 기준</dt><dd>${r.pd||'–'} ${r.fs==="CFS"?"연결":r.fs==="OFS"?"별도":""}</dd>
-        <dt>현재가</dt><dd>${r.px?Number(r.px).toLocaleString()+"원":"–"}</dd><dt>20일 거래대금</dt><dd>${r.tv==null?'–':Math.round(r.tv/1e8).toLocaleString()+"억"}</dd>
-        <dt>F-스코어</dt><dd>${r.fsc??'–'}</dd><dt>업종코드</dt><dd>${r.ksic||'–'}</dd><dt>계정 선택</dt><dd style="font-family:var(--font-body)">${esc(fb)}</dd>
-        ${r.ib?`<dt>이자 기준</dt><dd style="font-family:var(--font-body)">${esc(r.ib)}</dd>`:''}</dl></div>
+        <dt>공시일</dt><dd>${r.fd?dfmt(r.fd):'미확인'}${r.av?` · 반영 ${dfmt(r.av)}`:''}</dd>
+        <dt>현재가</dt><dd>${r.px?Number(r.px).toLocaleString()+"원":"–"}</dd><dt>시가총액</dt><dd>${mcap(r.mc)}</dd><dt>20일 거래대금</dt><dd>${r.tv==null?'–':Math.round(r.tv/1e8).toLocaleString()+"억"}</dd>
+        <dt>F-스코어</dt><dd>${r.fsc??'–'}</dd></dl>
+        <details class="more-data"><summary>세부 데이터</summary><dl class="kv"><dt>업종코드</dt><dd>${r.ksic||'–'}</dd><dt>계정 선택</dt><dd style="font-family:var(--font-body)">${esc(fb)}</dd>
+        ${r.ib?`<dt>이자 기준</dt><dd style="font-family:var(--font-body)">${esc(r.ib)}</dd>`:''}</dl></details></div>
     </div></div></td></tr>`;
 }
 function render(){
@@ -388,11 +424,12 @@ document.getElementById("tb").addEventListener("keydown",e=>{if(e.key!=="Enter")
 ["q","mk","grp","showx","onlyw"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{limit=200; if(id==="showx"){sortK=document.getElementById("showx").checked?"mc":"rk"; sortDir=document.getElementById("showx").checked?-1:1;} render();}));
 document.getElementById("more").addEventListener("click",()=>{limit+=300; render();});
 function groupView(){
-  const by={}; ROWS.filter(r=>!r.x.length&&r.g).forEach(r=>(by[r.g]=by[r.g]||[]).push(r));
+  const by={}, cmp={}; ROWS.filter(r=>!r.x.length&&r.g).forEach(r=>(by[r.g]=by[r.g]||[]).push(r));
+  ROWS.filter(r=>r.g&&r.gn).forEach(r=>{cmp[r.g]=r.gn;});
   const med=a=>{a=a.filter(v=>v!=null).sort((x,y)=>x-y); if(!a.length) return null; const m=a.length>>1; return a.length%2?a[m]:(a[m-1]+a[m])/2;};
   const rows=Object.entries(by).map(([g,rs])=>{rs.sort((a,b)=>(a.rk??1e9)-(b.rk??1e9)); return {g,n:rs.length,rel:rs[0].rel,per:med(rs.map(r=>r.per)),pbr:med(rs.map(r=>r.pbr)),roe:med(rs.map(r=>r.m.ROE)),top:rs[0]};})
     .sort((a,b)=>b.n-a.n);
-  document.getElementById("gtb").innerHTML=rows.map(x=>`<tr data-g="${esc(x.g)}"><td class="l" style="font-family:var(--font-body)">${esc(x.g)}</td><td>${x.n}</td><td class="rel-${x.rel}" style="font-family:var(--font-body)">${x.rel||''}</td><td>${x.per==null?'–':num(x.per,1)}</td><td>${x.pbr==null?'–':num(x.pbr,2)}</td><td>${pct(x.roe)}</td><td class="l" style="font-family:var(--font-body)">${esc(x.top.n)}</td><td class="score">${num(x.top.sc,1)}</td></tr>`).join("")||'<tr><td colspan="8" class="l dash">순위 대상 종목이 없습니다.</td></tr>';
+  document.getElementById("gtb").innerHTML=rows.map(x=>`<tr data-g="${esc(x.g)}"><td class="l" style="font-family:var(--font-body)">${esc(x.g)}</td><td>${cmp[x.g]??'–'}</td><td>${x.n}</td><td class="rel-${x.rel}" style="font-family:var(--font-body)">${x.rel||''}</td><td>${x.per==null?'–':num(x.per,1)}</td><td>${x.pbr==null?'–':num(x.pbr,2)}</td><td>${pct(x.roe)}</td><td class="l" style="font-family:var(--font-body)"><a href="#" class="toplink" data-c="${x.top.c}">${esc(x.top.n)}</a></td><td class="score">${num(x.top.sc,1)}</td></tr>`).join("")||'<tr><td colspan="9" class="l dash">순위 대상 종목이 없습니다.</td></tr>';
 }
 function tab(which){
   const list=which==="list";
@@ -402,10 +439,12 @@ function tab(which){
 }
 document.getElementById("tab-list").addEventListener("click",()=>tab("list"));
 document.getElementById("tab-grp").addEventListener("click",()=>tab("grp"));
-document.getElementById("gtb").addEventListener("click",e=>{const tr=e.target.closest("tr[data-g]"); if(!tr) return; document.getElementById("grp").value=tr.dataset.g; tab("list");});
+document.getElementById("gtb").addEventListener("click",e=>{const a=e.target.closest(".toplink"); const tr=e.target.closest("tr[data-g]"); if(!tr) return;
+  e.preventDefault(); document.getElementById("grp").value=tr.dataset.g; if(a) openCode=a.dataset.c; tab("list");
+  if(a) setTimeout(()=>{const o=document.querySelector("tr.open"); if(o) o.scrollIntoView({block:"start"});},0);});
 document.getElementById("csv").addEventListener("click",()=>{
-  const head=["순위","종목코드","종목명","시장","사업군","종합","가치","퀄리티","추세","안정성","PER","PBR","ROE","12-1모멘텀","시총(억)","제외사유","경고"];
-  const lines=[head].concat(filtered().map(r=>[r.rk??"",r.c,r.n,r.mk,r.g||"",r.sc??"",...r.b.map(v=>v??""),r.per??"",r.pbr??"",r.m.ROE??"",r.m["12-1모멘텀"]??"",r.mc?Math.round(r.mc/1e8):"",r.x.join(" / "),r.w.join(" / ")]));
+  const head=["순위","종목코드","종목명","시장","사업군","비교n","종합","가치","퀄리티","추세","안정성","PER","PBR","ROE","12-1모멘텀","시총(억)","주 제외사유","제외사유 전체","경고","재무기준","공시일"];
+  const lines=[head].concat(filtered().map(r=>[r.rk??"",r.c,r.n,r.mk,r.g||"",r.gn??"",r.sc??"",...r.b.map(v=>v??""),r.per??"",r.pbr??"",r.m.ROE??"",r.m["12-1모멘텀"]??"",r.mc?Math.round(r.mc/1e8):"",r.xp||"",r.x.join(" / "),r.w.join(" / "),r.pd||"",r.fd||""]));
   const csv="\ufeff"+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
   try{const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`screener_${S.asof_price}.csv`; a.click();}catch(e){}
 });

@@ -890,3 +890,11 @@ def test_cross_section_quintile_one_is_top_score():
     assert q[1]["sector_excess"]["mean"] > q[5]["sector_excess"]["mean"]
     assert q[1]["win_vs_sector"]["lo"] is not None and 0 <= q[1]["win_vs_sector"]["mean"] <= 1
     assert "90~100" in cs["bands_10pt"]
+
+
+def test_primary_exclusion_order():
+    from qs.screen import primary_exclusion
+    assert primary_exclusion([]) is None
+    assert primary_exclusion(["적자(TTM 지배주주 순이익 < 0)", "20일 평균 거래대금 5억 미만"])[0] == "거래대금 미달"
+    assert primary_exclusion(["F-스코어 2.0 ≤ 3", "금융업(D-06)"])[0] == "금융업"
+    assert primary_exclusion(["비교 대상 부족(사업군 3개 < 10, D-26)", "적자(TTM)"])[0] == "비교 대상 부족"

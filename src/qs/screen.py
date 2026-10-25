@@ -63,6 +63,27 @@ def group_of(ksic: str | None, groups) -> tuple[str | None, str | None]:
     return None, None
 
 
+# 화면 검토 1차(ui1) Q7a: 주 제외 사유 = 아래 순서에서 처음 해당하는 사유 (데이터·상장 상태 → 유동성 → 비교 대상 → 재무 위험 → 지표 부족)
+EXCLUDE_ORDER = [("시세 없음", "시세 없음"), ("사용 가능한 재무 없음", "재무 없음"), ("12월 외 결산", "12월 외 결산"),
+                 ("사업군 미배정", "업종 미배정"), ("금융업", "금융업"), ("관리종목", "관리종목"), ("투자주의환기", "투자주의환기"),
+                 ("거래정지", "거래정지"), ("상장 1년 미만", "상장 1년 미만"), ("시가총액", "소형주(500억 미만)"),
+                 ("20일 평균 거래대금", "거래대금 미달"), ("비교 대상 부족", "비교 대상 부족"), ("자본잠식", "자본잠식"),
+                 ("감사·검토의견", "감사의견 비적정"), ("적자", "적자"), ("F-스코어", "F-스코어 낮음"), ("지표 부족", "지표 부족")]
+
+
+def primary_exclusion(reasons: list[str]) -> tuple[str, str] | None:
+    """(짧은 이름, 원래 사유). 사유가 없으면 None. 목록에 없는 사유는 맨 뒤 순위로 그대로."""
+    if not reasons:
+        return None
+    best = None
+    for r in reasons:
+        rank = next((k for k, (key, _) in enumerate(EXCLUDE_ORDER) if key in r), len(EXCLUDE_ORDER))
+        short = EXCLUDE_ORDER[rank][1] if rank < len(EXCLUDE_ORDER) else r
+        if best is None or rank < best[0]:
+            best = (rank, short, r)
+    return best[1], best[2]
+
+
 MIN_GROUP_N = 10   # D-26: 비교 대상이 이보다 적은 사업군은 백분위가 무의미 → 순위에서 빼고 사유 표시
 
 
