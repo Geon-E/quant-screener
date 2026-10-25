@@ -9,7 +9,7 @@
 <title>저평가 스크리너</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
 <style>
 /* 레이아웃: 상단 요약 띠 → 필터 줄 → 순위 표(행을 누르면 근거 패널이 펼쳐짐). 표는 자체 가로 스크롤 */
 :root{
@@ -17,7 +17,7 @@
   --accent:#1f4e8c; --accent-soft:#e3ebf6;
   --up:#c8322b; --down:#2559b8; --warn:#9a6400; --warn-soft:#fbf1dc; --bad:#a3262b; --bad-soft:#f8e4e3;
   --font-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
-  --font-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --font-num:var(--font-body);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#10151c; --surface:#171e27; --ink:#e4e9f0; --muted:#97a3b3; --line:#2a3440; --soft:#1e2731;
@@ -27,15 +27,22 @@
   --bg:#10151c; --surface:#171e27; --ink:#e4e9f0; --muted:#97a3b3; --line:#2a3440; --soft:#1e2731;
   --accent:#7fa8e3; --accent-soft:#1d2c42; --up:#ef6b62; --down:#6f9cf0; --warn:#e2b04f; --warn-soft:#33290f;
   --bad:#f08a86; --bad-soft:#3a1d1e; color-scheme:dark}
-body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.5}
-.wrap{max-width:1280px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
-header{display:grid;gap:6px}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:14px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 16px}
+header a{font-size:13px;color:var(--accent)}
+.top{display:grid;gap:6px}
 h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balance}
 .meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 14px}
 .meta b{color:var(--ink);font-weight:600;font-family:var(--font-num)}
-.notice{background:var(--warn-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:6px;padding:9px 12px;font-size:13px;display:grid;gap:2px}
+.notice{background:var(--warn-soft);color:var(--ink);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:6px;padding:8px 12px;font-size:13px}
+.notice summary{cursor:pointer;list-style:none}
+.notice summary::-webkit-details-marker{display:none}
+.notice summary span{color:var(--muted);font-size:12px;margin-left:6px;text-decoration:underline}
+.notice[open] summary span{display:none}
+.notice div{margin-top:4px;color:var(--muted)}
 .notice strong{color:var(--warn)}
-.status{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted);align-items:center}
+.status{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--muted);align-items:center}
 .status .ok{color:var(--ink)}
 .status .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2f8f5b;margin-right:6px;vertical-align:middle}
 .status .dot.w{background:var(--warn)}
@@ -49,37 +56,34 @@ h1{font-size:22px;font-weight:700;margin:0;letter-spacing:-.01em;text-wrap:balan
 .tabs button{font:inherit;background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;color:var(--muted);cursor:pointer}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent);font-weight:600}
 .ghost{font:inherit;font-size:13px;color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
-.star{background:none;border:0;cursor:pointer;font-size:15px;color:var(--line);padding:0 4px 0 0;line-height:1}
+.star{background:none;border:0;cursor:pointer;font-size:15px;color:var(--line);padding:0 6px 0 0;line-height:1;vertical-align:middle}
 .star.on{color:#d39a00}
 table.gt{min-width:760px} .gt tbody tr{cursor:pointer} .gt tbody tr:hover{background:var(--soft)}
-@media (max-width:640px){
-  .tablebox table{min-width:0}
-  td.name{white-space:normal}
-  td.name .cd{display:block;margin-left:22px}
-  #hdr th:nth-child(5),#tb tr.row td:nth-child(5),#hdr th:nth-child(8),#tb tr.row td:nth-child(8),
-  #hdr th:nth-child(9),#tb tr.row td:nth-child(9),#hdr th:nth-child(10),#tb tr.row td:nth-child(10),
-  #hdr th:nth-child(3),#tb tr.row td:nth-child(3){display:none}
-  th,td{padding:7px 6px}
-}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .tablebox{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
-table{border-collapse:collapse;width:100%;min-width:980px;font-size:13px}
-th,td{padding:8px 10px;border-bottom:1px solid var(--soft);text-align:right;white-space:nowrap}
-th{position:sticky;top:0;background:var(--surface);color:var(--muted);font-weight:500;font-size:12px;letter-spacing:.02em;cursor:pointer;user-select:none;border-bottom:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:980px;font-size:13.5px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--soft);text-align:right;white-space:nowrap;vertical-align:middle}
+th.c,td.c{text-align:center}
+@media (min-width:641px){#listbox>table{table-layout:fixed}}
+th{position:sticky;top:0;background:var(--soft);color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.01em;cursor:pointer;user-select:none;border-bottom:1px solid var(--line)}
 th[aria-sort]{color:var(--ink)}
 th[aria-sort="ascending"]::after{content:" ▲";font-size:9px}
 th[aria-sort="descending"]::after{content:" ▼";font-size:9px}
 th.l,td.l{text-align:left}
 td{font-family:var(--font-num);font-variant-numeric:tabular-nums}
 td.name{font-family:var(--font-body)}
-.name .nm{font-weight:600}
-.name .cd{color:var(--muted);font-size:11px;margin-left:6px;font-family:var(--font-num)}
+td.name{overflow:hidden}
+.name .nmw{display:inline-flex;flex-direction:column;vertical-align:middle;min-width:0;max-width:calc(100% - 22px)}
+.name .nm{font-weight:600;font-size:14px;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.name .cd{color:var(--muted);font-size:11.5px;line-height:1.3}
+.name .gs{display:none}
+td.grp{overflow:hidden;text-overflow:ellipsis}
 .grp{font-family:var(--font-body);color:var(--muted)}
 .grp small{font-family:var(--font-num);margin-left:4px}
 tbody tr.row{cursor:pointer}
 tbody tr.row:hover{background:var(--soft)}
 tbody tr.open{background:var(--accent-soft)}
-.score{font-weight:600;color:var(--accent)}
+.score{font-weight:700;color:var(--accent);font-size:14.5px}
 .bars{display:inline-grid;grid-template-columns:repeat(4,22px);gap:3px;vertical-align:middle}
 .bar{height:18px;background:var(--soft);border-radius:2px;position:relative;overflow:hidden}
 .bar i{position:absolute;left:0;right:0;bottom:0;background:var(--accent);opacity:.75}
@@ -89,9 +93,9 @@ tbody tr.open{background:var(--accent-soft)}
 .rel-낮음{color:var(--warn)}
 .up{color:var(--up)} .down{color:var(--down)}
 .dash{color:var(--muted)}
-tr.detail td{background:var(--surface);padding:0;white-space:normal;text-align:left;font-family:var(--font-body)}
+tr.detail>td{background:var(--surface);padding:0;white-space:normal;text-align:left;font-family:var(--font-body)}
 .panel{position:sticky;left:0;box-sizing:border-box;width:min(100%,calc(100vw - 2*max(16px,env(safe-area-inset-left,0px)) - 2px));display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;padding:16px 18px;border-bottom:2px solid var(--accent)}
-tr.detail td{overflow:visible}
+tr.detail>td{overflow:visible}
 .panel h3{font-size:13px;margin:0 0 8px;color:var(--muted);font-weight:600;letter-spacing:.02em}
 .mt{width:100%;min-width:0;font-size:12.5px}
 .mt th,.mt td{padding:5px 8px;cursor:default;position:static}
@@ -106,20 +110,49 @@ tr.detail td{overflow:visible}
 .legend{color:var(--muted);font-size:12px;display:flex;flex-wrap:wrap;gap:4px 16px}
 footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
 @media (max-width:720px){.panel{grid-template-columns:1fr}h1{font-size:19px}}
+/* 휴대폰: 맨 뒤에 둬야 위 규칙을 덮어씀 */
+@media (max-width:640px){
+  .tablebox table{min-width:0}
+  #listbox col{width:auto!important}
+  .mt th:nth-child(2),.mt td:nth-child(2){display:none}
+  .mt td.l{white-space:nowrap;font-size:12px}
+  .mt th,.mt td{padding:5px 4px}
+  .mt .pct{display:none}
+  td.name{overflow:visible;white-space:normal;width:100%}
+  .name .cd{white-space:normal;word-break:keep-all}
+  .name .nmw{max-width:none;display:inline-flex}
+  td.name{position:relative;padding-left:26px}
+  td.name .star{position:absolute;left:4px;top:50%;transform:translateY(-50%)}
+  .status>span:not(.ok){display:none}
+  .meta{font-size:12.5px}
+  .wrap{gap:12px;padding-top:14px}
+  .name .gs{display:inline}
+  .controls input[type=search]{flex-basis:100%}
+  .controls select{flex:1 1 40%}
+  .count{margin-left:0}
+  .legend span:nth-child(2){display:none}
+  #hdr th:nth-child(5),#tb tr.row td:nth-child(5),#hdr th:nth-child(8),#tb tr.row td:nth-child(8),
+  #hdr th:nth-child(9),#tb tr.row td:nth-child(9),#hdr th:nth-child(10),#tb tr.row td:nth-child(10),
+  #hdr th:nth-child(3),#tb tr.row td:nth-child(3){display:none}
+  th,td{padding:8px 5px}
+  .name .nm{white-space:normal;line-height:1.3}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
 <div class="wrap">
-  <header>
-    <h1>업종 대비 저평가 스크리너</h1>
-    <a href="backtest.html" style="font-size:13px;color:var(--accent)">과거 성과 검증 결과 →</a>
+  <div class="top">
+    <header>
+      <h1>업종 대비 저평가 스크리너</h1>
+      <a href="backtest.html">과거 성과 검증 결과 →</a>
+    </header>
     <div class="meta" id="meta"></div>
-  </header>
-  <div class="status" id="status"></div>
-  <div class="notice">
-    <div><strong>점수는 가설입니다.</strong> 가치 40%·퀄리티 30%·추세 20%·안정성 10% 가중치는 과거 성과로 아직 검증되지 않았습니다. 투자 권유가 아닙니다.</div>
-    <div id="notice2"></div>
+    <div class="status" id="status"></div>
   </div>
+  <details class="notice">
+    <summary><strong>점수는 가설입니다.</strong> 과거 성과로 아직 검증되지 않았고, 투자 권유가 아닙니다.<span>자세히</span></summary>
+    <div>가중치: 가치 40%·퀄리티 30%·추세 20%·안정성 10%. <span id="notice2"></span></div>
+  </details>
   <div class="tabs" role="tablist">
     <button role="tab" id="tab-list" aria-selected="true">종목 순위</button>
     <button role="tab" id="tab-grp" aria-selected="false">사업군 요약</button>
@@ -139,6 +172,7 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
   </div>
   <div class="tablebox" id="listbox">
     <table>
+      <colgroup><col class="ck" style="width:52px"><col class="cn"><col class="cg" style="width:190px"><col class="cs" style="width:64px"><col class="cb" style="width:118px"><col class="cp" style="width:62px"><col class="cpb" style="width:62px"><col class="cr" style="width:70px"><col class="cm" style="width:76px"><col class="cc" style="width:104px"><col class="cf" style="width:62px"></colgroup>
       <thead><tr id="hdr"></tr></thead>
       <tbody id="tb"></tbody>
     </table>
@@ -160,8 +194,8 @@ const LABEL = {"E/P":"이익수익률(E/P)","B/P":"장부가수익률(B/P)","EBI
 const BUCKET = {"E/P":"가치","B/P":"가치","EBIT/EV":"가치","PBR-ROE잔차":"가치","ROE":"퀄리티","GP/A":"퀄리티","CFO/NI":"퀄리티","12-1모멘텀":"추세","영업이익증가율":"추세","이자보상배율":"안정성"};
 const PCTM = new Set(["E/P","B/P","EBIT/EV","ROE","GP/A","12-1모멘텀","영업이익증가율"]);
 const COLS = [
-  {k:"rk",t:"순위"},{k:"n",t:"종목",l:1},{k:"g",t:"사업군",l:1},{k:"sc",t:"종합"},{k:"b",t:"묶음 점수",ns:1},
-  {k:"per",t:"PER"},{k:"pbr",t:"PBR"},{k:"roe",t:"ROE"},{k:"mom",t:"모멘텀"},{k:"mc",t:"시총(억)"},{k:"flag",t:"경고",ns:1}
+  {k:"rk",t:"순위",a:"c"},{k:"n",t:"종목",a:"l"},{k:"g",t:"사업군",a:"l"},{k:"sc",t:"종합"},{k:"b",t:"묶음 점수",ns:1,a:"c"},
+  {k:"per",t:"PER"},{k:"pbr",t:"PBR"},{k:"roe",t:"ROE"},{k:"mom",t:"모멘텀"},{k:"mc",t:"시총(억)"},{k:"flag",t:"경고",ns:1,a:"c"}
 ];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const num = (v,d=1) => v==null ? '<span class="dash">–</span>' : v.toLocaleString("ko-KR",{maximumFractionDigits:d,minimumFractionDigits:d});
@@ -190,7 +224,7 @@ function meta(){
   const sel=document.getElementById("grp"); gs.forEach(g=>{const o=document.createElement("option");o.textContent=g;sel.append(o);});
 }
 function status(){
-  const st=S.status||{}, w=st.warnings||[];
+  const st=S.status||{}, w=(st.warnings||[]).filter(x=>!x.startsWith("재무 수집 진행 중"));
   const built=(st.built_at||"").replace("T"," ");
   const h=st.history; const hs = h&&h.targets ? `과거 이력(2015~) 수집 ${h.processed.toLocaleString()}/${h.targets.toLocaleString()}개사${h.complete?" 완료":""}` : "과거 이력(2015~) 수집 대기";
   document.getElementById("status").innerHTML =
@@ -198,7 +232,7 @@ function status(){
     (w.length?`<ul>${w.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:"");
 }
 function header(){
-  document.getElementById("hdr").innerHTML = COLS.map(c=>`<th class="${c.l?'l':''}" data-k="${c.k}" ${c.ns?'data-ns="1"':''} ${sortK===c.k?`aria-sort="${sortDir>0?'ascending':'descending'}"`:''}>${c.t}</th>`).join("");
+  document.getElementById("hdr").innerHTML = COLS.map(c=>`<th class="${c.a||''}" data-k="${c.k}" ${c.ns?'data-ns="1"':''} ${sortK===c.k?`aria-sort="${sortDir>0?'ascending':'descending'}"`:''}>${c.t}</th>`).join("");
 }
 function filtered(){
   const q=document.getElementById("q").value.trim().toLowerCase(), mk=document.getElementById("mk").value,
@@ -214,13 +248,13 @@ function bars(b){return `<span class="bars" aria-label="가치 ${b[0]??'부족'}
 function row(r){
   const flag = r.x.length ? `<span class="chip x" title="${esc(r.x.join(' · '))}">제외 ${r.x.length}</span>` : (r.w.length?`<span class="chip" title="${esc(r.w.join(' · '))}">${r.w.length}</span>`:'');
   return `<tr class="row ${openCode===r.c?'open':''}" data-c="${r.c}" tabindex="0">
-    <td>${r.rk??'<span class="dash">–</span>'}</td>
-    <td class="l name"><button class="star ${WATCH.has(r.c)?'on':''}" data-w="${r.c}" aria-label="관심 종목 ${WATCH.has(r.c)?'해제':'추가'}">★</button><span class="nm">${esc(r.n)}</span><span class="cd">${r.c} ${r.mk==="KOSPI"?"코스피":"코스닥"}</span></td>
-    <td class="l grp">${esc(r.g||'미배정')}${r.gn?`<small class="rel-${r.rel}">${r.gn}</small>`:''}</td>
-    <td class="score">${num(r.sc,1)}</td><td>${bars(r.b)}</td>
+    <td class="c">${r.rk??'<span class="dash">–</span>'}</td>
+    <td class="l name"><button class="star ${WATCH.has(r.c)?'on':''}" data-w="${r.c}" aria-label="관심 종목 ${WATCH.has(r.c)?'해제':'추가'}">★</button><span class="nmw"><span class="nm">${esc(r.n)}</span><span class="cd">${r.c} · ${r.mk==="KOSPI"?"코스피":"코스닥"}<span class="gs"> · ${esc(r.g||'미배정')}</span></span></span></td>
+    <td class="l grp" title="${esc(r.g||'')}">${esc(r.g||'미배정')}${r.gn?`<small class="rel-${r.rel}">${r.gn}</small>`:''}</td>
+    <td class="score">${num(r.sc,1)}</td><td class="c">${bars(r.b)}</td>
     <td>${r.per==null?'<span class="dash">–</span>':num(r.per,1)}</td><td>${r.pbr==null?'<span class="dash">–</span>':num(r.pbr,2)}</td>
     <td>${pct(r.m.ROE)}</td><td>${pct(r.m["12-1모멘텀"],0,true)}</td>
-    <td>${r.mc==null?'<span class="dash">–</span>':Math.round(r.mc/1e8).toLocaleString()}</td><td>${flag}</td></tr>`;
+    <td>${r.mc==null?'<span class="dash">–</span>':Math.round(r.mc/1e8).toLocaleString()}</td><td class="c">${flag}</td></tr>`;
 }
 function detail(r){
   const med = MED[r.gid]||{};
