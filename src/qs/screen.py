@@ -63,6 +63,9 @@ def group_of(ksic: str | None, groups) -> tuple[str | None, str | None]:
     return None, None
 
 
+MIN_GROUP_N = 10   # D-26: 비교 대상이 이보다 적은 사업군은 백분위가 무의미 → 순위에서 빼고 사유 표시
+
+
 def reliability(n: int) -> str:
     return "높음" if n >= 15 else ("보통" if n >= 10 else "낮음")
 
@@ -222,6 +225,8 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
         for r in rows:
             r["group_n"] = len(rows)
             r["reliability"] = reliability(len(rows))
+            if len(rows) < MIN_GROUP_N:
+                r["exclude"].append(f"비교 대상 부족(사업군 {len(rows)}개 < {MIN_GROUP_N}, D-26)")
             risk_flags(r, top10, opts.get("exclude_loss", True), opts.get("exclude_fscore", True))
     # 순위
     ranked = sorted([r for r in out if not r["exclude"] and r.get("composite") is not None],

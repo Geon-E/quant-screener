@@ -96,6 +96,10 @@ tbody tr.open{background:var(--accent-soft)}
 tr.detail>td{background:var(--surface);padding:0;white-space:normal;text-align:left;font-family:var(--font-body)}
 .panel{position:sticky;left:0;box-sizing:border-box;width:min(100%,calc(100vw - 2*max(16px,env(safe-area-inset-left,0px)) - 2px));display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;padding:16px 18px;border-bottom:2px solid var(--accent)}
 tr.detail>td{overflow:visible}
+.why{grid-column:1/-1;font-size:13.5px;line-height:1.6;display:grid;gap:2px;word-break:keep-all}
+.why b{font-weight:600}
+.why .pos{color:var(--accent)} .why .neg{color:var(--warn)}
+.why .note{color:var(--muted);font-size:12.5px}
 .panel h3{font-size:13px;margin:0 0 8px;color:var(--muted);font-weight:600;letter-spacing:.02em}
 .mt{width:100%;min-width:0;font-size:12.5px}
 .mt th,.mt td{padding:5px 8px;cursor:default;position:static}
@@ -118,6 +122,7 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
   .mt td.l{white-space:nowrap;font-size:12px}
   .mt th,.mt td{padding:5px 4px}
   .mt .pct{display:none}
+  .mt th{white-space:normal;word-break:keep-all}
   td.name{overflow:visible;white-space:normal;width:100%}
   .name .cd{white-space:normal;word-break:keep-all}
   .name .nmw{max-width:none;display:inline-flex}
@@ -256,6 +261,28 @@ function row(r){
     <td>${pct(r.m.ROE)}</td><td>${pct(r.m["12-1모멘텀"],0,true)}</td>
     <td>${r.mc==null?'<span class="dash">–</span>':Math.round(r.mc/1e8).toLocaleString()}</td><td class="c">${flag}</td></tr>`;
 }
+function why(r){
+  // 근거 한 줄 요약: 백분위로 강점(상위 20%)·약점(하위 30%)·자료 없음을 뽑아 문장으로 (점수 계산과 같은 값만 사용)
+  const ks=Object.keys(LABEL).filter(k=>r.p[k]!=null);
+  const strong=ks.filter(k=>r.p[k]>=80).sort((a,b)=>r.p[b]-r.p[a]).slice(0,3);
+  const weak=ks.filter(k=>r.p[k]<=30).sort((a,b)=>r.p[a]-r.p[b]).slice(0,2);
+  const miss=Object.keys(LABEL).filter(k=>r.p[k]==null).map(k=>LABEL[k]);
+  const top=k=>`${LABEL[k]} 상위 ${Math.max(1,Math.round(100-r.p[k]))}%`;
+  const B=["가치","퀄리티","추세","안정성"];
+  const bi=r.b.map((v,i)=>[v,i]).filter(x=>x[0]!=null).sort((a,b)=>b[0]-a[0]);
+  let head = r.rk ? `<b>전체 ${r.rk}위</b> · ${esc(r.g)} 사업군 ${r.gn}개 중 ${r.grk}위 (종합 ${r.sc.toFixed(1)})`
+           : r.x.length ? `<b>순위 제외</b> — ${esc(r.x[0])}${r.x.length>1?` 외 ${r.x.length-1}건`:''}` : '<b>점수 없음</b>';
+  const lines=[head];
+  if(bi.length) lines.push(`가장 높은 묶음은 <b>${B[bi[0][1]]}</b>(${bi[0][0].toFixed(0)}점)${bi.length>1?`, 가장 낮은 묶음은 <b>${B[bi[bi.length-1][1]]}</b>(${bi[bi.length-1][0].toFixed(0)}점)`:''}.`);
+  if(strong.length) lines.push(`<span class="pos">강점</span> ${strong.map(top).join(" · ")}`);
+  if(weak.length) lines.push(`<span class="neg">약점</span> ${weak.map(k=>`${LABEL[k]} 하위 ${Math.max(1,Math.round(r.p[k]))}%`).join(" · ")}`);
+  const notes=[];
+  if(miss.length) notes.push(`자료 없음: ${miss.join(", ")}`);
+  if(r.rel==="낮음") notes.push(`비교 대상이 ${r.gn}개뿐이라 백분위가 거칠다`);
+  if(r.w.length) notes.push(`경고 ${r.w.length}건 — 오른쪽 확인`);
+  if(notes.length) lines.push(`<span class="note">${esc(notes.join(" · "))}</span>`);
+  return `<div class="why">${lines.map(l=>`<div>${l}</div>`).join("")}</div>`;
+}
 function detail(r){
   const med = MED[r.gid]||{};
   const mrows = Object.keys(LABEL).map(k=>`<tr><td class="l">${LABEL[k]}</td><td class="l" style="color:var(--muted)">${BUCKET[k]}</td>
@@ -264,9 +291,9 @@ function detail(r){
   const B=["가치","퀄리티","추세","안정성"];
   const list=(a,cls)=>a.length?`<ul>${a.map(x=>`<li class="${cls||''}">${esc(x)}</li>`).join("")}</ul>`:'<div class="dash">없음</div>';
   const fb = r.fb.length ? r.fb.map(x=>x.replace("ni_owners","지배주주 순이익").replace("equity_owners","지배주주 자본").replace("separate_only","별도재무제표만 제출 → 전체=지배").replace("no_nci","비지배지분 없음 → 전체=지배")).join(", ") : "표준 계정으로 확인";
-  return `<tr class="detail"><td colspan="${COLS.length}"><div class="panel">
+  return `<tr class="detail"><td colspan="${COLS.length}"><div class="panel">${why(r)}
     <div style="min-width:0;overflow-x:auto"><h3>지표 — ${esc(r.g||'')} 사업군 ${r.gn?`${r.gn}개 종목 (신뢰도 ${r.rel})`:''}</h3>
-      <table class="mt"><thead><tr><th class="l">지표</th><th class="l">묶음</th><th>이 종목</th><th>사업군 중앙값</th><th>사업군 내 백분위</th></tr></thead><tbody>${mrows}</tbody></table></div>
+      <table class="mt"><thead><tr><th class="l">지표</th><th class="l">묶음</th><th>이 종목</th><th>사업군 중앙값</th><th>백분위</th></tr></thead><tbody>${mrows}</tbody></table></div>
     <div class="side">
       <div><h3>묶음 점수</h3><dl class="kv">${B.map((b,i)=>`<dt>${b}</dt><dd>${r.b[i]==null?'지표 부족':r.b[i].toFixed(1)}</dd>`).join("")}<dt>종합</dt><dd>${r.sc==null?'–':r.sc.toFixed(1)}${r.grk?` (사업군 ${r.grk}위)`:''}</dd></dl></div>
       ${r.x.length?`<div><h3>순위 제외 사유</h3>${list(r.x)}</div>`:''}

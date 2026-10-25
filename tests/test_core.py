@@ -820,3 +820,21 @@ def test_owners_derived_from_total_minus_nci():
             {"sj_div": "BS", "ord": "2", "account_id": "ifrs-full_NoncontrollingInterests", "account_nm": "비지배지분", "thstrm_amount": "2000"}]
     v = extract(rows, "CFS")
     assert v["equity_owners"].value == 409935585608 and v["equity_owners"].confidence == "derived"
+
+
+def test_small_group_not_ranked():
+    """D-26: 비교 대상 10개 미만 사업군은 백분위가 무의미 → 순위에서 빼고 사유 표시. 10개 이상은 순위."""
+    from qs.screen import filter_and_score, load_groups, MIN_GROUP_N
+    def ev(code, k, i):
+        m = {"E/P": 0.05 + i * 0.01, "B/P": 0.5 + i * 0.1, "EBIT/EV": 0.05 + i * 0.01, "ROE": 0.05 + i * 0.01, "GP/A": 0.1 + i * 0.01,
+             "CFO/NI": 1.0, "12-1모멘텀": 0.1 * i, "영업이익증가율": 0.1, "이자보상배율": 5.0}
+        return {"stock_code": code, "name": code, "status": "ok", "induty_code": k, "mcap": 1e12, "metrics": m,
+                "stock": {"equity_owners": 1e11}, "ttm": {"ni_owners": 1e10}}
+    big = [ev(f"9{i:05d}", "264", i) for i in range(MIN_GROUP_N)]        # 반도체 10개
+    small = [ev(f"8{i:05d}", "681", i) for i in range(2)]                # 부동산 2개
+    tv = {r["stock_code"]: [1e10] * 20 for r in big + small}
+    out, ranked, _ = filter_and_score(big + small, {}, dt.date(2026, 10, 22), tv, set(), load_groups())
+    rk = {r["stock_code"] for r in ranked}
+    assert all(r["stock_code"] in rk for r in big)
+    sm = [r for r in out if r["stock_code"].startswith("8")]
+    assert all(r["stock_code"] not in rk and any("비교 대상 부족" in x for x in r["exclude"]) for r in sm)
