@@ -838,3 +838,55 @@ def test_small_group_not_ranked():
     assert all(r["stock_code"] in rk for r in big)
     sm = [r for r in out if r["stock_code"].startswith("8")]
     assert all(r["stock_code"] not in rk and any("비교 대상 부족" in x for x in r["exclude"]) for r in sm)
+
+
+def _synthetic_xs(signal: float, periods: int = 16, n: int = 100, seed: int = 0):
+    """점수와 다음 기간 수익의 관계가 signal인 가짜 단면 (수익률 판정 로직 점검용 — 실제 데이터 아님)."""
+    import random
+    rnd = random.Random(seed)
+    xs, nav, days = [], [1.0], []
+    d0 = dt.date(2018, 5, 1)
+    for k in range(periods):
+        s_day = (d0 + dt.timedelta(days=91 * k)).strftime("%Y%m%d")
+        e_day = (d0 + dt.timedelta(days=91 * (k + 1))).strftime("%Y%m%d")
+        rows = []
+        for i in range(n):
+            sc = rnd.uniform(0, 100)
+            rows.append({"c": f"{i:06d}", "s": sc, "f": signal * (sc - 50) / 1000 + rnd.gauss(0, 0.05), "g": 0.0, "u": 0.0,
+                         "h": False, "f12": None})
+        top = sorted(rows, key=lambda x: -x["s"])[:20]
+        for x in top:
+            x["h"] = True
+        um = sum(x["f"] for x in rows) / n
+        for x in rows:
+            x["g"] = um
+            x["u"] = um
+        pr = sum(x["f"] for x in top) / 20
+        if not days:
+            days.append(s_day)
+        days.append(e_day)
+        nav.append(nav[-1] * (1 + pr))
+        xs.append({"rebalance": s_day, "start": s_day, "end": e_day, "rows": rows})
+    return {"xs": xs, "nav": nav, "nav_days": days}
+
+
+def test_judge_passes_strong_signal_and_fails_noise():
+    from qs.backtest import cross_section, judge
+    strong = _synthetic_xs(1.0)
+    cs = cross_section(strong["xs"])
+    assert cs["spread_top_minus_bottom"] > 0 and cs["adjacent_inversions"] <= 1 and cs["ic_sector"]["ir"] > 0.3
+    j = judge(strong, {"cross_section": cs}, conservative_excess=0.05)
+    assert j["status"] == "통과", j
+    noise = _synthetic_xs(0.0, seed=3)
+    jn = judge(noise, {"cross_section": cross_section(noise["xs"])}, conservative_excess=0.0)
+    assert jn["status"] in ("실패", "미판정")
+    assert any("비용 민감" in f for f in jn["flags"])
+
+
+def test_cross_section_quintile_one_is_top_score():
+    from qs.backtest import cross_section
+    cs = cross_section(_synthetic_xs(1.0)["xs"])
+    q = cs["quintiles"]
+    assert q[1]["sector_excess"]["mean"] > q[5]["sector_excess"]["mean"]
+    assert q[1]["win_vs_sector"]["lo"] is not None and 0 <= q[1]["win_vs_sector"]["mean"] <= 1
+    assert "90~100" in cs["bands_10pt"]

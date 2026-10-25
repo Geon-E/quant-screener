@@ -551,7 +551,7 @@ def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None 
     end_i = max(x for x in range(len(store.days)) if store.days[x] <= end.replace("-", ""))
     last_total = store.last_valid[-1]          # 종목별 전체 데이터의 마지막 관측 행
     nav_days, nav, holdings_log, ic_log, struct, bench, hit, expo = [], [], [], [], [], [], [], []
-    delist_log, unver_log = [], []
+    delist_log, unver_log, xs_log = [], [], []
     units: dict[str, float] = {}
     cash, prev = 1.0, []
     sig = P["signals"]
@@ -584,6 +584,7 @@ def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None 
                               notional * capital, r.get("tv20")) / capital
         st = rebalance_step(units, cash, p_open, p_hold, targets, untradable, cost_fn, caps)
         units, cash, prev = st["units"], st["cash"], list(st["units"])
+        held_now = set(units)
         entry = {c: (p_open.get(c) if c in p_open else p_hold.get(c)) for c in units}
         holdings_log.append({"rebalance": R, "exec": store.days[e], "n": len(units), "turnover": round(st["turnover"], 4),
                              "cost": round(st["cost"] / max(st["value"], 1e-12), 6), "liquidity_capped": st["capped"],
@@ -638,9 +639,176 @@ def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None 
         hit += [fwd[c] > sum(grp_avg[info[c].get("score_group")]) / len(grp_avg[info[c].get("score_group")])
                 for c in units if c in fwd and c in info and grp_avg.get(info[c].get("score_group"))]
         bench.append((store.days[e], store.days[nxt], float(np.mean(list(fwd.values()))) if fwd else 0.0))
+        # 단면 기록 (D-27 · DESIGN 7.8): 점수·다음 기간 수익·사업군 평균·유니버스 평균·보유 여부 + 12개월(보조)
+        gmean = {g: float(np.mean(v)) for g, v in grp_avg.items() if v}
+        umean = float(np.mean(list(fwd.values()))) if fwd else None
+        t12 = e + 250 if e + 250 < len(store.days) else None
+        rows = []
+        for r in ranked:
+            c = r["stock_code"]
+            if c not in fwd or r.get("score_group") not in gmean:
+                continue
+            f12 = None
+            if t12 is not None:
+                p0, p1 = adj_open[e, J[c]], last_px(c, t12)
+                f12 = float(p1 / p0 - 1) if p0 > 0 and not np.isnan(p1) else None
+            rows.append({"c": c, "s": r["composite"], "f": float(fwd[c]), "g": gmean[r["score_group"]], "u": umean,
+                         "h": c in held_now, "f12": f12})
+        xs_log.append({"rebalance": R, "start": store.days[e], "end": store.days[nxt], "rows": rows,
+                       "nav0": None, "nav1": None})
+        ic_log[-1]["ic_sector"] = spearman([x["s"] for x in rows], [x["f"] - x["g"] for x in rows])
     return {"nav_days": nav_days, "nav": nav, "holdings": holdings_log, "ic": ic_log, "structure": struct,
             "bench_ew": bench, "hit": hit, "exposure": expo, "delistings": delist_log, "unverified_held": unver_log,
+            "xs": xs_log,
             "params": {"capital": capital, "delist_policy": delist_policy, "unver_hold": unver_hold, "scenario": scenario}}
+
+
+def _mean_ci(v: list[float]) -> dict:
+    """리밸런싱 단위 평균 ± 1.96·표준오차 (같은 분기 안의 종목 관측은 독립이 아니므로 분기를 한 관측으로)."""
+    v = [x for x in v if x is not None and math.isfinite(x)]
+    if not v:
+        return {"mean": None, "lo": None, "hi": None, "n": 0}
+    m = float(np.mean(v))
+    se = float(np.std(v, ddof=1) / math.sqrt(len(v))) if len(v) > 1 else float("nan")
+    return {"mean": m, "lo": m - 1.96 * se if len(v) > 1 else None, "hi": m + 1.96 * se if len(v) > 1 else None, "n": len(v)}
+
+
+def cross_section(xs: list[dict]) -> dict:
+    """5분위(주)·절대 점수 10점 구간(설명용) × 3개월(주)·12개월(보조). 1분위 = 점수 최상위.
+    승률 = 다음 기간 수익률이 사업군 평균(주)·유니버스 평균(병기)을 넘은 비율."""
+    Q = 5
+    qs = {q: {"sec_ex": [], "uni_ex": [], "win_sec": [], "win_uni": [], "n": 0} for q in range(1, Q + 1)}
+    bands = defaultdict(lambda: {"win_sec": [], "win_uni": [], "sec_ex": [], "n": 0})
+    q12 = {q: {"sec_ex": [], "win_uni": [], "n": 0} for q in range(1, Q + 1)}
+    ics = []
+    for X in xs:
+        rows = sorted(X["rows"], key=lambda x: -x["s"])
+        if len(rows) < Q * 2:
+            continue
+        ics.append(spearman([x["s"] for x in rows], [x["f"] - x["g"] for x in rows]))
+        for k, x in enumerate(rows):
+            x["q"] = k * Q // len(rows) + 1
+        for q in range(1, Q + 1):
+            sub = [x for x in rows if x["q"] == q]
+            qs[q]["sec_ex"].append(float(np.mean([x["f"] - x["g"] for x in sub])))
+            qs[q]["uni_ex"].append(float(np.mean([x["f"] - x["u"] for x in sub])))
+            qs[q]["win_sec"].append(float(np.mean([x["f"] > x["g"] for x in sub])))
+            qs[q]["win_uni"].append(float(np.mean([x["f"] > x["u"] for x in sub])))
+            qs[q]["n"] += len(sub)
+            s12 = [x for x in sub if x.get("f12") is not None]
+            if s12:
+                umean12 = float(np.mean([x["f12"] for x in rows if x.get("f12") is not None]))
+                q12[q]["sec_ex"].append(float(np.mean([x["f12"] for x in s12])) - umean12)
+                q12[q]["win_uni"].append(float(np.mean([x["f12"] > umean12 for x in s12])))
+                q12[q]["n"] += len(s12)
+        by_b = defaultdict(list)
+        for x in rows:
+            by_b[min(int(x["s"] // 10) * 10, 90)].append(x)
+        for b, sub in by_b.items():
+            bands[b]["win_sec"].append(float(np.mean([x["f"] > x["g"] for x in sub])))
+            bands[b]["win_uni"].append(float(np.mean([x["f"] > x["u"] for x in sub])))
+            bands[b]["sec_ex"].append(float(np.mean([x["f"] - x["g"] for x in sub])))
+            bands[b]["n"] += len(sub)
+    quint = {q: {"sector_excess": _mean_ci(d["sec_ex"]), "universe_excess": _mean_ci(d["uni_ex"]),
+                 "win_vs_sector": _mean_ci(d["win_sec"]), "win_vs_universe": _mean_ci(d["win_uni"]), "obs": d["n"]}
+             for q, d in qs.items()}
+    means = [quint[q]["sector_excess"]["mean"] for q in range(1, Q + 1)]
+    inv = sum(1 for a, b in zip(means, means[1:]) if a is not None and b is not None and b > a) if all(m is not None for m in means) else None
+    ic = [x for x in ics if x is not None]
+    ic_sd = float(np.std(ic, ddof=1)) if len(ic) > 1 else None
+    return {"quintiles": quint,
+            "spread_top_minus_bottom": (means[0] - means[-1]) if None not in means else None,
+            "adjacent_inversions": inv,
+            "ic_sector": {"mean": float(np.mean(ic)) if ic else None, "std": ic_sd, "n": len(ic),
+                          "ir": float(np.mean(ic) / ic_sd) if ic_sd else None,
+                          "t": float(np.mean(ic) / ic_sd * math.sqrt(len(ic))) if ic_sd else None},
+            "bands_10pt": {f"{b}~{b + 10}": {"win_vs_sector": _mean_ci(d["win_sec"]), "win_vs_universe": _mean_ci(d["win_uni"]),
+                                             "sector_excess": _mean_ci(d["sec_ex"]), "obs": d["n"]} for b, d in sorted(bands.items())},
+            "quintiles_12m": {q: {"universe_excess_mean": float(np.mean(d["sec_ex"])) if d["sec_ex"] else None,
+                                  "win_vs_universe_mean": float(np.mean(d["win_uni"])) if d["win_uni"] else None, "obs": d["n"],
+                                  "note": "12개월 수익은 분기마다 겹침 → 표준오차·신뢰구간 없음 (설명용)"} for q, d in q12.items()}}
+
+
+def _ann(rets: list[float], years: float) -> float | None:
+    if not rets or years <= 0:
+        return None
+    return float(np.prod([1 + r for r in rets]) ** (1 / years) - 1)
+
+
+def judge(sim: dict, res: dict, conservative_excess: float | None = None) -> dict:
+    """DESIGN 7.8 합격 기준 판정. 구간(개발/검증)과 관계없이 같은 계산 — 개발은 방향 진단, 판정은 검증 구간."""
+    xs, nav, days = sim["xs"], sim["nav"], sim["nav_days"]
+    pos = {d: k for k, d in enumerate(days)}
+    per = []                                   # (시작일, 포트폴리오 구간 수익, 유니버스 구간 수익)
+    for X in xs:
+        a, b = pos.get(X["start"]), pos.get(X["end"])
+        if a is None or b is None or not nav[a] or not X["rows"]:
+            continue
+        per.append((X["start"], nav[b] / nav[a] - 1, X["rows"][0]["u"]))
+    if not per:
+        return {"status": "자료 부족"}
+    years = (dt.datetime.strptime(xs[-1]["end"], "%Y%m%d") - dt.datetime.strptime(xs[0]["start"], "%Y%m%d")).days / 365.25
+    port_ann, uni_ann = _ann([p[1] for p in per], years), _ann([p[2] for p in per], years)
+    excess = (port_ann - uni_ann) if port_ann is not None and uni_ann is not None else None
+    held_sec = [float(np.mean([x["f"] - x["g"] for x in X["rows"] if x["h"]])) for X in xs if any(x["h"] for x in X["rows"])]
+    cs = res.get("cross_section") or cross_section(xs)
+    top = cs["quintiles"][1]["win_vs_sector"]
+    yearly = defaultdict(lambda: [1.0, 1.0])
+    for d, pr, ur in per:
+        yearly[d[:4]][0] *= 1 + pr
+        yearly[d[:4]][1] *= 1 + ur
+    yr_pos = sum(1 for v in yearly.values() if v[0] > v[1])
+    # 누적 기여 상위 3종목 제외 (보유 종목 동일비중 근사)
+    contrib = defaultdict(float)
+    for X in xs:
+        h = [x for x in X["rows"] if x["h"]]
+        for x in h:
+            contrib[x["c"]] += (x["f"] - x["u"]) / len(h)
+    top3 = [c for c, _ in sorted(contrib.items(), key=lambda kv: -kv[1])[:3]]
+    eq_all, eq_wo = [], []
+    for X in xs:
+        h = [x for x in X["rows"] if x["h"]]
+        if not h:
+            continue
+        eq_all.append(float(np.mean([x["f"] for x in h])))
+        h2 = [x for x in h if x["c"] not in top3]
+        eq_wo.append(float(np.mean([x["f"] for x in h2])) if h2 else X["rows"][0]["u"])
+    wo_ex = (_ann(eq_wo, years) or 0) - (uni_ann or 0) if eq_wo else None
+    # 구간 단위 MDD (포트폴리오·유니버스 같은 해상도)
+    def mdd(rs):
+        v = np.cumprod([1] + [1 + r for r in rs])
+        return float((v / np.maximum.accumulate(v) - 1).min())
+    mdd_p, mdd_u = mdd([p[1] for p in per]), mdd([p[2] for p in per])
+    ic = cs["ic_sector"]
+    g = {
+        "1_초과수익": {"value": {"annual_excess_vs_universe": excess, "held_vs_sector_mean": float(np.mean(held_sec)) if held_sec else None},
+                     "pass": excess is not None and excess >= 0.03 and bool(held_sec) and float(np.mean(held_sec)) > 0,
+                     "rule": "연환산 ≥ 3%p (유니버스 동일비중 대비) + 보유 종목 사업군 대비 > 0"},
+        "2_5분위": {"value": {"spread": cs["spread_top_minus_bottom"], "inversions": cs["adjacent_inversions"]},
+                  "pass": (cs["spread_top_minus_bottom"] or 0) > 0 and cs["adjacent_inversions"] is not None and cs["adjacent_inversions"] <= 1,
+                  "rule": "최상위 − 최하위 > 0, 인접 역전 ≤ 1"},
+        "3_IC": {"value": ic, "pass": (ic["mean"] or 0) > 0 and (ic["ir"] or 0) >= 0.3, "rule": "평균 > 0, IR ≥ 0.3 (t값은 공개만)"},
+        "4_승률": {"value": top, "pass": False if (top["mean"] or 0) <= 0.5 else (True if top["lo"] is not None and top["lo"] > 0.5 else None),
+                 "rule": "최상위 5분위 사업군 대비 승률 > 50%, 95% 하한 > 50% (아니면 미판정)"},
+        "5_안정성": {"value": {"years_positive": yr_pos, "years": len(yearly), "top3_removed": top3, "excess_without_top3": wo_ex},
+                   "pass": yr_pos * 2 >= len(yearly) and wo_ex is not None and wo_ex > 0,
+                   "rule": "연도 절반 이상 초과 > 0, 상위 3종목 제외해도 > 0 (동일비중 근사)"},
+    }
+    flags = []
+    if mdd_p < mdd_u - 0.05:
+        flags.append(f"사용자 재검토: 구간 MDD {mdd_p:.1%} (유니버스 {mdd_u:.1%})")
+    if conservative_excess is None:
+        flags.append("보수 비용 미측정 (bt-robust)")
+    elif conservative_excess <= 0:
+        flags.append("비용 민감: 보수 비용에서 초과수익 ≤ 0 — '통과' 표현 금지")
+    vals = [x["pass"] for x in g.values()]
+    status = "통과" if all(v is True for v in vals) else ("미판정" if all(v is not False for v in vals) else "실패")
+    if status == "통과" and any(f.startswith("비용 민감") for f in flags):
+        status = "통과(비용 민감)"
+    return {"status": status, "gates": g, "flags": flags,
+            "annual": {"portfolio_period_based": port_ann, "universe_ew": uni_ann, "mdd_period_portfolio": mdd_p, "mdd_period_universe": mdd_u},
+            "data_gate": "사람 판정 — survivorship_check·limitations 수치 공개 (DESIGN 7.2)",
+            "note": "개발 구간: 방향 진단. 판정은 검증 구간 (DESIGN 7.8)"}
 
 
 def _survivorship(struct: list[dict]) -> dict:
@@ -668,6 +836,8 @@ def summarize(sim: dict, P: dict) -> dict:
            "liquidity_capped_total": sum(len(h.get("liquidity_capped", [])) for h in sim["holdings"]),
            "survivorship_check": _survivorship(sim["structure"]),
            "params": sim.get("params")}
+    res["cross_section"] = cross_section(sim.get("xs") or [])
+    res["judgement"] = judge(sim, res) if sim.get("xs") else {"status": "자료 부족"}
     # 지수 벤치마크와 베타·국면별 성과
     for key, ser in P["index"].items():
         lv = [ser.get(d) for d in days]
