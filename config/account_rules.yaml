@@ -55,6 +55,8 @@ items:
     no_nci_fallback: ni_total
     nci_ids: ["ifrs:ProfitLossAttributableToNoncontrollingInterests"]
     nci_names: ['비지배']
+    # 지배 행은 없고 전체·비지배(ID) 행이 모두 있으면 → 지배 = 전체 − 비지배 (회계 항등식, 신뢰도 derived) — 2026-10-25 JW중외제약 사례
+    derive_from_total: ni_total
 
   cfo:
     kind: flow
@@ -122,6 +124,7 @@ items:
     no_nci_fallback: equity_total
     nci_ids: ["ifrs:NoncontrollingInterests"]
     nci_names: ['비지배']
+    derive_from_total: equity_total     # 지배 = 자본총계 − 비지배지분(ID 행) — JW중외제약(비지배 2,000원, 지배 행 없음)
 
   cur_assets:
     kind: stock

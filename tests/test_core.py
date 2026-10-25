@@ -221,11 +221,20 @@ def test_extract_owners_ordinal_not_comprehensive():
     assert x["ni_owners"].value == 70 and x["ni_owners"].confidence == "ordinal"
 
 
-def test_extract_cfs_without_owner_line_is_invalid():
-    # 비지배지분 행은 있는데 지배주주 행을 못 찾음 → 무효 (대체하지 않음)
+def test_extract_cfs_without_owner_line_derives_from_identity():
+    # 비지배지분 행은 있는데 지배주주 행이 없음 → 전체·비지배 모두 표준 ID면 지배 = 전체 − 비지배 (신뢰도 derived)
+    # (2026-10-25 변경: 이전에는 무효 처리. JW중외제약 사례 — 5차 협의 공유)
     rows = [_r("CIS", "ifrs-full_ProfitLoss", "당기순이익", "100", ord_=1),
             _r("CIS", "ifrs-full_ProfitLossAttributableToNoncontrollingInterests", "비지배지분", "20", ord_=3)]
-    assert extract(rows, "CFS")["ni_owners"].value is None
+    x = extract(rows, "CFS")["ni_owners"]
+    assert x.value == 80 and x.confidence == "derived"
+
+
+def test_derive_requires_standard_id_total():
+    # 전체가 비표준 이름으로만 잡히면 계산하지 않는다 (무효)
+    rows = [_r("CIS", "-표준계정코드 미사용-", "당기순이익", "100", ord_=1),
+            _r("CIS", "ifrs-full_ProfitLossAttributableToNoncontrollingInterests", "비지배지분", "20", ord_=3)]
+    assert extract(rows, "CFS")["ni_owners"].confidence != "derived"
 
 
 def test_extract_cfs_no_nci_means_total_is_owners():
@@ -802,3 +811,12 @@ def test_review_opinion_no_exception_is_clean():
     for t in ("예외사항 없음", "해당사항없음", "적정의견"):
         assert audit_opinion({"status": "000", "list": [{"bsns_year": "당기", "adt_opinion": t}]})[1] is True
     assert audit_opinion({"status": "000", "list": [{"bsns_year": "당기", "adt_opinion": "한정(범위제한)"}]})[1] is False
+
+
+def test_owners_derived_from_total_minus_nci():
+    """지배 행 없음 + 자본총계·비지배지분(ID) 있음 → 지배 = 총계 − 비지배 (JW중외제약 2026 2Q)."""
+    from qs.normalize.accounts import extract
+    rows = [{"sj_div": "BS", "ord": "1", "account_id": "ifrs-full_Equity", "account_nm": "자본총계", "thstrm_amount": "409935587608"},
+            {"sj_div": "BS", "ord": "2", "account_id": "ifrs-full_NoncontrollingInterests", "account_nm": "비지배지분", "thstrm_amount": "2000"}]
+    v = extract(rows, "CFS")
+    assert v["equity_owners"].value == 409935585608 and v["equity_owners"].confidence == "derived"

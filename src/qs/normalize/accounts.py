@@ -154,6 +154,17 @@ def extract(rows: list[dict], fs_div: str, had_cfs: bool = False) -> dict[str, P
                 if base.value is not None:
                     return Picked(base.value, "no_nci", base.sources)
 
+        # 5-1) 지배 행이 없고, 전체와 비지배(ID) 행이 모두 있으면 회계 항등식으로 계산 (지배 = 전체 − 비지배)
+        if rule.get("derive_from_total"):
+            nci_rows = [r for r in cand if canon(r.get("account_id")) in set(rule.get("nci_ids", []))]
+            nci_vals = [_val(r, kind) for r in nci_rows]
+            nci_vals = [v for v in nci_vals if v is not None]
+            if nci_vals:
+                base = out.get(rule["derive_from_total"]) or pick(rule["derive_from_total"])
+                if base.value is not None and base.confidence == "id":
+                    return Picked(base.value - nci_vals[0], "derived",
+                                  base.sources + [(nci_rows[0].get("account_id"), nci_rows[0].get("account_nm"))])
+
         # 6) 0 대체 (3차 협의 Q6-B): 관련 명칭이 재무상태표에 하나도 없을 때만 0. 있는데 못 찾았으면 무효
         if rule.get("missing_as_zero"):
             guards = rule.get("zero_guard_names", [])
