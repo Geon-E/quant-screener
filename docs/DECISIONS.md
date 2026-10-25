@@ -48,7 +48,11 @@
 
 ## ⏳ 열린 질문
 
-### D-07 화면 배포 방식 — 3단계 전에 결정
+### D-07 화면 배포 방식 — ✅ 결정 (2026-10-25)
+
+**Vercel 정적 사이트 `quant-screener-kr` — https://quant-screener-kr.vercel.app.** GitHub 연동 자동 배포: 일일 실행이 `site/`를 커밋하면 배포된다. Vercel Hobby 조건상 커밋 작성자는 GitHub 계정 Geon-E(noreply 주소)여야 한다 (봇·연결 안 된 이메일 커밋은 BLOCKED). 사용자의 다른 앱들과 같은 방식.
+
+(이하 결정 전 검토 내용)
 | 선택안 | 장점 | 확인할 것 |
 |---|---|---|
 | A. GitHub Pages | 저장소와 일체 | Private 저장소 Pages의 요금제 조건, 접근 통제 가능 여부 |
