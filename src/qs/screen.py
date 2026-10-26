@@ -300,12 +300,23 @@ def run() -> dict:
     hist = [{"c": r["stock_code"], "n": r.get("name"), "g": r.get("group_id"), "sc": r.get("composite"), "rk": r.get("rank"),
              "grk": r.get("group_rank"), "b": r.get("buckets"), "x": r["exclude"], "px": r.get("close"), "mc": r.get("mcap"),
              "pd": r.get("period")} for r in out]
+    # 전날(직전 시세 기준일) 순위 — 화면의 순위 변화 표시용
+    prev_files = sorted(f for f in (L2 / "screen_history").glob("*.json.gz") if f.name.split(".")[0] < last_bd) \
+        if (L2 / "screen_history").exists() else []
+    prev_asof, prev_rank = None, {}
+    if prev_files:
+        ph = read_gz_json(prev_files[-1])
+        prev_asof = ph.get("asof")
+        prev_rank = {x["c"]: x.get("rk") for x in ph.get("rows", [])}
+    for r in out:
+        r["prev_rank"] = prev_rank.get(r["stock_code"]) if prev_asof else None
+        r["prev_known"] = r["stock_code"] in prev_rank
     write_gz_json(L2 / "screen_history" / f"{last_bd}.json.gz", {"asof": last_bd, "strategy": "v1", "rows": hist})
     exc = Counter(x for r in out for x in r["exclude"])
     res = {"asof_price": last_bd, "universe_collected": len(uni["rows"]), "universe_total": uni["total"],
            "collection_complete": uni.get("complete"), "evaluated": len(out), "build_status": dict(stat),
            "ranked": len(ranked), "groups": {g: len(v) for g, v in sorted(by_g.items())},
-           "exclusions": dict(exc.most_common())}
+           "exclusions": dict(exc.most_common()), "prev_asof": prev_asof}
     # 데이터 상태 (DESIGN 8: 기준일·갱신 성공·품질 점검)
     from .collect.krx import suspicious_empty, weekdays
     from .util import now_kst
