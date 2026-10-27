@@ -72,15 +72,15 @@
   "비교 대상 부족(사업군 1개 < 10, D-26)": 1
  },
  "status": {
-  "built_at": "2026-10-26T11:55+09:00",
+  "built_at": "2026-10-27T09:37+09:00",
   "warnings": [],
   "history": {
-   "processed": 53,
+   "processed": 201,
    "targets": 2786,
    "complete": false
   },
   "kind_admin": {
-   "date": "20261026",
+   "date": "20261027",
    "count": 186
   }
  }
