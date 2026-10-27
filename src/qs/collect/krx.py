@@ -105,7 +105,10 @@ def run_backfill(start: dt.date, end: dt.date | None = None, budget: int = 3000)
             if elapsed_min() > KRX_UNTIL_MIN and bd not in recent:
                 stopped = f"시간 예산 {KRX_UNTIL_MIN}분 — 과거 시세 백필은 다음 실행에서 이어받음"
                 break
-            force = bd in recent or suspicious_empty(bd)
+            # 최근 7일 안의 평일인데 빈 결과로 저장돼 있으면 다시 받는다 — KRX는 전일 시세를 다음 날 아침에 올리므로
+            # 너무 이른 실행이 빈 결과를 휴장일처럼 저장해 버리는 것을 막음 (2026-10-27 사례: 10/26 시세 누락)
+            stale_empty = (end - d).days <= 7 and _rows_of("sto/stk_bydd_trd", bd) == 0
+            force = bd in recent or suspicious_empty(bd) or stale_empty
             n = k.collect("sto/stk_bydd_trd", bd, force=force)
             if n == 0 and not suspicious_empty(bd):
                 continue  # 휴장일 → 나머지 API는 생략 (빈 결과는 기록됨)
