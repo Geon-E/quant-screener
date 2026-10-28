@@ -1,0 +1,1995 @@
+{
+ "command": "phase1",
+ "started": "2026-10-28T08:46:52.147890+09:00",
+ "finished": "2026-10-28T10:34:13.821821+09:00",
+ "ok": true,
+ "secret_scan_hits": [],
+ "results": {
+  "cmd_krx": {
+   "start": "2017-01-01",
+   "end": "2026-10-28",
+   "saved": 7,
+   "skipped": 9981,
+   "trading_days_touched": 2405,
+   "stopped": null,
+   "kept_nonempty": [],
+   "suspicious_empty_days": [],
+   "calls": 7,
+   "errors": 0,
+   "budget": 6000
+  },
+  "cmd_kind": {
+   "date": "20261028",
+   "rows": 186
+  },
+  "cmd_dart": {
+   "companies_done": 28,
+   "of": 28,
+   "stopped": null,
+   "per_company": [
+    {
+     "corp_code": "00126380",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 0,
+     "xbrl_ok": 0,
+     "audit_probe": {
+      "keys": [
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "-",
+       "adt_opinion": null
+      },
+      "parsed": [
+       null,
+       null
+      ]
+     },
+     "name": "삼성전자"
+    },
+    {
+     "corp_code": "00164779",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 6,
+     "xbrl_ok": 6,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제68기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "SK하이닉스"
+    },
+    {
+     "corp_code": "00164742",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 9,
+     "xbrl_ok": 9,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제49기",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "현대자동차"
+    },
+    {
+     "corp_code": "00266961",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 6,
+     "xbrl_ok": 6,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제17기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "NAVER"
+    },
+    {
+     "corp_code": "00356361",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 5,
+     "xbrl_ok": 5,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제15기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "LG화학"
+    },
+    {
+     "corp_code": "00258801",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 16,
+     "xbrl_ok": 15,
+     "audit_probe": {
+      "keys": [
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "-",
+       "adt_opinion": null
+      },
+      "parsed": [
+       null,
+       null
+      ]
+     },
+     "name": "카카오"
+    },
+    {
+     "corp_code": "00120021",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 1,
+     "xbrl_ok": 1,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제54기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "LG"
+    },
+    {
+     "corp_code": "00181712",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 6,
+     "xbrl_ok": 6,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제 25기 (당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "SK"
+    },
+    {
+     "corp_code": "00156600",
+     "acc_mt": "12",
+     "reports": 17,
+     "fs_ok": 15,
+     "fs_none": 2,
+     "amended": 7,
+     "xbrl_ok": 6,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "core_adt_matter",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "emphs_matter",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제35기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "한주라이트메탈"
+    },
+    {
+     "corp_code": "00217947",
+     "acc_mt": "12",
+     "reports": 45,
+     "fs_ok": 41,
+     "fs_none": 4,
+     "amended": 5,
+     "xbrl_ok": 5,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제25기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "신세계건설"
+    },
+    {
+     "corp_code": "01596656",
+     "acc_mt": "12",
+     "reports": 19,
+     "fs_ok": 15,
+     "fs_none": 4,
+     "amended": 2,
+     "xbrl_ok": 2,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제2기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "메쎄이상"
+    },
+    {
+     "corp_code": "00150536",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 4,
+     "xbrl_ok": 4,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제38기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "진양제약"
+    },
+    {
+     "corp_code": "00120562",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 37,
+     "fs_none": 10,
+     "amended": 5,
+     "xbrl_ok": 4,
+     "audit_probe": {
+      "keys": [
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "-",
+       "adt_opinion": null
+      },
+      "parsed": [
+       null,
+       null
+      ]
+     },
+     "name": "롯데지주"
+    },
+    {
+     "corp_code": "01725160",
+     "acc_mt": "12",
+     "reports": 10,
+     "fs_ok": 10,
+     "fs_none": 0,
+     "amended": 0,
+     "xbrl_ok": 0,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "core_adt_matter",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제1기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "한화플러스제4호스팩"
+    },
+    {
+     "corp_code": "00133991",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 4,
+     "xbrl_ok": 4,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제30기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "세아특수강"
+    },
+    {
+     "corp_code": "00205687",
+     "acc_mt": "12",
+     "reports": 50,
+     "fs_ok": 43,
+     "fs_none": 7,
+     "amended": 17,
+     "xbrl_ok": 17,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제31기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "더라미"
+    },
+    {
+     "corp_code": "00390408",
+     "acc_mt": "12",
+     "reports": 49,
+     "fs_ok": 43,
+     "fs_none": 6,
+     "amended": 6,
+     "xbrl_ok": 6,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제25기(당   기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "인크레더블버즈"
+    },
+    {
+     "corp_code": "01109070",
+     "acc_mt": "12",
+     "reports": 31,
+     "fs_ok": 31,
+     "fs_none": 0,
+     "amended": 3,
+     "xbrl_ok": 3,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제20기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "비피도"
+    },
+    {
+     "corp_code": "00101044",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 9,
+     "xbrl_ok": 9,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제57기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "에이프로젠바이오로직스"
+    },
+    {
+     "corp_code": "00141246",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 4,
+     "xbrl_ok": 4,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제34기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "SGC E&C"
+    },
+    {
+     "corp_code": "01264872",
+     "acc_mt": "12",
+     "reports": 21,
+     "fs_ok": 21,
+     "fs_none": 0,
+     "amended": 1,
+     "xbrl_ok": 1,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제14기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "이노뎁"
+    },
+    {
+     "corp_code": "01012987",
+     "acc_mt": "12",
+     "reports": 21,
+     "fs_ok": 21,
+     "fs_none": 0,
+     "amended": 1,
+     "xbrl_ok": 1,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "core_adt_matter",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제14기 (당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "아모센스"
+    },
+    {
+     "corp_code": "00301112",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 1,
+     "xbrl_ok": 1,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제25기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "삼화네트웍스"
+    },
+    {
+     "corp_code": "01566248",
+     "acc_mt": "12",
+     "reports": 21,
+     "fs_ok": 21,
+     "fs_none": 0,
+     "amended": 3,
+     "xbrl_ok": 3,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "core_adt_matter",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "emphs_matter",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제 1 기",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "에코프로에이치엔"
+    },
+    {
+     "corp_code": "00268251",
+     "acc_mt": "12",
+     "reports": 47,
+     "fs_ok": 43,
+     "fs_none": 4,
+     "amended": 7,
+     "xbrl_ok": 7,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제24기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "다산네트웍스"
+    },
+    {
+     "corp_code": "00367871",
+     "acc_mt": "12",
+     "reports": 23,
+     "fs_ok": 23,
+     "fs_none": 0,
+     "amended": 2,
+     "xbrl_ok": 2,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "core_adt_matter",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "emphs_matter",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제24기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "인바이오"
+    },
+    {
+     "corp_code": "00877174",
+     "acc_mt": "06",
+     "reports": 0,
+     "fs_ok": 25,
+     "fs_none": 23,
+     "amended": 0,
+     "xbrl_ok": 0,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "core_adt_matter",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "emphs_matter",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제23기 반기(당반기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "엠브레인"
+    },
+    {
+     "corp_code": "00441243",
+     "acc_mt": "06",
+     "reports": 0,
+     "fs_ok": 40,
+     "fs_none": 8,
+     "amended": 0,
+     "xbrl_ok": 0,
+     "audit_probe": {
+      "keys": [
+       "adt_opinion",
+       "adt_reprt_spcmnt_matter",
+       "adtor",
+       "bsns_year",
+       "corp_cls",
+       "corp_code",
+       "corp_name",
+       "rcept_no",
+       "stlm_dt"
+      ],
+      "first": {
+       "bsns_year": "제 14기(당기)",
+       "adt_opinion": "적정"
+      },
+      "parsed": [
+       "적정",
+       true
+      ]
+     },
+     "name": "형지엘리트"
+    }
+   ],
+   "calls": 28,
+   "errors": 0,
+   "budget": 15000
+  },
+  "cmd_universe": {
+   "universe": 2534,
+   "processed": 2534,
+   "stopped": "시간 예산 95분 — 다음 실행에서 이어받음",
+   "status": {
+    "ok": 2495,
+    "non_dec": 26,
+    "no_reports": 13
+   },
+   "recent": {
+    "recent_filings": 24,
+    "companies": 16,
+    "new_reports": 0,
+    "amended": 1,
+    "fs_refetched": 1
+   },
+   "history": {
+    "targets": 2786,
+    "processed": 582,
+    "status": {
+     "ok": 578,
+     "non_dec": 1,
+     "no_reports": 3
+    },
+    "stopped": "시간 예산 95분 — 다음 실행에서 이어받음",
+    "complete": false
+   },
+   "calls": 9946,
+   "errors": 0,
+   "budget": 16000
+  },
+  "cmd_inventory": {
+   "fs_files": 39232,
+   "companies": 2500,
+   "distinct_accounts": 3772
+  },
+  "cmd_adjust": {
+   "stocks": 2875,
+   "events": 920,
+   "by_class": {
+    "주식병합": 285,
+    "인적분할·감자 등 복합": 79,
+    "미세 기준가 조정": 9,
+    "기준가 상향(감자 등)": 354,
+    "권리락(증자·주식배당 등)": 172,
+    "주식분할": 21
+   },
+   "continuity_worst_pp": 0.005,
+   "continuity_fail": [],
+   "continuity_fail_count": 0,
+   "confirmed": 539,
+   "unconfirmed_checked": 18,
+   "fdr_cross_check": {
+    "available": true,
+    "results": {
+     "000040": {
+      "name": "KR모터스",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -61.627,
+      "fdr_pct": -61.627,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "000070": {
+      "name": "삼양홀딩스",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -4.737,
+      "fdr_pct": -4.736,
+      "diff_pp": -0.001,
+      "events": 1
+     },
+     "000180": {
+      "name": "성창기업지주",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -41.062,
+      "fdr_pct": -42.221,
+      "diff_pp": 1.159,
+      "events": 1
+     },
+     "000300": {
+      "name": "DH오토넥스",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 0.0,
+      "fdr_pct": 0.0,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "0004Y0": {
+      "name": "디비금융제14호스팩",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -0.432,
+      "fdr_pct": 0.452,
+      "diff_pp": -0.884,
+      "events": 6
+     },
+     "000500": {
+      "name": "가온전선",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 556.334,
+      "fdr_pct": 569.153,
+      "diff_pp": -12.819,
+      "events": 1
+     },
+     "000640": {
+      "name": "동아제약",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -17.236,
+      "fdr_pct": -17.329,
+      "diff_pp": 0.093,
+      "events": 1
+     },
+     "000670": {
+      "name": "영풍",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -22.118,
+      "fdr_pct": -21.61,
+      "diff_pp": -0.508,
+      "events": 1
+     },
+     "000880": {
+      "name": "한화",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -14.01,
+      "fdr_pct": -13.36,
+      "diff_pp": -0.65,
+      "events": 1
+     },
+     "00088K": {
+      "name": "한화3우B",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -29.001,
+      "fdr_pct": -29.129,
+      "diff_pp": 0.128,
+      "events": 1
+     },
+     "000890": {
+      "name": "보해양조",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -45.939,
+      "fdr_pct": -45.852,
+      "diff_pp": -0.087,
+      "events": 1
+     },
+     "0008Z0": {
+      "name": "에스엔시스",
+      "from": "20250819",
+      "to": "20261027",
+      "ours_pct": -56.867,
+      "fdr_pct": -57.289,
+      "diff_pp": 0.422,
+      "events": 0
+     },
+     "001000": {
+      "name": "신라섬유",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -69.735,
+      "fdr_pct": -69.735,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "001020": {
+      "name": "페이퍼코리아",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -49.862,
+      "fdr_pct": -48.508,
+      "diff_pp": -1.354,
+      "events": 1
+     },
+     "001080": {
+      "name": "MH머트리얼즈",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 50.902,
+      "fdr_pct": 54.91,
+      "diff_pp": -4.008,
+      "events": 1
+     },
+     "001130": {
+      "name": "대한제분",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -26.612,
+      "fdr_pct": -26.612,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "001210": {
+      "name": "금호전기",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 15.515,
+      "fdr_pct": 15.975,
+      "diff_pp": -0.461,
+      "events": 1
+     },
+     "001230": {
+      "name": "동국홀딩스",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 6.63,
+      "fdr_pct": 5.945,
+      "diff_pp": 0.685,
+      "events": 1
+     },
+     "001290": {
+      "name": "상상인증권",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 17.62,
+      "fdr_pct": 16.867,
+      "diff_pp": 0.753,
+      "events": 1
+     },
+     "001380": {
+      "name": "SG글로벌",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -75.989,
+      "fdr_pct": -75.988,
+      "diff_pp": -0.001,
+      "events": 1
+     },
+     "001470": {
+      "name": "삼부토건",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 0.0,
+      "fdr_pct": 0.0,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "001510": {
+      "name": "SK증권",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 61.205,
+      "fdr_pct": 66.28,
+      "diff_pp": -5.075,
+      "events": 1
+     },
+     "001515": {
+      "name": "SK증권우",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -15.169,
+      "fdr_pct": -15.169,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "001520": {
+      "name": "동양",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -23.624,
+      "fdr_pct": -23.777,
+      "diff_pp": 0.153,
+      "events": 1
+     },
+     "001525": {
+      "name": "동양우",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -28.736,
+      "fdr_pct": -28.736,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "001527": {
+      "name": "동양2우B",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -82.139,
+      "fdr_pct": -82.139,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "001530": {
+      "name": "DI동일",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -40.108,
+      "fdr_pct": -40.356,
+      "diff_pp": 0.248,
+      "events": 1
+     },
+     "001620": {
+      "name": "케이비아이동국실업",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -21.429,
+      "fdr_pct": -20.735,
+      "diff_pp": -0.694,
+      "events": 1
+     },
+     "001840": {
+      "name": "이화공영",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 0.0,
+      "fdr_pct": 0.0,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "002070": {
+      "name": "비비안",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -76.258,
+      "fdr_pct": -76.258,
+      "diff_pp": -0.0,
+      "events": 2
+     },
+     "002210": {
+      "name": "동성제약",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -36.28,
+      "fdr_pct": -37.77,
+      "diff_pp": 1.49,
+      "events": 1
+     },
+     "002360": {
+      "name": "SH에너지화학",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -18.612,
+      "fdr_pct": -18.612,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "002630": {
+      "name": "오리엔트바이오",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -54.354,
+      "fdr_pct": -53.608,
+      "diff_pp": -0.746,
+      "events": 2
+     },
+     "002680": {
+      "name": "한탑",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -22.805,
+      "fdr_pct": -22.805,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "002760": {
+      "name": "보락",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -9.911,
+      "fdr_pct": -9.118,
+      "diff_pp": -0.793,
+      "events": 0
+     },
+     "002780": {
+      "name": "진흥기업",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -20.217,
+      "fdr_pct": -18.589,
+      "diff_pp": -1.628,
+      "events": 1
+     },
+     "002785": {
+      "name": "진흥기업우B",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -82.235,
+      "fdr_pct": -82.235,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "002787": {
+      "name": "진흥기업2우B",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -89.837,
+      "fdr_pct": -89.837,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "002880": {
+      "name": "디와이에이",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -47.739,
+      "fdr_pct": -44.435,
+      "diff_pp": -3.304,
+      "events": 1
+     },
+     "003060": {
+      "name": "에이프로젠바이오로직스",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -85.494,
+      "fdr_pct": 132.167,
+      "diff_pp": -217.661,
+      "events": 1
+     },
+     "003080": {
+      "name": "SB성보",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -21.731,
+      "fdr_pct": -22.792,
+      "diff_pp": 1.06,
+      "events": 0
+     },
+     "003350": {
+      "name": "한국화장품제조",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 17.692,
+      "fdr_pct": 17.846,
+      "diff_pp": -0.154,
+      "events": 1
+     },
+     "003530": {
+      "name": "한화투자증권",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -29.732,
+      "fdr_pct": -28.125,
+      "diff_pp": -1.607,
+      "events": 0
+     },
+     "0037T0": {
+      "name": "KB제32호스팩",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -0.348,
+      "fdr_pct": -0.4,
+      "diff_pp": 0.052,
+      "events": 1
+     },
+     "004060": {
+      "name": "SG세계물산",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -37.462,
+      "fdr_pct": -37.003,
+      "diff_pp": -0.459,
+      "events": 1
+     },
+     "0041B0": {
+      "name": "교보18호스팩",
+      "from": "20250814",
+      "to": "20261027",
+      "ours_pct": 0.713,
+      "fdr_pct": 1.31,
+      "diff_pp": -0.598,
+      "events": 4
+     },
+     "0041J0": {
+      "name": "엘에스스팩1호",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -0.45,
+      "fdr_pct": -0.301,
+      "diff_pp": -0.149,
+      "events": 1
+     },
+     "0041L0": {
+      "name": "하나35호스팩",
+      "from": "20250806",
+      "to": "20261027",
+      "ours_pct": 0.706,
+      "fdr_pct": 0.252,
+      "diff_pp": 0.454,
+      "events": 2
+     },
+     "004270": {
+      "name": "남성",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -46.799,
+      "fdr_pct": -46.796,
+      "diff_pp": -0.003,
+      "events": 2
+     },
+     "004380": {
+      "name": "삼익THK",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -46.692,
+      "fdr_pct": -46.0,
+      "diff_pp": -0.692,
+      "events": 1
+     },
+     "004410": {
+      "name": "서울식품",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -15.425,
+      "fdr_pct": -15.556,
+      "diff_pp": 0.131,
+      "events": 1
+     },
+     "004415": {
+      "name": "서울식품우",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -93.45,
+      "fdr_pct": -93.45,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "004710": {
+      "name": "한솔테크닉스",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 45.495,
+      "fdr_pct": 47.966,
+      "diff_pp": -2.471,
+      "events": 2
+     },
+     "004870": {
+      "name": "티웨이홀딩스",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -63.64,
+      "fdr_pct": -63.633,
+      "diff_pp": -0.006,
+      "events": 1
+     },
+     "004920": {
+      "name": "씨아이테크",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -43.342,
+      "fdr_pct": -43.427,
+      "diff_pp": 0.085,
+      "events": 1
+     },
+     "005320": {
+      "name": "온타이드",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 3.834,
+      "fdr_pct": 3.834,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "005680": {
+      "name": "삼영전자",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 9.066,
+      "fdr_pct": 7.308,
+      "diff_pp": 1.758,
+      "events": 0
+     },
+     "006050": {
+      "name": "국영지앤엠",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -77.786,
+      "fdr_pct": -77.786,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "006200": {
+      "name": "한국전자홀딩스",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -61.07,
+      "fdr_pct": -61.07,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "006490": {
+      "name": "프리티",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -89.465,
+      "fdr_pct": -89.463,
+      "diff_pp": -0.001,
+      "events": 2
+     },
+     "006740": {
+      "name": "블루산업개발",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -70.148,
+      "fdr_pct": -70.233,
+      "diff_pp": 0.085,
+      "events": 3
+     },
+     "006800": {
+      "name": "미래에셋증권",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 34.964,
+      "fdr_pct": 36.633,
+      "diff_pp": -1.669,
+      "events": 1
+     },
+     "006805": {
+      "name": "미래에셋증권우",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 12.264,
+      "fdr_pct": 14.764,
+      "diff_pp": -2.5,
+      "events": 1
+     },
+     "00680K": {
+      "name": "미래에셋증권2우B",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 11.8,
+      "fdr_pct": 12.571,
+      "diff_pp": -0.771,
+      "events": 1
+     },
+     "0068Y0": {
+      "name": "비엔케이제3호스팩",
+      "from": "20251121",
+      "to": "20261027",
+      "ours_pct": -5.426,
+      "fdr_pct": -5.286,
+      "diff_pp": -0.14,
+      "events": 1
+     },
+     "007110": {
+      "name": "일신석재",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -78.863,
+      "fdr_pct": -78.863,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "0071M0": {
+      "name": "삼성스팩11호",
+      "from": "20250930",
+      "to": "20261027",
+      "ours_pct": 0.253,
+      "fdr_pct": 0.553,
+      "diff_pp": -0.3,
+      "events": 2
+     },
+     "007280": {
+      "name": "한국특강",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -29.978,
+      "fdr_pct": -28.596,
+      "diff_pp": -1.382,
+      "events": 1
+     },
+     "0072Z0": {
+      "name": "KB제33호스팩",
+      "from": "20250930",
+      "to": "20261027",
+      "ours_pct": -0.048,
+      "fdr_pct": 1.164,
+      "diff_pp": -1.212,
+      "events": 1
+     },
+     "007330": {
+      "name": "푸른저축은행",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": 7.363,
+      "fdr_pct": 7.364,
+      "diff_pp": -0.001,
+      "events": 1
+     },
+     "007460": {
+      "name": "에이프로젠",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -82.188,
+      "fdr_pct": 210.467,
+      "diff_pp": -292.655,
+      "events": 1
+     },
+     "007570": {
+      "name": "일양약품",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -51.716,
+      "fdr_pct": -51.368,
+      "diff_pp": -0.349,
+      "events": 1
+     },
+     "007575": {
+      "name": "일양약품우",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -54.852,
+      "fdr_pct": -54.85,
+      "diff_pp": -0.002,
+      "events": 1
+     },
+     "007610": {
+      "name": "선도전기",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -32.4,
+      "fdr_pct": 12.667,
+      "diff_pp": -45.067,
+      "events": 1
+     },
+     "007720": {
+      "name": "소노스퀘어",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -77.897,
+      "fdr_pct": -77.744,
+      "diff_pp": -0.154,
+      "events": 1
+     },
+     "007770": {
+      "name": "한일화학",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -20.334,
+      "fdr_pct": -17.727,
+      "diff_pp": -2.607,
+      "events": 0
+     },
+     "008040": {
+      "name": "사조동아원",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -34.562,
+      "fdr_pct": -32.166,
+      "diff_pp": -2.396,
+      "events": 1
+     },
+     "008290": {
+      "name": "원풍물산",
+      "from": "20250804",
+      "to": "20260918",
+      "ours_pct": -97.925,
+      "fdr_pct": -97.925,
+      "diff_pp": 0.0,
+      "events": 1
+     },
+     "008470": {
+      "name": "부스타",
+      "from": "20250804",
+      "to": "20261027",
+      "ours_pct": -18.497,
+      "fdr_pct": -18.653,
+      "diff_pp": 0.155,
+      "events": 1
+     },
+     "008500": {
+      "name": "일정실업",
+      "from": "20250804",
+      "to": "20260629",
+      "ours_pct": -71.917,
+      "fdr_pct": -71.917,
+      "diff_pp": 0.0,
+      "events": 1
+     }
+    }
+   }
+  },
+  "cmd_evaluate": {
+   "companies": 28,
+   "l2_sha256": "ed14cfacbf379fd3543366d2da661be90b983e719579f53b994394232374f018",
+   "coverage": {
+    "E/P": {
+     "valid": 25,
+     "rate": 1.0,
+     "invalid_reasons": {}
+    },
+    "B/P": {
+     "valid": 25,
+     "rate": 1.0,
+     "invalid_reasons": {}
+    },
+    "EBIT/EV": {
+     "valid": 24,
+     "rate": 0.96,
+     "invalid_reasons": {
+      "EV 비정상": 1
+     }
+    },
+    "EBITDA/EV(실험)": {
+     "valid": 3,
+     "rate": 0.12,
+     "invalid_reasons": {
+      "EBITDA 구성 계정 없음": 22
+     }
+    },
+    "ROE": {
+     "valid": 25,
+     "rate": 1.0,
+     "invalid_reasons": {}
+    },
+    "GP/A": {
+     "valid": 22,
+     "rate": 0.88,
+     "invalid_reasons": {
+      "데이터 없음": 3
+     }
+    },
+    "CFO/NI": {
+     "valid": 14,
+     "rate": 0.56,
+     "invalid_reasons": {
+      "순이익 ≤ 0": 11
+     }
+    },
+    "이자보상배율": {
+     "valid": 25,
+     "rate": 1.0,
+     "invalid_reasons": {}
+    },
+    "영업이익증가율": {
+     "valid": 17,
+     "rate": 0.68,
+     "invalid_reasons": {
+      "값 없음": 8
+     }
+    },
+    "12-1모멘텀": {
+     "valid": 23,
+     "rate": 0.92,
+     "invalid_reasons": {
+      "가격 이력 부족(13개월 미만)": 2
+     }
+    }
+   }
+  },
+  "cmd_xcheck": {
+   "rows": 368,
+   "status": {
+    "정확 일치": 365,
+    "설명됨: 회사 단위 표기 오류": 1,
+    "설명됨: 회사가 전체 순이익 기재": 2
+   },
+   "by_item": {
+    "revenue": {
+     "정확 일치": 49
+    },
+    "op_income": {
+     "정확 일치": 49
+    },
+    "ni_total": {
+     "정확 일치": 49
+    },
+    "assets": {
+     "정확 일치": 49
+    },
+    "liabilities": {
+     "정확 일치": 49
+    },
+    "equity_total": {
+     "정확 일치": 49
+    },
+    "equity_owners": {
+     "정확 일치": 49
+    },
+    "ni_owners": {
+     "정확 일치": 22,
+     "설명됨: 회사 단위 표기 오류": 1,
+     "설명됨: 회사가 전체 순이익 기재": 2
+    }
+   },
+   "flagged": [
+    {
+     "name": "한주라이트메탈",
+     "period": "2025Q4",
+     "item": "ni_owners",
+     "ours": -2741692510.0,
+     "external": -2741692510000000.0,
+     "diff_pct": 99.9999,
+     "status": "설명됨: 회사 단위 표기 오류",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_ProfitLossAttributableToOwnersOfParent:지배기업의 소유주에게 귀속되는 당기순이익(손실)",
+     "source": "사업보고서 배당 항목 (연결)당기순이익(백만원)",
+     "note": "배당 항목에 원 단위 금액을 백만원 칸에 기재 — 우리 값과 원 단위로 정확히 일치"
+    },
+    {
+     "name": "에이프로젠바이오로직스",
+     "period": "2025Q4",
+     "item": "ni_owners",
+     "ours": -170330530390.0,
+     "external": -168297000000.0,
+     "diff_pct": 1.2083,
+     "status": "설명됨: 회사가 전체 순이익 기재",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_ProfitLossAttributableToOwnersOfParent:지배기업 소유주지분",
+     "source": "사업보고서 배당 항목 (연결)당기순이익(백만원)",
+     "note": "배당 항목 값이 지배+비지배 합계(당기순이익 -168,296,872,201)와 일치 — 지배 귀속분이 아님"
+    },
+    {
+     "name": "다산네트웍스",
+     "period": "2025Q4",
+     "item": "ni_owners",
+     "ours": -7170811062.0,
+     "external": 4191000000.0,
+     "diff_pct": 271.1002,
+     "status": "설명됨: 회사가 전체 순이익 기재",
+     "our_confidence": "id",
+     "our_accounts": "ifrs-full_ProfitLossAttributableToOwnersOfParent:지배기업의 소유주지분",
+     "source": "사업보고서 배당 항목 (연결)당기순이익(백만원)",
+     "note": "배당 항목 값이 지배+비지배 합계(당기순이익 4,191,427,824)와 일치 — 지배 귀속분이 아님"
+    }
+   ],
+   "calls": 0,
+   "errors": 0,
+   "budget": 15000
+  },
+  "cmd_screen": {
+   "asof_price": "20261027",
+   "universe_collected": 2534,
+   "universe_total": 2534,
+   "collection_complete": true,
+   "evaluated": 2495,
+   "build_status": {
+    "ok": 2495
+   },
+   "ranked": 593,
+   "groups": {
+    "G02": 16,
+    "G03": 8,
+    "G04": 2,
+    "G05": 36,
+    "G06": 26,
+    "G07": 71,
+    "G08": 14,
+    "G09": 11,
+    "G10": 31,
+    "G11": 14,
+    "G12": 44,
+    "G13": 63,
+    "G14": 23,
+    "G15": 39,
+    "G16": 37,
+    "G17": 83,
+    "G18": 34,
+    "G19": 6,
+    "G21": 7,
+    "G22": 18,
+    "G23": 43,
+    "G24": 16,
+    "G25": 6,
+    "G26": 8,
+    "G27": 54,
+    "G28": 6,
+    "G29": 26,
+    "G30": 40,
+    "G31": 1,
+    "G32": 34,
+    "G33": 30,
+    "G34": 3,
+    "G35": 48,
+    "G36": 10,
+    "G37": 13,
+    "G38": 16
+   },
+   "exclusions": {
+    "20일 평균 거래대금 5억 미만": 1401,
+    "시가총액 500억 미만": 724,
+    "적자(TTM 지배주주 순이익 < 0)": 252,
+    "관리종목": 169,
+    "거래정지(최근 5거래일 거래 없음)": 99,
+    "금융업(D-06)": 75,
+    "퀄리티 지표 부족": 60,
+    "상장 1년 미만": 57,
+    "F-스코어 2.2 ≤ 3": 39,
+    "투자주의환기종목": 36,
+    "안정성 지표 부족": 23,
+    "가치 지표 부족": 22,
+    "비교 대상 부족(사업군 6개 < 10, D-26)": 18,
+    "비교 대상 부족(사업군 8개 < 10, D-26)": 16,
+    "F-스코어 1.1 ≤ 3": 11,
+    "F-스코어 2.6 ≤ 3": 10,
+    "비교 대상 부족(사업군 7개 < 10, D-26)": 7,
+    "F-스코어 1.3 ≤ 3": 6,
+    "비교 대상 부족(사업군 3개 < 10, D-26)": 3,
+    "추세 지표 부족": 3,
+    "F-스코어 0.0 ≤ 3": 2,
+    "비교 대상 부족(사업군 2개 < 10, D-26)": 2,
+    "비교 대상 부족(사업군 1개 < 10, D-26)": 1
+   },
+   "prev_asof": "20261026",
+   "status": {
+    "built_at": "2026-10-28T10:33+09:00",
+    "warnings": [],
+    "history": {
+     "processed": 582,
+     "targets": 2786,
+     "complete": false
+    },
+    "kind_admin": {
+     "date": "20261028",
+     "count": 186
+    }
+   }
+  },
+  "cmd_determinism": {
+   "run1": "ed14cfacbf379fd3543366d2da661be90b983e719579f53b994394232374f018",
+   "run2": "ed14cfacbf379fd3543366d2da661be90b983e719579f53b994394232374f018",
+   "identical": true
+  }
+ },
+ "log": [
+  "[08:47:41] KRX 백필 결과: {'start': '2017-01-01', 'end': '2026-10-28', 'saved': 7, 'skipped': 9981, 'trading_days_touched': 2405, 'stopped': None, 'kept_nonempty': [], 'suspicious_empty_days': [], 'calls': 7, 'errors': 0, 'budget': 6000}",
+  "[08:47:45] DART 삼성전자: 보고서 47, 재무 43/47, 정정 0 (XBRL 0)",
+  "[08:47:47] DART SK하이닉스: 보고서 47, 재무 43/47, 정정 6 (XBRL 6)",
+  "[08:47:48] DART 현대자동차: 보고서 47, 재무 43/47, 정정 9 (XBRL 9)",
+  "[08:47:50] DART NAVER: 보고서 47, 재무 43/47, 정정 6 (XBRL 6)",
+  "[08:47:51] DART LG화학: 보고서 47, 재무 43/47, 정정 5 (XBRL 5)",
+  "[08:47:53] DART 카카오: 보고서 47, 재무 43/47, 정정 16 (XBRL 15)",
+  "[08:47:54] DART LG: 보고서 47, 재무 43/47, 정정 1 (XBRL 1)",
+  "[08:47:55] DART SK: 보고서 47, 재무 43/47, 정정 6 (XBRL 6)",
+  "[08:47:56] DART 한주라이트메탈: 보고서 17, 재무 15/17, 정정 7 (XBRL 6)",
+  "[08:47:58] DART 신세계건설: 보고서 45, 재무 41/45, 정정 5 (XBRL 5)",
+  "[08:47:59] DART 메쎄이상: 보고서 19, 재무 15/19, 정정 2 (XBRL 2)",
+  "[08:48:00] DART 진양제약: 보고서 47, 재무 43/47, 정정 4 (XBRL 4)",
+  "[08:48:02] DART 롯데지주: 보고서 47, 재무 37/47, 정정 5 (XBRL 4)",
+  "[08:48:03] DART 한화플러스제4호스팩: 보고서 10, 재무 10/10, 정정 0 (XBRL 0)",
+  "[08:48:04] DART 세아특수강: 보고서 47, 재무 43/47, 정정 4 (XBRL 4)",
+  "[08:48:06] DART 더라미: 보고서 50, 재무 43/50, 정정 17 (XBRL 17)",
+  "[08:48:07] DART 인크레더블버즈: 보고서 49, 재무 43/49, 정정 6 (XBRL 6)",
+  "[08:48:08] DART 비피도: 보고서 31, 재무 31/31, 정정 3 (XBRL 3)",
+  "[08:48:10] DART 에이프로젠바이오로직스: 보고서 47, 재무 43/47, 정정 9 (XBRL 9)",
+  "[08:48:11] DART SGC E&C: 보고서 47, 재무 43/47, 정정 4 (XBRL 4)",
+  "[08:48:12] DART 이노뎁: 보고서 21, 재무 21/21, 정정 1 (XBRL 1)",
+  "[08:48:13] DART 아모센스: 보고서 21, 재무 21/21, 정정 1 (XBRL 1)",
+  "[08:48:15] DART 삼화네트웍스: 보고서 47, 재무 43/47, 정정 1 (XBRL 1)",
+  "[08:48:16] DART 에코프로에이치엔: 보고서 21, 재무 21/21, 정정 3 (XBRL 3)",
+  "[08:48:17] DART 다산네트웍스: 보고서 47, 재무 43/47, 정정 7 (XBRL 7)",
+  "[08:48:18] DART 인바이오: 보고서 23, 재무 23/23, 정정 2 (XBRL 2)",
+  "[08:48:19] DART 엠브레인: 보고서 0, 재무 25/48, 정정 0 (XBRL 0)",
+  "[08:48:21] DART 형지엘리트: 보고서 0, 재무 40/48, 정정 0 (XBRL 0)",
+  "[10:24:35] 과거 이력 수집: {\"targets\": 2786, \"processed\": 582, \"status\": {\"ok\": 578, \"non_dec\": 1, \"no_reports\": 3}, \"stopped\": \"시간 예산 95분 — 다음 실행에서 이어받음\", \"complete\": false}",
+  "[10:24:35] 전 종목 수집: {\"universe\": 2534, \"processed\": 2534, \"stopped\": \"시간 예산 95분 — 다음 실행에서 이어받음\", \"status\": {\"ok\": 2495, \"non_dec\": 26, \"no_reports\": 13}, \"recent\": {\"recent_filings\": 24, \"companies\": 16, \"new_reports\": 0, \"amended\": 1, \"fs_refetched\": 1}, \"history\": {\"targets\": 2786, \"processed\": 582, \"status\": {\"ok\": 578, \"non_dec\": 1, \"no_reports\": 3}, \"stopped\": \"시간 예산 95분 — 다음 실행에서 이어받음\", \"complete\": false}, \"calls\": 9946, \"errors\": 0, \"budget\": 16000}",
+  "[10:25:52] 계정 인벤토리: {'fs_files': 39232, 'companies': 2500, 'distinct_accounts': 3772}",
+  "[10:27:23] 수정주가: {'stocks': 2875, 'events': 920, 'by_class': {'주식병합': 285, '인적분할·감자 등 복합': 79, '미세 기준가 조정': 9, '기준가 상향(감자 등)': 354, '권리락(증자·주식배당 등)': 172, '주식분할': 21}, 'continuity_worst_pp': 0.005, 'continuity_fail': [], 'continuity_fail_count': 0, 'confirmed': 539, 'unconfirmed_checked': 18, 'fdr_cross_check': {'available': True, 'results': {'000040': {'name': 'KR모터스', 'from': '20250804', 'to': '20261027', 'ours_pct': -61.627, 'fdr_pct': -61.627, 'diff_pp': 0.0, 'events': 1}, '000070': {'name': '삼양홀딩스', 'from': '20250804', 'to': '20261027', 'ours_pct': -4.737, 'fdr_pct': -4.736, 'diff_pp': -0.001, 'events': 1}, '000180': {'name': '성창기업지주', 'from': '20250804', 'to': '20261027', 'ours_pct': -41.062, 'fdr_pct': -42.221, 'diff_pp': 1.159, 'events': 1}, '000300': {'name': 'DH오토넥스', 'from': '20250804', 'to': '20261027', 'ours_pct': 0.0, 'fdr_pct': 0.0, 'diff_pp': 0.0, 'events': 1}, '0004Y0': {'name': '디비금융제14호스팩', 'from': '20250804', 'to': '20261027', 'ours_pct': -0.432, 'fdr_pct': 0.452, 'diff_pp': -0.884, 'events': 6}, '000500': {'name': '가온전선', 'from': '20250804', 'to': '20261027', 'ours_pct': 556.334, 'fdr_pct': 569.153, 'diff_pp': -12.819, 'events': 1}, '000640': {'name': '동아제약', 'from': '20250804', 'to': '20261027', 'ours_pct': -17.236, 'fdr_pct': -17.329, 'diff_pp': 0.093, 'events': 1}, '000670': {'name': '영풍', 'from': '20250804', 'to': '20261027', 'ours_pct': -22.118, 'fdr_pct': -21.61, 'diff_pp': -0.508, 'events': 1}, '000880': {'name': '한화', 'from': '20250804', 'to': '20261027', 'ours_pct': -14.01, 'fdr_pct': -13.36, 'diff_pp': -0.65, 'events': 1}, '00088K': {'name': '한화3우B', 'from': '20250804', 'to': '20261027', 'ours_pct': -29.001, 'fdr_pct': -29.129, 'diff_pp': 0.128, 'events': 1}, '000890': {'name': '보해양조', 'from': '20250804', 'to': '20261027', 'ours_pct': -45.939, 'fdr_pct': -45.852, 'diff_pp': -0.087, 'events': 1}, '0008Z0': {'name': '에스엔시스', 'from': '20250819', 'to': '20261027', 'ours_pct': -56.867, 'fdr_pct': -57.289, 'diff_pp': 0.422, 'events': 0}, '001000': {'name': '신라섬유', 'from': '20250804', 'to': '20261027', 'ours_pct': -69.735, 'fdr_pct': -69.735, 'diff_pp': 0.0, 'events': 1}, '001020': {'name': '페이퍼코리아', 'from': '20250804', 'to': '20261027', 'ours_pct': -49.862, 'fdr_pct': -48.508, 'diff_pp': -1.354, 'events': 1}, '001080': {'name': 'MH머트리얼즈', 'from': '20250804', 'to': '20261027', 'ours_pct': 50.902, 'fdr_pct': 54.91, 'diff_pp': -4.008, 'events': 1}, '001130': {'name': '대한제분', 'from': '20250804', 'to': '20261027', 'ours_pct': -26.612, 'fdr_pct': -26.612, 'diff_pp': 0.0, 'events': 1}, '001210': {'name': '금호전기', 'from': '20250804', 'to': '20261027', 'ours_pct': 15.515, 'fdr_pct': 15.975, 'diff_pp': -0.461, 'events': 1}, '001230': {'name': '동국홀딩스', 'from': '20250804', 'to': '20261027', 'ours_pct': 6.63, 'fdr_pct': 5.945, 'diff_pp': 0.685, 'events': 1}, '001290': {'name': '상상인증권', 'from': '20250804', 'to': '20261027', 'ours_pct': 17.62, 'fdr_pct': 16.867, 'diff_pp': 0.753, 'events': 1}, '001380': {'name': 'SG글로벌', 'from': '20250804', 'to': '20261027', 'ours_pct': -75.989, 'fdr_pct': -75.988, 'diff_pp': -0.001, 'events': 1}, '001470': {'name': '삼부토건', 'from': '20250804', 'to': '20261027', 'ours_pct': 0.0, 'fdr_pct': 0.0, 'diff_pp': 0.0, 'events': 1}, '001510': {'name': 'SK증권', 'from': '20250804', 'to': '20261027', 'ours_pct': 61.205, 'fdr_pct': 66.28, 'diff_pp': -5.075, 'events': 1}, '001515': {'name': 'SK증권우', 'from': '20250804', 'to': '20261027', 'ours_pct': -15.169, 'fdr_pct': -15.169, 'diff_pp': 0.0, 'events': 1}, '001520': {'name': '동양', 'from': '20250804', 'to': '20261027', 'ours_pct': -23.624, 'fdr_pct': -23.777, 'diff_pp': 0.153, 'events': 1}, '001525': {'name': '동양우', 'from': '20250804', 'to': '20261027', 'ours_pct': -28.736, 'fdr_pct': -28.736, 'diff_pp': 0.0, 'events': 1}, '001527': {'name': '동양2우B', 'from': '20250804', 'to': '20261027', 'ours_pct': -82.139, 'fdr_pct': -82.139, 'diff_pp': 0.0, 'events': 1}, '001530': {'name': 'DI동일', 'from': '20250804', 'to': '20261027', 'ours_pct': -40.108, 'fdr_pct': -40.356, 'diff_pp': 0.248, 'events': 1}, '001620': {'name': '케이비아이동국실업', 'from': '20250804', 'to': '20261027', 'ours_pct': -21.429, 'fdr_pct': -20.735, 'diff_pp': -0.694, 'events': 1}, '001840': {'name': '이화공영', 'from': '20250804', 'to': '20261027', 'ours_pct': 0.0, 'fdr_pct': 0.0, 'diff_pp': 0.0, 'events': 1}, '002070': {'name': '비비안', 'from': '20250804', 'to': '20261027', 'ours_pct': -76.258, 'fdr_pct': -76.258, 'diff_pp': -0.0, 'events': 2}, '002210': {'name': '동성제약', 'from': '20250804', 'to': '20261027', 'ours_pct': -36.28, 'fdr_pct': -37.77, 'diff_pp': 1.49, 'events': 1}, '002360': {'name': 'SH에너지화학', 'from': '20250804', 'to': '20261027', 'ours_pct': -18.612, 'fdr_pct': -18.612, 'diff_pp': 0.0, 'events': 1}, '002630': {'name': '오리엔트바이오', 'from': '20250804', 'to': '20261027', 'ours_pct': -54.354, 'fdr_pct': -53.608, 'diff_pp': -0.746, 'events': 2}, '002680': {'name': '한탑', 'from': '20250804', 'to': '20261027', 'ours_pct': -22.805, 'fdr_pct': -22.805, 'diff_pp': 0.0, 'events': 1}, '002760': {'name': '보락', 'from': '20250804', 'to': '20261027', 'ours_pct': -9.911, 'fdr_pct': -9.118, 'diff_pp': -0.793, 'events': 0}, '002780': {'name': '진흥기업', 'from': '20250804', 'to': '20261027', 'ours_pct': -20.217, 'fdr_pct': -18.589, 'diff_pp': -1.628, 'events': 1}, '002785': {'name': '진흥기업우B', 'from': '20250804', 'to': '20261027', 'ours_pct': -82.235, 'fdr_pct': -82.235, 'diff_pp': 0.0, 'events': 1}, '002787': {'name': '진흥기업2우B', 'from': '20250804', 'to': '20261027', 'ours_pct': -89.837, 'fdr_pct': -89.837, 'diff_pp': 0.0, 'events': 1}, '002880': {'name': '디와이에이', 'from': '20250804', 'to': '20261027', 'ours_pct': -47.739, 'fdr_pct': -44.435, 'diff_pp': -3.304, 'events': 1}, '003060': {'name': '에이프로젠바이오로직스', 'from': '20250804', 'to': '20261027', 'ours_pct': -85.494, 'fdr_pct': 132.167, 'diff_pp': -217.661, 'events': 1}, '003080': {'name': 'SB성보', 'from': '20250804', 'to': '20261027', 'ours_pct': -21.731, 'fdr_pct': -22.792, 'diff_pp': 1.06, 'events': 0}, '003350': {'name': '한국화장품제조', 'from': '20250804', 'to': '20261027', 'ours_pct': 17.692, 'fdr_pct': 17.846, 'diff_pp': -0.154, 'events': 1}, '003530': {'name': '한화투자증권', 'from': '20250804', 'to': '20261027', 'ours_pct': -29.732, 'fdr_pct': -28.125, 'diff_pp': -1.607, 'events': 0}, '0037T0': {'name': 'KB제32호스팩', 'from': '20250804', 'to': '20261027', 'ours_pct': -0.348, 'fdr_pct': -0.4, 'diff_pp': 0.052, 'events': 1}, '004060': {'name': 'SG세계물산', 'from': '20250804', 'to': '20261027', 'ours_pct': -37.462, 'fdr_pct': -37.003, 'diff_pp': -0.459, 'events': 1}, '0041B0': {'name': '교보18호스팩', 'from': '20250814', 'to': '20261027', 'ours_pct': 0.713, 'fdr_pct': 1.31, 'diff_pp': -0.598, 'events': 4}, '0041J0': {'name': '엘에스스팩1호', 'from': '20250804', 'to': '20261027', 'ours_pct': -0.45, 'fdr_pct': -0.301, 'diff_pp': -0.149, 'events': 1}, '0041L0': {'name': '하나35호스팩', 'from': '20250806', 'to': '20261027', 'ours_pct': 0.706, 'fdr_pct': 0.252, 'diff_pp': 0.454, 'events': 2}, '004270': {'name': '남성', 'from': '20250804', 'to': '20261027', 'ours_pct': -46.799, 'fdr_pct': -46.796, 'diff_pp': -0.003, 'events': 2}, '004380': {'name': '삼익THK', 'from': '20250804', 'to': '20261027', 'ours_pct': -46.692, 'fdr_pct': -46.0, 'diff_pp': -0.692, 'events': 1}, '004410': {'name': '서울식품', 'from': '20250804', 'to': '20261027', 'ours_pct': -15.425, 'fdr_pct': -15.556, 'diff_pp': 0.131, 'events': 1}, '004415': {'name': '서울식품우', 'from': '20250804', 'to': '20261027', 'ours_pct': -93.45, 'fdr_pct': -93.45, 'diff_pp': 0.0, 'events': 1}, '004710': {'name': '한솔테크닉스', 'from': '20250804', 'to': '20261027', 'ours_pct': 45.495, 'fdr_pct': 47.966, 'diff_pp': -2.471, 'events': 2}, '004870': {'name': '티웨이홀딩스', 'from': '20250804', 'to': '20261027', 'ours_pct': -63.64, 'fdr_pct': -63.633, 'diff_pp': -0.006, 'events': 1}, '004920': {'name': '씨아이테크', 'from': '20250804', 'to': '20261027', 'ours_pct': -43.342, 'fdr_pct': -43.427, 'diff_pp': 0.085, 'events': 1}, '005320': {'name': '온타이드', 'from': '20250804', 'to': '20261027', 'ours_pct': 3.834, 'fdr_pct': 3.834, 'diff_pp': 0.0, 'events': 1}, '005680': {'name': '삼영전자', 'from': '20250804', 'to': '20261027', 'ours_pct': 9.066, 'fdr_pct': 7.308, 'diff_pp': 1.758, 'events': 0}, '006050': {'name': '국영지앤엠', 'from': '20250804', 'to': '20261027', 'ours_pct': -77.786, 'fdr_pct': -77.786, 'diff_pp': 0.0, 'events': 1}, '006200': {'name': '한국전자홀딩스', 'from': '20250804', 'to': '20261027', 'ours_pct': -61.07, 'fdr_pct': -61.07, 'diff_pp': 0.0, 'events': 1}, '006490': {'name': '프리티', 'from': '20250804', 'to': '20261027', 'ours_pct': -89.465, 'fdr_pct': -89.463, 'diff_pp': -0.001, 'events': 2}, '006740': {'name': '블루산업개발', 'from': '20250804', 'to': '20261027', 'ours_pct': -70.148, 'fdr_pct': -70.233, 'diff_pp': 0.085, 'events': 3}, '006800': {'name': '미래에셋증권', 'from': '20250804', 'to': '20261027', 'ours_pct': 34.964, 'fdr_pct': 36.633, 'diff_pp': -1.669, 'events': 1}, '006805': {'name': '미래에셋증권우', 'from': '20250804', 'to': '20261027', 'ours_pct': 12.264, 'fdr_pct': 14.764, 'diff_pp': -2.5, 'events': 1}, '00680K': {'name': '미래에셋증권2우B', 'from': '20250804', 'to': '20261027', 'ours_pct': 11.8, 'fdr_pct': 12.571, 'diff_pp': -0.771, 'events': 1}, '0068Y0': {'name': '비엔케이제3호스팩', 'from': '20251121', 'to': '20261027', 'ours_pct': -5.426, 'fdr_pct': -5.286, 'diff_pp': -0.14, 'events': 1}, '007110': {'name': '일신석재', 'from': '20250804', 'to': '20261027', 'ours_pct': -78.863, 'fdr_pct': -78.863, 'diff_pp': 0.0, 'events': 1}, '0071M0': {'name': '삼성스팩11호', 'from': '20250930', 'to': '20261027', 'ours_pct': 0.253, 'fdr_pct': 0.553, 'diff_pp': -0.3, 'events': 2}, '007280': {'name': '한국특강', 'from': '20250804', 'to': '20261027', 'ours_pct': -29.978, 'fdr_pct': -28.596, 'diff_pp': -1.382, 'events': 1}, '0072Z0': {'name': 'KB제33호스팩', 'from': '20250930', 'to': '20261027', 'ours_pct': -0.048, 'fdr_pct': 1.164, 'diff_pp': -1.212, 'events': 1}, '007330': {'name': '푸른저축은행', 'from': '20250804', 'to': '20261027', 'ours_pct': 7.363, 'fdr_pct': 7.364, 'diff_pp': -0.001, 'events': 1}, '007460': {'name': '에이프로젠', 'from': '20250804', 'to': '20261027', 'ours_pct': -82.188, 'fdr_pct': 210.467, 'diff_pp': -292.655, 'events': 1}, '007570': {'name': '일양약품', 'from': '20250804', 'to': '20261027', 'ours_pct': -51.716, 'fdr_pct': -51.368, 'diff_pp': -0.349, 'events': 1}, '007575': {'name': '일양약품우', 'from': '20250804', 'to': '20261027', 'ours_pct': -54.852, 'fdr_pct': -54.85, 'diff_pp': -0.002, 'events': 1}, '007610': {'name': '선도전기', 'from': '20250804', 'to': '20261027', 'ours_pct': -32.4, 'fdr_pct': 12.667, 'diff_pp': -45.067, 'events': 1}, '007720': {'name': '소노스퀘어', 'from': '20250804', 'to': '20261027', 'ours_pct': -77.897, 'fdr_pct': -77.744, 'diff_pp': -0.154, 'events': 1}, '007770': {'name': '한일화학', 'from': '20250804', 'to': '20261027', 'ours_pct': -20.334, 'fdr_pct': -17.727, 'diff_pp': -2.607, 'events': 0}, '008040': {'name': '사조동아원', 'from': '20250804', 'to': '20261027', 'ours_pct': -34.562, 'fdr_pct': -32.166, 'diff_pp': -2.396, 'events': 1}, '008290': {'name': '원풍물산', 'from': '20250804', 'to': '20260918', 'ours_pct': -97.925, 'fdr_pct': -97.925, 'diff_pp': 0.0, 'events': 1}, '008470': {'name': '부스타', 'from': '20250804', 'to': '20261027', 'ours_pct': -18.497, 'fdr_pct': -18.653, 'diff_pp': 0.155, 'events': 1}, '008500': {'name': '일정실업', 'from': '20250804', 'to': '20260629', 'ours_pct': -71.917, 'fdr_pct': -71.917, 'diff_pp': 0.0, 'events': 1}}}}",
+  "[10:27:38] 평가 삼성전자: ok 2026Q2 []",
+  "[10:27:38] 평가 SK하이닉스: ok 2026Q2 []",
+  "[10:27:38] 평가 현대자동차: ok 2026Q2 []",
+  "[10:27:39] 평가 NAVER: ok 2026Q2 []",
+  "[10:27:39] 평가 LG화학: ok 2026Q2 []",
+  "[10:27:41] 평가 카카오: ok 2026Q2 []",
+  "[10:27:41] 평가 LG: ok 2026Q2 []",
+  "[10:27:41] 평가 SK: ok 2026Q2 []",
+  "[10:27:42] 평가 한주라이트메탈: ok 2026Q2 []",
+  "[10:27:42] 평가 신세계건설: no_price  ['KRX 백필 기간에 시세 없음']",
+  "[10:27:42] 평가 메쎄이상: ok 2026Q2 []",
+  "[10:27:42] 평가 진양제약: ok 2026Q2 []",
+  "[10:27:43] 평가 롯데지주: ok 2026Q2 []",
+  "[10:27:43] 평가 한화플러스제4호스팩: ok 2025Q4 ['상장폐지/거래정지 — 마지막 거래일 20260414 기준 평가']",
+  "[10:27:43] 평가 세아특수강: ok 2025Q3 ['상장폐지/거래정지 — 마지막 거래일 20260211 기준 평가']",
+  "[10:27:43] 평가 더라미: ok 2026Q2 []",
+  "[10:27:43] 평가 인크레더블버즈: ok 2026Q2 []",
+  "[10:27:44] 평가 비피도: ok 2026Q2 []",
+  "[10:27:44] 평가 에이프로젠바이오로직스: ok 2026Q2 []",
+  "[10:27:44] 평가 SGC E&C: ok 2026Q2 []",
+  "[10:27:45] 평가 이노뎁: ok 2026Q2 []",
+  "[10:27:45] 평가 아모센스: ok 2026Q2 []",
+  "[10:27:45] 평가 삼화네트웍스: ok 2026Q2 []",
+  "[10:27:45] 평가 에코프로에이치엔: ok 2026Q2 []",
+  "[10:27:45] 평가 다산네트웍스: ok 2026Q2 []",
+  "[10:27:45] 평가 인바이오: ok 2026Q2 []",
+  "[10:27:45] 평가 엠브레인: excluded_non_dec  ['12월 외 결산 → 1단계 TTM 무효 (DESIGN 4.3)']",
+  "[10:27:45] 평가 형지엘리트: excluded_non_dec  ['12월 외 결산 → 1단계 TTM 무효 (DESIGN 4.3)']",
+  "[10:27:46] 원천값 대조: {'정확 일치': 365, '설명됨: 회사 단위 표기 오류': 1, '설명됨: 회사가 전체 순이익 기재': 2}",
+  "[10:33:14] 스크리너: 순위 593 / 평가 2495"
+ ]
+}
