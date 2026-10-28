@@ -23,7 +23,7 @@ from .storage import L0, L1, dart_path, exists, load_l0, save_l0
 from .util import elapsed_min, log, today_kst, write_gz_json
 
 SINCE_YEAR = 2024
-WORKERS = 6              # DART 응답이 GitHub 러너에서 건당 약 1초 → 회사 단위 병렬 수집 (분당 약 360건 이하)
+WORKERS = 12             # DART 응답이 느려(6개 병렬 시 분당 약 105건) 2026-10-29부터 12개로 시험. 호출 간격 0.12초 하한은 그대로(분당 최대 500건). 오류 늘면 6으로 되돌림
 COLLECT_UNTIL_MIN = 95   # 프로세스 시작 후 95분이 지나면 중단 → 평가·화면·저장까지 워크플로 제한(150분) 안에 끝냄
 
 
