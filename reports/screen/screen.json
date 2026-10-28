@@ -73,10 +73,10 @@
  },
  "prev_asof": "20261026",
  "status": {
-  "built_at": "2026-10-28T10:33+09:00",
+  "built_at": "2026-10-28T13:21+09:00",
   "warnings": [],
   "history": {
-   "processed": 582,
+   "processed": 795,
    "targets": 2786,
    "complete": false
   },
