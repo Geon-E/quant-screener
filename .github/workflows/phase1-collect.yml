@@ -16,10 +16,8 @@ on:
         description: "추가 인자 (예: --reselect, --start 2025-09-01)"
         default: ""
         type: string
-  schedule:
-    # 일일 운영: 매일 08:40 KST (KRX 전일 시세가 아침에 올라온 뒤). 데이터 채우는 기간에는 주말·월요일도 DART 하루 호출 한도를 쓰도록 매일 실행
-    # (KRX는 휴장일이면 빈 결과로 기록하고 넘어감). D-08 측정 결과에 따라 시각 조정 예정
-    - cron: "40 23 * * *"
+  # 일일 운영은 Claude 예약 작업이 매일 08:45 KST에 workflow_dispatch로 시작한다 (2026-10-26~, 사용자 결정).
+  # GitHub schedule은 2~3시간씩 늦게 돌아 같은 날 두 번 실행 → DART 하루 한도·Actions 무료 시간을 이중으로 써서 제거 (2026-10-29).
 
 permissions:
   contents: write
