@@ -1,7 +1,7 @@
 {
  "command": "inventory",
- "started": "2026-10-30T20:01:16.164137+09:00",
- "finished": "2026-10-30T20:01:16.609454+09:00",
+ "started": "2026-10-30T20:02:19.062380+09:00",
+ "finished": "2026-10-30T20:02:19.473899+09:00",
  "ok": true,
  "secret_scan_hits": [],
  "results": {
@@ -12,6 +12,6 @@
   }
  },
  "log": [
-  "[20:01:16] 계정 인벤토리: {'fs_files': 0, 'companies': 0, 'distinct_accounts': 0}"
+  "[20:02:19] 계정 인벤토리: {'fs_files': 0, 'companies': 0, 'distinct_accounts': 0}"
  ]
 }
