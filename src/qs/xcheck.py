@@ -186,6 +186,9 @@ def check_company(r: dict, fetch: Fetcher) -> list[dict]:
 
 
 def run(dart) -> dict:
+    from .util import elapsed_min
+    if elapsed_min() > 110:   # 실행 시간 상한 보호 (2026-10-30) — 원천값 대조는 다음 실행에서
+        return {"skipped": "시간 예산 — 다음 실행에서 대조"}
     res = read_gz_json(L2 / "sample_eval.json.gz")
     fetch = Fetcher(dart)
     rows = []

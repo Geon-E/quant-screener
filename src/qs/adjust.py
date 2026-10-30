@@ -24,6 +24,9 @@ import re
 from collections import defaultdict
 
 from .storage import L0, L1, dart_path, exists, load_l0, save_l0
+from .util import elapsed_min
+
+LATE_MIN = 110   # 프로세스 시작 후 이 시간이 지나면 새 DART 확인 호출을 하지 않음
 from .util import REPORTS, log, to_num, write_gz_json
 
 MINOR = 1e-3        # 기준가 끝전 조정 수준
@@ -131,6 +134,11 @@ def confirm_with_dart(events: list[dict], dart, corp_by_stock: dict[str, str]) -
         cpath = dart_path("adj_confirm", f"{e['code']}_{e['date']}.json.gz")   # 사건별 1회만 조회 (전 종목 일일 실행)
         if exists(cpath):
             js = load_l0(cpath)["payload"]
+        elif elapsed_min() > LATE_MIN:
+            # 실행 시간 상한(워크플로 150분) 보호 — 남은 사건은 미확인으로 두고 다음 실행에서 확인 (2026-10-30 시간 초과)
+            e["confirmed_by"] = None
+            e["dart_note"] = "시간 예산 — 다음 실행에서 확인"
+            continue
         else:
             js = dart._json("list.json", {"corp_code": cc, "bgn_de": f"{d - dt.timedelta(days=120):%Y%m%d}",
                                           "end_de": f"{d:%Y%m%d}", "page_count": 100})
