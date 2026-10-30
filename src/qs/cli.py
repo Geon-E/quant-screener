@@ -56,7 +56,11 @@ def cmd_dart(args) -> dict:
         raise RuntimeError("표본 파일이 없습니다. sample을 먼저 실행하세요.")
     per, stopped = [], None
     try:
+        from .util import elapsed_min
         for row in s:
+            if elapsed_min() > 30:   # 표본(검증용)은 전 종목·과거 이력보다 뒤로 — 캐시가 비었을 때 실행 시간을 다 쓰지 않게 (2026-10-31)
+                stopped = "시간 예산 30분 — 나머지 표본은 다음 실행에서"
+                break
             r = collect_company(d, row["corp_code"])
             r["name"] = row["name"]
             per.append(r)
