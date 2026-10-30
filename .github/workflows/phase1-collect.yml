@@ -16,11 +16,16 @@ on:
         description: "추가 인자 (예: --reselect, --start 2025-09-01)"
         default: ""
         type: string
+      chain_until:
+        description: "이 시각(UTC, 예: 2026-10-31T23:00:00Z)까지 성공할 때마다 같은 설정으로 다음 실행을 이어서 건다. 비우면 한 번만"
+        default: ""
+        type: string
   # 일일 운영은 Claude 예약 작업이 매일 08:45 KST에 workflow_dispatch로 시작한다 (2026-10-26~, 사용자 결정).
   # GitHub schedule은 2~3시간씩 늦게 돌아 같은 날 두 번 실행 → DART 하루 한도·Actions 무료 시간을 이중으로 써서 제거 (2026-10-29).
 
 permissions:
   contents: write
+  actions: write   # chain_until: 성공한 실행이 다음 실행을 건다 (workflow_dispatch는 GITHUB_TOKEN으로도 새 실행이 생김)
 
 concurrency:
   group: data-store
@@ -113,3 +118,16 @@ jobs:
         run: |
           echo "수집 명령이 오류 코드 ${{ steps.run.outputs.code }}로 끝났습니다. reports/phase1/last_run.json 확인."
           exit 1
+
+      - name: Chain next run
+        if: success() && github.event.inputs.chain_until != ''
+        run: |
+          now=$(date -u +%s); until=$(date -u -d "${{ github.event.inputs.chain_until }}" +%s)
+          if [ "$now" -lt "$until" ]; then
+            gh api -X POST repos/${{ github.repository }}/actions/workflows/phase1-collect.yml/dispatches \
+              -f ref=main -f "inputs[command]=${{ github.event.inputs.command }}" \
+              -f "inputs[extra]=${{ github.event.inputs.extra }}" -f "inputs[chain_until]=${{ github.event.inputs.chain_until }}"
+            echo "다음 실행을 걸었음 (~ ${{ github.event.inputs.chain_until }})"
+          else
+            echo "이어 걸기 종료 시각 지남"
+          fi
