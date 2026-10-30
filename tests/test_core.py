@@ -898,3 +898,22 @@ def test_primary_exclusion_order():
     assert primary_exclusion(["적자(TTM 지배주주 순이익 < 0)", "20일 평균 거래대금 5억 미만"])[0] == "거래대금 미달"
     assert primary_exclusion(["F-스코어 2.0 ≤ 3", "금융업(D-06)"])[0] == "금융업"
     assert primary_exclusion(["비교 대상 부족(사업군 3개 < 10, D-26)", "적자(TTM)"])[0] == "비교 대상 부족"
+
+
+def test_store_shards_pack_roundtrip(tmp_path):
+    """보관소 조각: 파일이 빠짐없이 조각에 들어가고, 풀면 같은 경로로 돌아온다 (2026-10-30 사고 후)."""
+    import tarfile
+    from qs.store_shards import pack, shard_key
+    src = tmp_path / "l0"
+    files = ["dart/fs/00126380/2024_11011.json.gz", "dart/xbrl/00164779/a.zip", "krx/sto_stk_bydd_trd/20261026.json.gz", "MANIFEST.json"]
+    for f in files:
+        (src / f).parent.mkdir(parents=True, exist_ok=True)
+        (src / f).write_bytes(f.encode())
+    assert shard_key("krx/sto_stk_bydd_trd/x", "l0") == "krx-sto_stk_bydd_trd" and shard_key("MANIFEST.json", "l0") == "misc"
+    sh = pack(src, tmp_path / "out", "l0", "7")
+    assert sum(s["files"] for s in sh) == len(files) and all(s["name"].endswith("-g7.tar.gz") for s in sh)
+    dst = tmp_path / "back"
+    for s in sh:
+        with tarfile.open(tmp_path / "out" / s["name"]) as tf:
+            tf.extractall(dst, filter="data")
+    assert sorted(p.relative_to(dst).as_posix() for p in dst.rglob("*") if p.is_file()) == sorted(files)
