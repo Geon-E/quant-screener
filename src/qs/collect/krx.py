@@ -41,7 +41,13 @@ class KRX:
         self.kept_nonempty = []
 
     def fetch(self, api: str, basDd: str):
-        r = self.http.get(f"{BASE}/{api}", params={"basDd": basDd}, headers={"AUTH_KEY": self.key})
+        # KRX가 가끔 정상 경로에도 404("API ... does not exist")·5xx를 돌려준다 (2026-10-30) → 잠깐 쉬고 두 번 더 시도
+        import time
+        for attempt in range(3):
+            r = self.http.get(f"{BASE}/{api}", params={"basDd": basDd}, headers={"AUTH_KEY": self.key})
+            if r.status_code == 200:
+                break
+            time.sleep(2 * (attempt + 1))
         if r.status_code != 200:
             raise RuntimeError(f"KRX {api} {basDd} HTTP {r.status_code}: {r.text[:200]}")
         js = r.json()
@@ -95,6 +101,7 @@ def run_backfill(start: dt.date, end: dt.date | None = None, budget: int = 3000)
     """start~end 평일 일별 데이터 + 월말 종목기본정보. 최근 2영업일은 force 재수집."""
     end = end or today_kst()
     k = KRX(budget=budget)
+    errors, streak = [], 0
     recent = {d.strftime("%Y%m%d") for d in list(weekdays(end - dt.timedelta(days=4), end))[-2:]}
     mends = month_ends(start, end)
     trading_days, stopped = 0, None
@@ -109,22 +116,33 @@ def run_backfill(start: dt.date, end: dt.date | None = None, budget: int = 3000)
             # 너무 이른 실행이 빈 결과를 휴장일처럼 저장해 버리는 것을 막음 (2026-10-27 사례: 10/26 시세 누락)
             stale_empty = (end - d).days <= 7 and _rows_of("sto/stk_bydd_trd", bd) == 0
             force = bd in recent or suspicious_empty(bd) or stale_empty
-            n = k.collect("sto/stk_bydd_trd", bd, force=force)
-            if n == 0 and not suspicious_empty(bd):
-                continue  # 휴장일 → 나머지 API는 생략 (빈 결과는 기록됨)
-            for api in DAILY_APIS[1:]:
-                k.collect(api, bd, force=force)
-            if bd in mends or bd in recent:
-                for api in BASE_INFO_APIS:
+            try:
+                n = k.collect("sto/stk_bydd_trd", bd, force=force)
+                if n == 0 and not suspicious_empty(bd):
+                    streak = 0
+                    continue  # 휴장일 → 나머지 API는 생략 (빈 결과는 기록됨)
+                for api in DAILY_APIS[1:]:
                     k.collect(api, bd, force=force)
-            trading_days += 1
+                if bd in mends or bd in recent:
+                    for api in BASE_INFO_APIS:
+                        k.collect(api, bd, force=force)
+                trading_days += 1
+                streak = 0
+            except RuntimeError as e:
+                # 한 날짜의 오류로 전체를 멈추지 않는다 — 그 날짜는 파일이 없으므로 다음 실행에서 다시 받는다
+                errors.append(str(e)[:160])
+                streak += 1
+                log(f"!! KRX 오류(건너뜀): {str(e)[:160]}")
+                if streak >= 20:
+                    stopped = f"KRX 연속 오류 {streak}회 — 오늘 KRX 수집 중단(한도·장애 의심), 다음 실행에서 이어받음"
+                    break
     except BudgetExceeded as e:
         stopped = str(e)
         log(f"KRX 백필 중단(다음 실행에서 이어받음): {e}")
     bad = [d.strftime("%Y%m%d") for d in weekdays(start, end) if suspicious_empty(d.strftime("%Y%m%d"))]
     res = {"start": start.isoformat(), "end": end.isoformat(), "saved": k.saved, "skipped": k.skipped,
            "trading_days_touched": trading_days, "stopped": stopped, "kept_nonempty": k.kept_nonempty,
-           "suspicious_empty_days": bad, **k.http.stats()}
+           "suspicious_empty_days": bad, "fetch_errors": len(errors), "fetch_error_samples": errors[:5], **k.http.stats()}
     log(f"KRX 백필 결과: {res}")
     if bad:
         res["warning"] = f"코스피 일별시세 의심 빈 응답 {bad} — 매 실행 재수집, 평가는 코스피 시세가 있는 마지막 날 기준"
