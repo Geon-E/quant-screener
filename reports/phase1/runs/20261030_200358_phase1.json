@@ -1,0 +1,16 @@
+{
+ "command": "phase1",
+ "started": "2026-10-30T20:03:58.636654+09:00",
+ "finished": "2026-10-30T20:41:00.376172+09:00",
+ "ok": false,
+ "secret_scan_hits": [],
+ "results": {
+  "cmd_krx": {
+   "error": "RuntimeError: KRX idx/kospi_dd_trd 20230906 HTTP 404: {\"respMsg\":\"[svc/apis/idx/kospi_dd_trd] API referenced by the path does not exist.\",\"respCode\":\"404\"}",
+   "trace": "Traceback (most recent call last):\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/cli.py\", line 185, in main\n    results[name] = fn(args)\n                    ^^^^^^^^\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/cli.py\", line 40, in cmd_krx\n    return krx.run_backfill(start, budget=args.krx_budget)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/collect/krx.py\", line 116, in run_backfill\n    k.collect(api, bd, force=force)\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/collect/krx.py\", line 58, in collect\n    rows = self.fetch(api, basDd)\n           ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/collect/krx.py\", line 46, in fetch\n    raise RuntimeError(f\"KRX {api} {basDd} HTTP {r.status_code}: {r.text[:200]}\")\nRuntimeError: KRX idx/kospi_dd_trd 20230906 HTTP 404: {\"respMsg\":\"[svc/apis/idx/kospi_dd_trd] API referenced by the path does not exist.\",\"respCode\":\"404\"}\n"
+  }
+ },
+ "log": [
+  "[20:40:58] !! cmd_krx 실패: KRX idx/kospi_dd_trd 20230906 HTTP 404: {\"respMsg\":\"[svc/apis/idx/kospi_dd_trd] API referenced by the path does not exist.\",\"respCode\":\"404\"}"
+ ]
+}
