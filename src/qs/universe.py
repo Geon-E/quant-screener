@@ -20,7 +20,7 @@ from concurrent.futures import ThreadPoolExecutor
 from .collect.dart import DART, report_versions
 from .http import BudgetExceeded
 from .storage import L0, L1, dart_path, exists, load_l0, save_l0
-from .util import elapsed_min, log, today_kst, write_gz_json
+from .util import elapsed_min, log, read_gz_json, today_kst, write_gz_json
 
 SINCE_YEAR = 2024
 WORKERS = 12             # DART 응답이 느려(6개 병렬 시 분당 약 105건) 2026-10-29부터 12개로 시험. 호출 간격 0.12초 하한은 그대로(분당 최대 500건). 오류 늘면 6으로 되돌림
@@ -275,9 +275,18 @@ def run(d: DART) -> dict:
         if hist.get("complete"):
             from .backtest import confirm_events
             hist["adj_confirm"] = confirm_events(d, COLLECT_UNTIL_MIN)
-    # 수집 완료 목록 (평가 대상) — 중단돼도 지금까지 끝난 회사로 갱신
-    write_gz_json(L1 / "universe.json.gz", {"asof": today_kst().isoformat(), "total": len(uni), "rows": rows,
-                                            "complete": len(rows) == len(uni)})
+    # 수집 완료 목록 (평가 대상) — 이번 실행에서 못 돈 회사는 직전 목록의 행을 유지 (2026-10-31: DART 한도 소진 실행이
+    # 0행으로 덮어써 화면이 비는 문제). 이번에 처리한 회사는 새 결과로 바꾼다
+    try:
+        prev = {r["stock_code"]: r for r in read_gz_json(L1 / "universe.json.gz").get("rows", [])}
+    except FileNotFoundError:
+        prev = {}
+    codes = {u["stock_code"] for u in uni}
+    merged = {c: r for c, r in prev.items() if c in codes}
+    merged.update({r["stock_code"]: r for r in rows})
+    rows_all = [merged[u["stock_code"]] for u in uni if u["stock_code"] in merged]
+    write_gz_json(L1 / "universe.json.gz", {"asof": today_kst().isoformat(), "total": len(uni), "rows": rows_all,
+                                            "complete": len(rows_all) == len(uni)})
     res = {"universe": len(uni), "processed": len(rows), "stopped": stopped, "status": stat, "recent": recent, "history": hist,
            **d.http.stats()}
     log(f"전 종목 수집: {json.dumps(res, ensure_ascii=False)}")

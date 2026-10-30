@@ -7,6 +7,8 @@
 """
 from __future__ import annotations
 
+import json
+
 import csv
 import datetime as dt
 import math
@@ -335,6 +337,19 @@ def run() -> dict:
     res["status"] = {"built_at": now_kst().isoformat(timespec="minutes"), "warnings": warn, "history": hist,
                      "kind_admin": {"date": kind_date, "count": len(kind_admin)} if kind_date else None}
     log(f"스크리너: 순위 {len(ranked)} / 평가 {len(out)}")
+    # 게시 보호 (2026-10-31): 순위 대상이 직전 게시본의 70% 미만으로 줄면 화면을 바꾸지 않는다
+    # (데이터 복구 중·DART 한도 소진 실행에서 빈 화면이 게시되는 것을 막음 — 마지막 정상 화면 유지)
+    prev_path = REPORTS / "screen" / "screen.json"
+    try:
+        prev_ranked = json.loads(prev_path.read_text(encoding="utf-8")).get("ranked") or 0
+    except (FileNotFoundError, ValueError):
+        prev_ranked = 0
+    if prev_ranked and res["ranked"] < prev_ranked * 0.7:
+        res["published"] = False
+        res["status"]["warnings"].append(f"순위 대상 {res['ranked']}개 < 직전 게시 {prev_ranked}개의 70% — 화면 갱신 보류(마지막 정상 화면 유지)")
+        log("!! " + res["status"]["warnings"][-1])
+        return res
     from .screen_view import build_view
     build_view(out, res, REPORTS / "screen")
+    res["published"] = True
     return res
