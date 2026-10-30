@@ -162,6 +162,11 @@ def save(kind: str, src: Path, gen: str, layers: list[str] | None = None) -> dic
             print(f"{kind}: 저장할 파일 없음 — 건너뜀")
             return {"shards": 0}
         old = read_index(kind, td)
+        # 줄어듦 방지: 복원이 덜 된 채 저장하면 좋은 세대를 덮어쓸 수 있으므로, 파일 수가 이전 세대의 95% 미만이면 멈춘다
+        if old and kind == "l0":
+            before, after = sum(x["files"] for x in old["shards"]), sum(x["files"] for x in shards)
+            if after < before * 0.95:
+                raise SystemExit(f"파일 수 감소 {before:,} → {after:,} — 복원 실패 가능성, 저장 중단 (이전 세대 유지)")
         # 1) 새 세대 조각 전부 올리기 (이름이 새로워 기존 파일을 건드리지 않음)
         for s in shards:
             upload(td / "out" / s["name"], s["name"])
