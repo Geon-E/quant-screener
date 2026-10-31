@@ -69,17 +69,19 @@ def group_medians(rows: list[dict]) -> dict:
     return out
 
 
-def build_view(results: list[dict], summary: dict, out_dir: Path) -> None:
-    rows = [compact(r) for r in results]
+def build_view(results: list[dict], summary: dict, out_dir: Path, compact_fn=None, site_name: str = "index.html",
+               keep_reports: bool = True) -> None:
+    rows = [(compact_fn or compact)(r) for r in results]
     rows.sort(key=lambda x: (x["rk"] is None, x["rk"] or 0, -(x["mc"] or 0)))
     data = {"summary": summary, "rows": rows, "med": group_medians([x for x in rows if not x["x"]])}
     js = json.dumps(data, ensure_ascii=False, separators=(",", ":"), default=str)
     out_dir.mkdir(parents=True, exist_ok=True)
-    write_text(out_dir / "screen.json", json.dumps(summary, ensure_ascii=False, indent=1, default=str))
     page = TEMPLATE.replace("/*__DATA__*/null", js.replace("</", "<\\/"))
-    write_text(out_dir / "screener.html", page)
+    if keep_reports:
+        write_text(out_dir / "screen.json", json.dumps(summary, ensure_ascii=False, indent=1, default=str))
+        write_text(out_dir / "screener.html", page)
     # 배포용 완전한 문서: 저장소의 site/index.html → Vercel이 GitHub 연동으로 자동 배포 (다른 앱들과 같은 방식, 토큰 불필요)
-    write_text(out_dir.parent.parent / "site" / "index.html",
+    write_text(out_dir.parent.parent / "site" / site_name,
                '<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n'
                '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
                '<meta name="robots" content="noindex">\n</head>\n<body>\n' + page + '\n</body>\n</html>\n')
@@ -302,7 +304,8 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
   <header class="head">
     <div class="title-row">
       <h1>업종 대비 저평가 후보</h1>
-      <a href="backtest.html">과거 성과 검증 보기</a>
+      <a href="backtest.html" id="bt-link">과거 성과 검증 보기</a>
+      <a href="us.html" id="other-mkt">미국 보기</a>
     </div>
     <p class="lede">같은 업종 회사들과 비교해 싸고, 실적이 괜찮고, 흐름이 좋은 종목을 찾는 후보 목록입니다. 매수 목록이 아닙니다.</p>
     <div class="state" id="state"></div>
@@ -374,7 +377,7 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
     <div class="list gwrap"><table class="gt"><thead><tr><th class="l">사업군</th><th>비교 대상</th><th>순위 대상</th><th>신뢰도</th><th>PER 중앙값</th><th>PBR 중앙값</th><th>ROE 중앙값</th><th class="l">사업군 1위</th><th>점수</th></tr></thead><tbody id="gtb"></tbody></table></div>
   </div>
 
-  <footer>
+  <footer id="foot">
     <div>자료: KRX 정보데이터시스템 OPEN API(시세), OpenDART(재무). 재무는 최근 4개 분기 합(TTM), 연결재무제표 우선.</div>
     <div>사업군: KSIC 업종코드를 묶은 고정 표(v1). 비교 대상이 10개 미만인 사업군은 순위에서 제외합니다.</div>
   </footer>
@@ -408,11 +411,15 @@ const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;
 const D = '<span class="dash">–</span>';
 const num = (v,d=1) => v==null ? D : v.toLocaleString("ko-KR",{maximumFractionDigits:d,minimumFractionDigits:d});
 const pct = (v,d=1,color=false) => v==null ? D : `<span class="${color?(v>0?'up':v<0?'down':''):''}">${(v*100).toFixed(d)}%</span>`;
-const mcap = v => v==null ? D : v>=1e12 ? `${(v/1e12).toLocaleString("ko-KR",{maximumFractionDigits:1,minimumFractionDigits:1})}조` : `${Math.round(v/1e8).toLocaleString()}억`;
+const US = (S.market==="US");
+const mcap = v => v==null ? D : US ? (v>=1e9 ? `$${(v/1e9).toLocaleString("en-US",{maximumFractionDigits:1,minimumFractionDigits:1})}B` : `$${Math.round(v/1e6).toLocaleString()}M`)
+  : v>=1e12 ? `${(v/1e12).toLocaleString("ko-KR",{maximumFractionDigits:1,minimumFractionDigits:1})}조` : `${Math.round(v/1e8).toLocaleString()}억`;
+const won = v => v==null ? '–' : US ? `$${Number(v).toLocaleString("en-US",{maximumFractionDigits:2})}` : Number(v).toLocaleString()+"원";
+const tvf = v => v==null ? '–' : US ? `$${(v/1e6).toLocaleString("en-US",{maximumFractionDigits:1})}M` : Math.round(v/1e8).toLocaleString()+"억";
 const medv = x => Array.isArray(x) ? x[0] : (x ?? null);
 const medn = x => Array.isArray(x) ? x[1] : null;
 const dfmt = d => d ? (d.includes("-") ? d : `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6)}`) : null;
-const mkname = m => m==="KOSPI"?"코스피":"코스닥";
+const mkname = m => m==="KOSPI"?"코스피":m==="KOSDAQ"?"코스닥":(m||"");
 function fmtMetric(k,v){
   if(v==null) return D;
   if(k==="PBR-ROE잔차"){const d=Math.exp(-v)-1; return `<span class="${d<0?'down':'up'}">${(d*100).toFixed(0)}%</span>`;}
@@ -441,10 +448,23 @@ function chg(r){
   return d>0?`<span class="chg up">▲${d}</span>`:d<0?`<span class="chg down">▼${-d}</span>`:`<span class="chg flat">–</span>`;
 }
 let sortK="rk", sortDir=1, limit=150, view="all", openCode=null, lastFocus=null;
-let WATCH=new Set(); try{WATCH=new Set(JSON.parse(localStorage.getItem("qs-watch")||"[]"));}catch(e){}
-function saveWatch(){try{localStorage.setItem("qs-watch",JSON.stringify([...WATCH]));}catch(e){}}
+const WKEY = US ? "qs-watch-us" : "qs-watch";
+let WATCH=new Set(); try{WATCH=new Set(JSON.parse(localStorage.getItem(WKEY)||"[]"));}catch(e){}
+function saveWatch(){try{localStorage.setItem(WKEY,JSON.stringify([...WATCH]));}catch(e){}}
 const val = (r,k) => k==="roe"?r.m.ROE : k==="mom"?r.m["12-1모멘텀"] : k==="g"?(r.g||"") : k==="n"?(r.n||"") : r[k];
 
+function marketSetup(){
+  if(!US){ if(!S.has_us) document.getElementById("other-mkt").hidden=true; return; }
+  document.title="미국 업종 대비 저평가 후보";
+  document.querySelector("h1").textContent="미국 업종 대비 저평가 후보";
+  const o=document.getElementById("other-mkt"); o.href="index.html"; o.textContent="국내 보기";
+  document.getElementById("bt-link").hidden=true;
+  const mk=document.getElementById("mk"); mk.innerHTML='<option value="">전체 거래소</option><option value="NYSE">NYSE</option><option value="Nasdaq">Nasdaq</option>';
+  document.getElementById("foot").innerHTML='<div>자료: SEC EDGAR(재무·업종 SIC, 무료 공식), Massive(시세, 무료 등급 장마감 기준). 재무는 최근 4개 분기 합(TTM), SEC 달력 분기 기준.</div><div>사업군: SIC 업종코드를 묶은 고정 표(v1). 금융·리츠·스팩은 본 순위에서 제외. 다중 클래스 주식은 대표 티커 가격 × 전체 주식수.</div>';
+  ["tab-fin"].forEach(id=>document.getElementById(id).hidden=true);
+  if(!ROWS.some(r=>r.dv&&r.dv.dps>0)) document.getElementById("tab-div").hidden=true;
+  document.querySelector("#pane-div .pane-note").textContent="SEC 공시의 주당 배당 선언액 최근 4분기 합과 지금 주가로 계산한 배당수익률입니다. 시가총액·거래대금 기준 미달, 자본잠식은 뺐습니다.";
+}
 function head(){
   const d=S.asof_price, ds=d?dfmt(d):"";
   const st=S.status||{}, w=(st.warnings||[]).filter(x=>!x.startsWith("재무 수집 진행 중"));
@@ -575,8 +595,8 @@ function openSheet(c){
     ${r.fg?`<div><h4>금융업 비교 (${esc(r.fg)})</h4><dl class="kv"><dt>금융 점수</dt><dd>${r.fs2==null?'–':r.fs2.toFixed(1)}${r.frk?` (금융업 ${r.frk}위)`:''}</dd>${r.fp?`<dt>백분위</dt><dd>B/P ${r.fp["B/P"]??'–'} · ROE ${r.fp.ROE??'–'} · 배당 ${r.fp["배당"]??'–'}</dd>`:''}</dl></div>`:''}
     <div><h4>데이터</h4><dl class="kv"><dt>재무 기준</dt><dd>${r.pd||'–'} ${r.fs==="CFS"?"연결":r.fs==="OFS"?"별도":""}</dd>
       <dt>공시일</dt><dd>${r.fd?dfmt(r.fd):'미확인'}${r.av?` (점수 반영 ${dfmt(r.av)})`:''}</dd>
-      <dt>현재가</dt><dd>${r.px?Number(r.px).toLocaleString()+"원":"–"}</dd><dt>시가총액</dt><dd>${mcap(r.mc)}</dd>
-      <dt>20일 평균 거래대금</dt><dd>${r.tv==null?'–':Math.round(r.tv/1e8).toLocaleString()+"억"}</dd><dt>F-스코어</dt><dd>${r.fsc??'–'}</dd></dl>
+      <dt>현재가</dt><dd>${r.px?won(r.px):"–"}</dd><dt>시가총액</dt><dd>${mcap(r.mc)}</dd>
+      <dt>20일 평균 거래대금</dt><dd>${tvf(r.tv)}</dd><dt>F-스코어</dt><dd>${r.fsc??'–'}</dd></dl>
       <details style="margin-top:8px"><summary>세부 데이터</summary><dl class="kv" style="margin-top:6px"><dt>업종코드</dt><dd>${r.ksic||'–'}</dd><dt>계정 선택</dt><dd>${esc(fb)}</dd>${r.ib?`<dt>이자 기준</dt><dd>${esc(r.ib)}</dd>`:''}</dl></details></div>`;
   const sh=document.getElementById("sheet"), sc=document.getElementById("scrim");
   sh.hidden=false; sc.hidden=false; requestAnimationFrame(()=>sh.classList.remove("closed"));
@@ -625,7 +645,7 @@ function divView(){
   document.querySelectorAll("#dtab th[data-dk]").forEach(th=>{ if(th.dataset.dk===dSort) th.setAttribute("aria-sort",dDir>0?"ascending":"descending"); else th.removeAttribute("aria-sort"); });
   document.getElementById("dtb").innerHTML = rs.slice(0,300).map(r=>{const d=r.dv; const w=[...d.warn]; if(r.x.some(x=>x.startsWith("적자"))) w.push("적자");
     return `<tr><td class="l nmcell"><button class="toplink" data-open="${r.c}">${esc(r.n)}</button><small>${r.c} · ${mkname(r.mk)}</small></td><td class="l">${esc(r.g||r.fg||'')}</td>
-    <td><b>${d.yield_now==null?'–':d.yield_now.toFixed(2)+'%'}</b></td><td>${d.dps==null?'–':Math.round(d.dps).toLocaleString()+'원'}<small style="display:block;color:var(--faint)">${d.year} 사업연도</small></td>
+    <td><b>${d.yield_now==null?'–':d.yield_now.toFixed(2)+'%'}</b></td><td>${d.dps==null?'–':won(d.dps)}<small style="display:block;color:var(--faint)">${US?'최근 4분기 합':d.year+' 사업연도'}</small></td>
     <td class="c">${trend(d)}</td><td class="${d.payout>100?'low':''}">${d.payout==null?'–':d.payout.toFixed(0)+'%'}</td><td>${r.sc==null?'–':num(r.sc,1)+(r.rk?`<small style="display:block;color:var(--faint)">${r.rk}위</small>`:'')}</td>
     <td class="l">${w.length?`<span class="chip">${esc(w.join(' · '))}</span>`:''}</td></tr>`;}).join("") || '<tr><td colspan="8" class="l dash">조건에 맞는 종목이 없습니다.</td></tr>';
 }
@@ -670,6 +690,6 @@ document.getElementById("csv").addEventListener("click",()=>{
   const csv="﻿"+lines.map(l=>l.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
   try{const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`screener_${S.asof_price}.csv`; a.click();}catch(e){}
 });
-head(); glance(); render();
+marketSetup(); head(); glance(); render();
 </script>
 """

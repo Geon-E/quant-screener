@@ -42,6 +42,8 @@ def shard_key(rel: str, kind: str) -> str:
         if parts[0] == "krx" and len(parts) >= 2:
             return f"krx-{parts[1]}"
         return "misc"
+    if kind == "us":   # 미국 일별 시세: 연도별 조각
+        return f"{parts[0]}-{parts[1][:4]}" if len(parts) >= 2 else "misc"
     # derived: l1·l2 각각 하나씩 (작음)
     return parts[0]
 
@@ -221,7 +223,7 @@ def restore(kind: str, dst: Path, legacy: str) -> dict:
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("action", choices=["save", "restore", "plan"])
-    ap.add_argument("--kind", choices=["l0", "derived"], required=True)
+    ap.add_argument("--kind", choices=["l0", "derived", "us"], required=True)
     ap.add_argument("--src", default="data/l0")
     ap.add_argument("--dst", default="data")
     ap.add_argument("--layers", nargs="*")
@@ -234,8 +236,10 @@ def main(argv: list[str] | None = None) -> None:
         save(a.kind, Path(a.src), a.gen, a.layers)
     else:
         dst = Path(a.dst) / "l0" if a.kind == "l0" and not str(a.dst).endswith("l0") else Path(a.dst)
+        if a.kind == "us":
+            dst = Path(a.dst) / "l0" / "us"
         # l0 조각은 'dart/...','krx/...' 상대경로 → data/l0 아래로, derived는 'l1/...','l2/...' → data 아래로
-        restore(a.kind, dst, "l0.tar.gz" if a.kind == "l0" else "derived.tar.gz")
+        restore(a.kind, dst, {"l0": "l0.tar.gz", "derived": "derived.tar.gz"}.get(a.kind, "-"))
 
 
 if __name__ == "__main__":

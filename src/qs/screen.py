@@ -431,6 +431,7 @@ def run() -> dict:
         res["status"]["warnings"].append(f"순위 대상 {res['ranked']}개 < 직전 게시 {prev_ranked}개의 70% — 화면 갱신 보류(마지막 정상 화면 유지)")
         log("!! " + res["status"]["warnings"][-1])
         return res
+    res["has_us"] = (REPORTS.parent / "site" / "us.html").exists()
     from .screen_view import build_view
     build_view(out, res, REPORTS / "screen")
     res["published"] = True

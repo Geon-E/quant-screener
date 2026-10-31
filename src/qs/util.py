@@ -27,7 +27,8 @@ def today_kst() -> dt.date:
 
 
 def secrets() -> list[str]:
-    return [v for v in (os.environ.get("KRX_API_KEY", "").strip(), os.environ.get("DART_API_KEY", "").strip()) if v]
+    # 결과물에 들어가면 안 되는 값: API 키 + SEC 연락처(사용자 이메일 — 요청 머리글에만 사용)
+    return [v for v in (os.environ.get(k, "").strip() for k in ("KRX_API_KEY", "DART_API_KEY", "MASSIVE_API_KEY", "SEC_CONTACT")) if v]
 
 
 def scrub(x):

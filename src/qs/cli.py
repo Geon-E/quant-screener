@@ -109,6 +109,11 @@ def cmd_universe(args) -> dict:
     return universe.run(DART(budget=args.universe_budget))
 
 
+def cmd_us(args) -> dict:
+    from . import us
+    return us.run(price_calls=args.us_price_calls)
+
+
 def cmd_screen(args) -> dict:
     from . import screen
     return screen.run()
@@ -161,7 +166,7 @@ COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [c
             "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory],
             "evaluate": [cmd_evaluate], "determinism": [cmd_determinism], "adjust": [cmd_adjust],
             "xcheck": [cmd_xcheck], "exp-listing": [cmd_exp_listing],
-            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "backtest": [cmd_backtest], "bt-variants": [cmd_bt_variants], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
+            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "us": [cmd_us], "backtest": [cmd_backtest], "bt-variants": [cmd_bt_variants], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
             "phase1": [cmd_krx, cmd_kind, cmd_dart, cmd_universe, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_xcheck,
                        cmd_screen, cmd_determinism]}
 
@@ -174,6 +179,7 @@ def main(argv=None):
     ap.add_argument("--dart-budget", type=int, default=15000)
     ap.add_argument("--universe-budget", type=int, default=16000)   # DART 일 한도 2만 − 표본·실험 몫
     ap.add_argument("--reselect", action="store_true")
+    ap.add_argument("--us-price-calls", type=int, default=40)   # Massive 무료 분당 5회 → 40회 ≈ 8분
     ap.add_argument("--bt-mode", default="smoke", choices=["dev", "validation", "smoke"])
     ap.add_argument("--bt-start")
     ap.add_argument("--bt-end")

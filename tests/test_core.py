@@ -930,3 +930,30 @@ def test_dividend_history_and_fin_subgroup():
     assert h["dps"] == [1446.0, 1444.0, 1444.0] and h["payout_pct"] == 25.1
     assert fin_subgroup("64110", "기업은행") == "은행" and fin_subgroup("65110", "한화생명") == "보험"
     assert fin_subgroup("64992", "KB금융") == "금융지주" and fin_subgroup("66121", "키움증권") == "증권"
+
+
+def _facts(qvals: dict, tag="NetIncomeLoss", annual=None, inst=None, shares=1000):
+    us = {tag: {"units": {"USD": [{"frame": f"CY{y}Q{q}", "val": v, "end": f"{y}-{q*3:02d}-28"} for (y, q), v in qvals.items()]
+                          + [{"frame": f"CY{y}", "val": v, "end": f"{y}-12-31"} for y, v in (annual or {}).items()]}}}
+    for t, vals in (inst or {}).items():
+        us[t] = {"units": {"USD": [{"frame": f"CY{y}Q{q}I", "val": v, "end": f"{y}-{q*3:02d}-28"} for (y, q), v in vals.items()]}}
+    return {"facts": {"us-gaap": us, "dei": {"EntityCommonStockSharesOutstanding": {"units": {"shares": [
+        {"end": "2026-07-20", "val": shares, "accn": "a1"}]}}}}}
+
+
+def test_us_ttm_with_derived_q4_and_metrics():
+    """SEC frame: 분기 값 + 연간에서 4분기 역산 → TTM, 주식수, 지표."""
+    import datetime as dt
+    from qs.us import summarize, metrics, group_of, load_groups
+    q = {(2025, 1): 10, (2025, 2): 10, (2025, 3): 10, (2026, 1): 20, (2026, 2): 20}
+    f = _facts(q, annual={2025: 40}, inst={"StockholdersEquity": {(2026, 2): 400, (2025, 2): 300}})
+    s = summarize(f, today=dt.date(2026, 10, 1))
+    assert s["status"] == "ok" and s["last_q"] == "2026Q2"
+    assert s["ttm"]["ni_owners"] == 10 + 10 + 20 + 20      # 2025Q3, 2025Q4(=40−30), 2026Q1, 2026Q2
+    assert s["shares"] == 1000
+    m = metrics(s, mcap=600.0, mom=None)
+    assert abs(m["E/P"] - 60 / 600) < 1e-9 and abs(m["ROE"] - 60 / 350) < 1e-9
+    assert summarize(f, today=dt.date(2027, 6, 1))["status"] == "stale"
+    g = load_groups()
+    assert group_of("3674", g)[0] == "U06" and group_of("3672", g)[0] == "U07" and group_of("6798", g)[0] == "EX"
+    assert group_of("7372", g)[0] == "U10" and group_of("8731", g)[0] == "U03" and group_of("5812", g)[0] == "U26"
