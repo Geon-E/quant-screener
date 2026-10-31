@@ -137,7 +137,7 @@ def confirm_with_dart(events: list[dict], dart, corp_by_stock: dict[str, str]) -
         elif elapsed_min() > LATE_MIN:
             # 실행 시간 상한(워크플로 150분) 보호 — 남은 사건은 미확인으로 두고 다음 실행에서 확인 (2026-10-30 시간 초과)
             e["confirmed_by"] = None
-            e["dart_note"] = "시간 예산 — 다음 실행에서 확인"
+            e["dart_note"] = "시간 예산 초과, 다음 실행에서 확인"
             continue
         else:
             js = dart._json("list.json", {"corp_code": cc, "bgn_de": f"{d - dt.timedelta(days=120):%Y%m%d}",

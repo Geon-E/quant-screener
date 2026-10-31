@@ -113,7 +113,7 @@ def dividend_info(corp_code: str | None, close: float | None) -> dict | None:
                 trend = "중단"
         warn = []
         if h["payout_pct"] is not None and h["payout_pct"] > 100:
-            warn.append(f"배당성향 {h['payout_pct']:.0f}% — 이익보다 많이 배당")
+            warn.append(f"배당성향 {h['payout_pct']:.0f}% (이익보다 많이 배당)")
         if trend in ("감소", "중단"):
             warn.append(f"배당 {trend}")
         return {"year": y, "dps": d0, "dps1": d1, "dps2": d2, "payout": h["payout_pct"],
@@ -430,9 +430,9 @@ def run() -> dict:
     recent_wd = [d.strftime("%Y%m%d") for d in weekdays(asof - dt.timedelta(days=14), asof + dt.timedelta(days=7))]
     bad = [d for d in recent_wd if suspicious_empty(d)]
     if bad:
-        warn.append(f"KRX 코스피 시세가 비어 있는 날 {', '.join(bad)} — 매일 다시 받는 중, 그동안 시세 기준일은 {last_bd}")
+        warn.append(f"KRX 코스피 시세가 비어 있는 날 {', '.join(bad)}: 매일 다시 받는 중이며 그동안 시세 기준일은 {last_bd}")
     if not uni.get("complete"):
-        warn.append(f"재무 수집 진행 중 {len(uni['rows']):,}/{uni['total']:,}개사 — 나머지는 다음 자동 실행에서")
+        warn.append(f"재무 수집 진행 중 {len(uni['rows']):,}/{uni['total']:,}개사, 나머지는 다음 자동 실행에서")
     try:
         hp = read_gz_json(L1 / "history_progress.json.gz")
         hist = {"processed": hp.get("processed"), "targets": hp.get("targets"), "complete": hp.get("complete")}
@@ -450,7 +450,7 @@ def run() -> dict:
         prev_ranked = 0
     if prev_ranked and res["ranked"] < prev_ranked * 0.7:
         res["published"] = False
-        res["status"]["warnings"].append(f"순위 대상 {res['ranked']}개 < 직전 게시 {prev_ranked}개의 70% — 화면 갱신 보류(마지막 정상 화면 유지)")
+        res["status"]["warnings"].append(f"순위 대상 {res['ranked']}개 < 직전 게시 {prev_ranked}개의 70%, 화면 갱신 보류(마지막 정상 화면 유지)")
         log("!! " + res["status"]["warnings"][-1])
         return res
     res["has_us"] = (REPORTS.parent / "site" / "us.html").exists()

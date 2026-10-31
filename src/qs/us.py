@@ -360,7 +360,7 @@ def run(work: Path | None = None, price_calls: int = 60) -> dict:
             if (dv20 or 0) < MIN_DV20:
                 r["exclude"].append("20일 평균 거래대금 200만 달러 미만")
         else:
-            r["warn"].append("시세 없음 — 가치 지표(PER·PBR·EV) 계산 불가")
+            r["warn"].append("시세 없음: 가치 지표(PER·PBR·EV) 계산 불가")
         out.append(r)
     by_g = defaultdict(list)
     for r in out:

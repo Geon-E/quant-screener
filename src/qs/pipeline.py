@@ -233,7 +233,7 @@ def evaluate_company(out: dict, periods: dict, px) -> dict:
     if used_first:
         out["flags"].append(f"정정 전 최초본 값 사용(D-17): {used_first}")
     if last_bd != px.days[-1]:
-        out["flags"].append(f"상장폐지/거래정지 — 마지막 거래일 {last_bd} 기준 평가")
+        out["flags"].append(f"상장폐지/거래정지: 마지막 거래일 {last_bd} 기준 평가")
 
     usable = [k for k, p in periods.items() if dt.date.fromisoformat(p["available_date"]) <= D]
     if not usable:

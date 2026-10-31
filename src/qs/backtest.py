@@ -801,14 +801,14 @@ def judge(sim: dict, res: dict, conservative_excess: float | None = None) -> dic
     if conservative_excess is None:
         flags.append("보수 비용 미측정 (bt-robust)")
     elif conservative_excess <= 0:
-        flags.append("비용 민감: 보수 비용에서 초과수익 ≤ 0 — '통과' 표현 금지")
+        flags.append("비용 민감: 보수 비용에서 초과수익 ≤ 0 ('통과' 표현 금지)")
     vals = [x["pass"] for x in g.values()]
     status = "통과" if all(v is True for v in vals) else ("미판정" if all(v is not False for v in vals) else "실패")
     if status == "통과" and any(f.startswith("비용 민감") for f in flags):
         status = "통과(비용 민감)"
     return {"status": status, "gates": g, "flags": flags,
             "annual": {"portfolio_period_based": port_ann, "universe_ew": uni_ann, "mdd_period_portfolio": mdd_p, "mdd_period_universe": mdd_u},
-            "data_gate": "사람 판정 — survivorship_check·limitations 수치 공개 (DESIGN 7.2)",
+            "data_gate": "사람 판정: survivorship_check·limitations 수치 공개 (DESIGN 7.2)",
             "note": "개발 구간: 방향 진단. 판정은 검증 구간 (DESIGN 7.8)"}
 
 
@@ -919,7 +919,7 @@ def run(start: str = DEV[0], end: str = DEV[1], mode: str = "dev", scenario: str
            "strategy": strat.get("version"), "rebalances": len(sim["holdings"]), "structure": sim["structure"],
            "limitations": LIMITS + ["미확인 기업행위 처리 정책: " + adj_policy]}
     if smoke:
-        res.update({"note": "기계 점검 — 수익률은 의도적으로 계산·출력하지 않음 (검증 구간 보호)",
+        res.update({"note": "기계 점검: 수익률은 의도적으로 계산·출력하지 않음 (검증 구간 보호)",
                     "nav_points": len(sim["nav"]), "nav_finite": bool(all(math.isfinite(x) for x in sim["nav"])),
                     "delistings": len(sim["delistings"]), "unverified_held_events": len(sim["unverified_held"]),
                     "survivorship_check": _survivorship(sim["structure"])})

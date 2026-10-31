@@ -232,7 +232,7 @@ def _parallel(d: DART, items: list, fn) -> tuple[list, str | None]:
             return None
         if elapsed_min() > COLLECT_UNTIL_MIN:
             stop.set()
-            reason.append(f"시간 예산 {COLLECT_UNTIL_MIN}분 — 다음 실행에서 이어받음")
+            reason.append(f"시간 예산 {COLLECT_UNTIL_MIN}분 초과, 다음 실행에서 이어받음")
             return None
         try:
             return fn(x)
