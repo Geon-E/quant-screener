@@ -13,10 +13,8 @@ on:
         default: full
         type: choice
         options: [full, timing, amend]
-  schedule:
-    # KST 15:40 / 16:40 / 17:40 / 18:40 / 20:40 (월~금), 다음날 08:10 (화~토)
-    - cron: "40 6,7,8,9,11 * * 1-5"
-    - cron: "10 23 * * 1-5"
+  # 평일 제공 시각 측정 스케줄은 2026-10-31 제거 (D-08: 전일 시세는 다음 날 아침 제공 확인 → 일일 수집 09:10 KST).
+  # GitHub Actions 무료 시간 절약·불필요한 실패 알림 방지
 
 permissions:
   contents: write
