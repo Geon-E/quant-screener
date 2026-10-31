@@ -978,3 +978,15 @@ def test_market_and_hybrid_scores():
         if a is not None and m is not None:
             assert abs(r["composite"] - round(HYBRID_W * a + (1 - HYBRID_W) * m, 1)) < 0.11
     assert any(r.get("mkt_composite") is not None for r in out_t)
+
+
+def test_ksic_name_and_company_info(tmp_path, monkeypatch):
+    from qs import screen
+    assert screen.ksic_name("29210") == ("농업 및 임업용 기계 제조업", False)
+    name, approx = screen.ksic_name("21212")          # 표에 없는 세세분류 → 상위 분류로 대신
+    assert name and approx is True
+    assert screen.ksic_name(None) == (None, False)
+    # 원천 파일이 없으면 업종명만
+    info = screen.company_info("00000000", "29210")
+    assert info == {"ind": "농업 및 임업용 기계 제조업", "ind_approx": None, "est": None, "hm": None}
+    assert screen.company_info(None, None) is None

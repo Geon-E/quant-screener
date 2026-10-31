@@ -87,6 +87,49 @@ def primary_exclusion(reasons: list[str]) -> tuple[str, str] | None:
 
 
 # ── 배당 (배당 탭) ──
+# ── 회사 개요 (업종명·설립연도·홈페이지) ──
+_KSIC: dict[str, str] | None = None
+
+
+def ksic_name(code: str | None) -> tuple[str | None, bool]:
+    """KSIC 코드 → 업종명 (config/ksic_names.csv: 통계청 KSIC 9·10차, 10차 우선).
+    표에 없는 코드(11차 신설 등)는 한 자리씩 줄여 상위 분류명으로 대신하고 근사=True."""
+    global _KSIC
+    if _KSIC is None:
+        _KSIC = {}
+        p = CONFIG / "ksic_names.csv"
+        if p.exists():
+            with p.open(encoding="utf-8") as f:
+                _KSIC = {r["code"]: r["name"] for r in csv.DictReader(f)}
+    k = (code or "").strip()
+    for n in range(len(k), 1, -1):
+        if k[:n] in _KSIC:
+            return _KSIC[k[:n]], n < len(k)
+    return None, False
+
+
+def company_info(corp_code: str | None, induty_code: str | None) -> dict | None:
+    """DART 기업개황(company.json, 이미 수집하는 원천)에서 화면용 기본 정보만."""
+    from .storage import dart_path, exists
+    name, approx = ksic_name(induty_code)
+    out = {"ind": name, "ind_approx": approx or None, "est": None, "hm": None}
+    if corp_code:
+        p = dart_path("company", f"{corp_code}.json.gz")
+        if exists(p):
+            try:
+                js = load_l0(p)["payload"] or {}
+            except Exception:
+                js = {}
+            est = str(js.get("est_dt") or "").strip()
+            if len(est) >= 4 and est[:4].isdigit() and 1800 < int(est[:4]) <= dt.date.today().year:
+                out["est"] = est[:4]
+            hm = str(js.get("hm_url") or "").strip()
+            if hm and " " not in hm and "." in hm:
+                hm = hm if hm.lower().startswith(("http://", "https://")) else "https://" + hm.lstrip("/")
+                out["hm"] = hm[:200]
+    return out if any(out[k] for k in ("ind", "est", "hm")) else None
+
+
 def dividend_info(corp_code: str | None, close: float | None) -> dict | None:
     """가장 최근 사업보고서의 배당 항목 → 3개년 주당배당금, 현재가 기준 배당수익률, 배당성향, 배당 흐름 표시.
     원천: DART alotMatter (L0 xcheck/alotMatter/<corp>/<연도>_11011)."""
@@ -398,6 +441,7 @@ def run() -> dict:
         r["mkt_rank"] = i
     for r in out:
         r["dividend"] = dividend_info(r.get("corp_code"), r.get("close")) if r.get("status") == "ok" else None
+        r["company"] = company_info(r.get("corp_code"), r.get("induty_code"))
     fin_n = financial_scores(out)
 
     write_gz_json(L2 / "screen.json.gz", out)

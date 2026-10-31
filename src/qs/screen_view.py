@@ -49,6 +49,7 @@ def compact(r: dict) -> dict:
         "dv": ({k: (_r(v, 3) if isinstance(v, float) else v) for k, v in r["dividend"].items()} if r.get("dividend") else None),
         "fg": r.get("fin_group"), "fs2": r.get("fin_score"), "frk": r.get("fin_rank"), "fp": r.get("fin_pct"),
         "fx": r.get("fin_other_ex"),
+        "co": r.get("company"),
     }
 
 
@@ -261,6 +262,11 @@ table.gt{border-collapse:collapse;width:100%;font-size:13.5px}
 .sh-head .t{flex:1;min-width:0}
 .sh-head h3{font-size:21px;font-weight:700;margin:0;line-height:1.3;letter-spacing:-.02em}
 .sh-head .cd{color:var(--muted);font-size:13px}
+.sh-head .about{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;margin-top:6px;font-size:13.5px;color:var(--ink2,var(--muted))}
+.sh-head .about .ind{color:var(--ink);font-weight:600}
+.sh-head .about small{color:var(--faint);font-weight:400}
+.sh-head .about i{font-style:normal;color:var(--faint)}
+.sh-head .about a{color:var(--accent);font-weight:500;text-underline-offset:3px}
 .sh-head .big{font-size:26px;font-weight:700;color:var(--accent);line-height:1}
 .sh-head .big.muted{color:var(--faint)}
 .sh-head .big small{display:block;font-size:12px;font-weight:500;color:var(--muted);text-align:right;margin-top:4px}
@@ -420,7 +426,7 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
 <div class="scrim" id="scrim" hidden></div>
 <aside class="sheet closed" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-name" hidden>
   <div class="sh-head">
-    <div class="t"><h3 id="sh-name"></h3><div class="cd" id="sh-cd"></div></div>
+    <div class="t"><h3 id="sh-name"></h3><div class="cd" id="sh-cd"></div><div class="about" id="sh-about" hidden></div></div>
     <div class="big" id="sh-big"></div>
     <button class="close" id="sh-close" aria-label="닫기">×</button>
   </div>
@@ -621,6 +627,10 @@ function openSheet(c){
   openCode=c; lastFocus=document.activeElement;
   document.getElementById("sh-name").textContent=r.n;
   document.getElementById("sh-cd").innerHTML=`${r.c} · ${mkname(r.mk)} · ${esc(r.g||'미배정')}${r.gn?` (비교 대상 ${r.gn}개)`:''}`;
+  const co=r.co, hm=co&&co.hm&&/^https?:\/\/[^\s"'<>]+$/i.test(co.hm)?co.hm:null;
+  const about=document.getElementById("sh-about");
+  about.hidden=!co; if(co) about.innerHTML=[co.ind?`<span class="ind">${esc(co.ind)}${co.ind_approx?' <small>(상위 분류)</small>':''}</span>`:'',
+    co.est?`<span>${esc(co.est)}년 설립</span>`:'', hm?`<a href="${esc(hm)}" target="_blank" rel="noopener noreferrer">홈페이지 ↗</a>`:''].filter(Boolean).join('<i aria-hidden="true">·</i>');
   document.getElementById("sh-big").className="big"+(r.rk?"":" muted");
   document.getElementById("sh-big").innerHTML = r.sc==null?'–':`${r.sc.toFixed(1)}<small>${r.rk?`전체 ${r.rk}위 ${chg(r)}`:'순위 제외'}</small>`;
   const med=MED[r.gid]||{};
