@@ -45,6 +45,9 @@ def compact(r: dict) -> dict:
         "fd": pm.get("rcept_dt_first"), "av": pm.get("available_date"),
         "mr": {k: v for k, v in mr.items() if k in SHOW},
         "prk": r.get("prev_rank"), "pk": r.get("prev_known"),
+        "dv": ({k: (_r(v, 3) if isinstance(v, float) else v) for k, v in r["dividend"].items()} if r.get("dividend") else None),
+        "fg": r.get("fin_group"), "fs2": r.get("fin_score"), "frk": r.get("fin_rank"), "fp": r.get("fin_pct"),
+        "fx": r.get("fin_other_ex"),
     }
 
 
@@ -210,6 +213,16 @@ table.gt{border-collapse:collapse;width:100%;font-size:13.5px}
 .gt .toplink{background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 .gt .low{color:var(--warn)}
 .gwrap{overflow-x:auto}
+.gwrap table{min-width:760px}
+.pane-note{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+.gt th[data-dk]{cursor:pointer}
+.gt th[aria-sort="descending"]::after{content:" ▼";font-size:9px}
+.gt th[aria-sort="ascending"]::after{content:" ▲";font-size:9px}
+.trend{display:inline-flex;align-items:flex-end;gap:2px;height:20px;vertical-align:middle}
+.trend i{display:block;width:8px;background:var(--accent);opacity:.75;border-radius:1px}
+.trend i.z{background:var(--line);height:2px!important}
+.gt .nmcell{font-weight:600}
+.gt .nmcell small{display:block;color:var(--muted);font-weight:400;font-size:11.5px}
 
 /* 상세 시트: PC는 오른쪽 서랍, 휴대폰은 아래에서 올라옴 */
 .scrim{position:fixed;inset:0;background:rgba(10,20,17,.28);z-index:20}
@@ -306,6 +319,8 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
   <div class="tabs" role="tablist">
     <button role="tab" id="tab-all" aria-selected="true">전체 순위</button>
     <button role="tab" id="tab-watch" aria-selected="false">관심 종목<span class="cnt" id="wcnt"></span></button>
+    <button role="tab" id="tab-div" aria-selected="false">배당</button>
+    <button role="tab" id="tab-fin" aria-selected="false">금융업</button>
     <button role="tab" id="tab-grp" aria-selected="false">사업군</button>
   </div>
 
@@ -328,6 +343,31 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
       <div id="rows" role="rowgroup"></div>
     </div>
     <div style="display:grid;margin-top:12px"><button class="more" id="more" hidden>더 보기</button></div>
+  </div>
+
+  <div id="pane-div" hidden>
+    <p class="pane-note">최근 사업보고서의 주당 현금배당금(보통주)과 지금 주가로 계산한 배당수익률입니다. 3년 추이는 같은 보고서에 적힌 전전기·전기·당기 배당입니다. 관리종목·거래 부족·소형주·자본잠식은 뺐습니다.</p>
+    <div class="controls">
+      <select id="dmk" aria-label="시장"><option value="">전체 시장</option><option value="KOSPI">코스피</option><option value="KOSDAQ">코스닥</option></select>
+      <label><input type="checkbox" id="dstreak"> 3년 연속 배당만</label>
+      <label><input type="checkbox" id="dup"> 배당 늘린 종목만</label>
+      <label><input type="checkbox" id="dsafe"> 배당성향 100% 이하만</label>
+      <span class="count" id="dcount"></span>
+    </div>
+    <div class="list gwrap" style="margin-top:10px"><table class="gt" id="dtab"><thead><tr>
+      <th class="l">종목</th><th class="l">사업군</th><th data-dk="yield_now">배당수익률</th><th data-dk="dps">주당배당금</th><th class="c">3년 추이</th><th data-dk="payout">배당성향</th><th data-dk="sc">종합점수</th><th class="l">비고</th>
+    </tr></thead><tbody id="dtb"></tbody></table></div>
+  </div>
+
+  <div id="pane-fin" hidden>
+    <p class="pane-note">금융업은 재무 구조가 달라 본 순위에서 빼고 여기서 따로 비교합니다. 금융 점수 = 금융업 안에서 장부가 대비 싼 정도(B/P)·ROE·현재 배당수익률의 백분위 평균입니다. 가설이며 성과 검증 전입니다.</p>
+    <div class="controls">
+      <select id="fgrp" aria-label="구분"><option value="">전체 구분</option></select>
+      <span class="count" id="fcount"></span>
+    </div>
+    <div class="list gwrap" style="margin-top:10px"><table class="gt"><thead><tr>
+      <th class="c">순위</th><th class="l">종목</th><th class="l">구분</th><th>금융 점수</th><th>PBR</th><th>ROE</th><th>배당수익률</th><th>시총</th><th class="l">비고</th>
+    </tr></thead><tbody id="ftb"></tbody></table></div>
   </div>
 
   <div id="pane-grp" hidden>
@@ -529,6 +569,10 @@ function openSheet(c){
     <div><h4>지표 — 이 종목 / 사업군 중앙값 / 백분위</h4><table class="mt"><thead><tr><th class="l">지표</th><th>이 종목</th><th>중앙값</th><th>백분위</th></tr></thead><tbody>${mrows}</tbody></table></div>
     ${r.x.length?`<div><h4>순위 제외 사유</h4>${list(r.x)}</div>`:''}
     <div><h4>경고</h4>${list(r.w)}</div>
+    ${r.dv?`<div><h4>배당 (${r.dv.year} 사업연도 보고서)</h4><dl class="kv"><dt>주당배당금</dt><dd>${r.dv.dps==null?'–':Math.round(r.dv.dps).toLocaleString()+'원'} ${r.dv.trend?`(${r.dv.trend})`:''}</dd>
+      <dt>배당수익률(현재가)</dt><dd>${r.dv.yield_now==null?'–':r.dv.yield_now.toFixed(2)+'%'}</dd><dt>배당성향</dt><dd>${r.dv.payout==null?'–':r.dv.payout.toFixed(0)+'%'}</dd>
+      <dt>3년 추이</dt><dd>${[r.dv.dps2,r.dv.dps1,r.dv.dps].map(x=>x==null?'–':Math.round(x).toLocaleString()).join(' → ')}원</dd></dl></div>`:''}
+    ${r.fg?`<div><h4>금융업 비교 (${esc(r.fg)})</h4><dl class="kv"><dt>금융 점수</dt><dd>${r.fs2==null?'–':r.fs2.toFixed(1)}${r.frk?` (금융업 ${r.frk}위)`:''}</dd>${r.fp?`<dt>백분위</dt><dd>B/P ${r.fp["B/P"]??'–'} · ROE ${r.fp.ROE??'–'} · 배당 ${r.fp["배당"]??'–'}</dd>`:''}</dl></div>`:''}
     <div><h4>데이터</h4><dl class="kv"><dt>재무 기준</dt><dd>${r.pd||'–'} ${r.fs==="CFS"?"연결":r.fs==="OFS"?"별도":""}</dd>
       <dt>공시일</dt><dd>${r.fd?dfmt(r.fd):'미확인'}${r.av?` (점수 반영 ${dfmt(r.av)})`:''}</dd>
       <dt>현재가</dt><dd>${r.px?Number(r.px).toLocaleString()+"원":"–"}</dd><dt>시가총액</dt><dd>${mcap(r.mc)}</dd>
@@ -555,13 +599,48 @@ function groupView(){
   const rows=Object.entries(by).map(([g,rs])=>{rs.sort((a,b)=>(a.rk??1e9)-(b.rk??1e9)); return {g,n:rs.length,rel:rs[0].rel,per:med(rs.map(r=>r.per)),pbr:med(rs.map(r=>r.pbr)),roe:med(rs.map(r=>r.m.ROE)),top:rs[0]};}).sort((a,b)=>b.n-a.n);
   document.getElementById("gtb").innerHTML=rows.map(x=>`<tr><td class="l">${esc(x.g)}</td><td>${cmp[x.g]??'–'}</td><td>${x.n}</td><td class="${x.rel==='낮음'?'low':''}">${x.rel||''}</td><td>${x.per==null?'–':num(x.per,1)+'배'}</td><td>${x.pbr==null?'–':num(x.pbr,2)+'배'}</td><td>${pct(x.roe)}</td><td class="l"><button class="toplink" data-open="${x.top.c}">${esc(x.top.n)}</button></td><td>${num(x.top.sc,1)}</td></tr>`).join("")||'<tr><td colspan="9" class="l dash">순위 대상 종목이 없습니다.</td></tr>';
 }
+const PANES = {all:"pane-list", watch:"pane-list", div:"pane-div", fin:"pane-fin", grp:"pane-grp"};
 function tab(which){
-  view = which==="grp" ? view : which;
-  ["all","watch","grp"].forEach(t=>document.getElementById("tab-"+t).setAttribute("aria-selected", t===which));
-  document.getElementById("pane-list").hidden = which==="grp";
-  document.getElementById("pane-grp").hidden = which!=="grp";
+  if(which==="all"||which==="watch") view=which;
+  Object.keys(PANES).forEach(t=>document.getElementById("tab-"+t).setAttribute("aria-selected", t===which));
+  new Set(Object.values(PANES)).forEach(id=>document.getElementById(id).hidden = id!==PANES[which]);
   document.getElementById("showx").closest("label").hidden = which==="watch";
-  if(which==="grp") groupView(); else { limit=150; render(); }
+  if(which==="grp") groupView(); else if(which==="div") divView(); else if(which==="fin") finView(); else { limit=150; render(); }
+}
+// ── 배당 탭 ──
+const HARD = ["관리종목","투자주의","거래정지","시가총액","거래대금","자본잠식","감사","시세 없음","재무 없음","상장 1년 미만"];
+let dSort="yield_now", dDir=-1;
+function trend(d){
+  const v=[d.dps2,d.dps1,d.dps]; const mx=Math.max(...v.filter(x=>x!=null),0);
+  if(!mx) return D;
+  return `<span class="trend" title="전전기 ${v[0]??'–'} → 전기 ${v[1]??'–'} → 당기 ${v[2]??'–'}원">${v.map(x=>x==null?'<i class="z"></i>':x===0?'<i class="z"></i>':`<i style="height:${Math.max(3,Math.round(20*x/mx))}px"></i>`).join("")}</span>`;
+}
+function divView(){
+  const mk=document.getElementById("dmk").value, st=document.getElementById("dstreak").checked, up=document.getElementById("dup").checked, sf=document.getElementById("dsafe").checked;
+  let rs=ROWS.filter(r=>r.dv&&r.dv.dps>0&&!r.x.some(x=>HARD.some(h=>x.includes(h)))&&(!mk||r.mk===mk)
+    &&(!st||r.dv.streak3===3)&&(!up||r.dv.trend==="증가")&&(!sf||(r.dv.payout!=null&&r.dv.payout<=100)));
+  const v=r=>dSort==="sc"?r.sc:r.dv[dSort];
+  rs.sort((a,b)=>{const x=v(a),y=v(b); if(x==null&&y==null) return 0; if(x==null) return 1; if(y==null) return -1; return (x-y)*dDir;});
+  document.getElementById("dcount").textContent=`${rs.length.toLocaleString()}개 종목`;
+  document.querySelectorAll("#dtab th[data-dk]").forEach(th=>{ if(th.dataset.dk===dSort) th.setAttribute("aria-sort",dDir>0?"ascending":"descending"); else th.removeAttribute("aria-sort"); });
+  document.getElementById("dtb").innerHTML = rs.slice(0,300).map(r=>{const d=r.dv; const w=[...d.warn]; if(r.x.some(x=>x.startsWith("적자"))) w.push("적자");
+    return `<tr><td class="l nmcell"><button class="toplink" data-open="${r.c}">${esc(r.n)}</button><small>${r.c} · ${mkname(r.mk)}</small></td><td class="l">${esc(r.g||r.fg||'')}</td>
+    <td><b>${d.yield_now==null?'–':d.yield_now.toFixed(2)+'%'}</b></td><td>${d.dps==null?'–':Math.round(d.dps).toLocaleString()+'원'}<small style="display:block;color:var(--faint)">${d.year} 사업연도</small></td>
+    <td class="c">${trend(d)}</td><td class="${d.payout>100?'low':''}">${d.payout==null?'–':d.payout.toFixed(0)+'%'}</td><td>${r.sc==null?'–':num(r.sc,1)+(r.rk?`<small style="display:block;color:var(--faint)">${r.rk}위</small>`:'')}</td>
+    <td class="l">${w.length?`<span class="chip">${esc(w.join(' · '))}</span>`:''}</td></tr>`;}).join("") || '<tr><td colspan="8" class="l dash">조건에 맞는 종목이 없습니다.</td></tr>';
+}
+// ── 금융업 탭 ──
+function finView(){
+  const g=document.getElementById("fgrp");
+  if(g.options.length===1){ [...new Set(ROWS.filter(r=>r.fg).map(r=>r.fg))].sort((a,b)=>a.localeCompare(b,"ko")).forEach(x=>{const o=document.createElement("option");o.textContent=x;g.append(o);}); }
+  const sel=g.value;
+  const rs=ROWS.filter(r=>r.fg&&(!sel||r.fg===sel)).sort((a,b)=>(a.frk??1e9)-(b.frk??1e9)||(b.mc||0)-(a.mc||0));
+  document.getElementById("fcount").textContent=`${rs.filter(r=>r.frk).length}개 순위 / ${rs.length}개 종목`;
+  document.getElementById("ftb").innerHTML = rs.map(r=>`<tr><td class="c">${r.frk??'<span class="xr">제외</span>'}</td>
+    <td class="l nmcell"><button class="toplink" data-open="${r.c}">${esc(r.n)}</button><small>${r.c} · ${mkname(r.mk)}</small></td><td class="l">${esc(r.fg)}</td>
+    <td><b>${r.fs2==null?'–':num(r.fs2,1)}</b></td><td>${r.pbr==null?'–':num(r.pbr,2)+'배'}</td><td>${pct(r.m.ROE)}</td>
+    <td>${r.dv&&r.dv.yield_now!=null?r.dv.yield_now.toFixed(2)+'%':'–'}</td><td>${mcap(r.mc)}</td>
+    <td class="l">${(r.fx||[]).length?`<span class="chip x">${esc(r.fx[0])}</span>`:''}</td></tr>`).join("") || '<tr><td colspan="9" class="l dash">금융업 종목이 없습니다.</td></tr>';
 }
 // 이벤트
 document.getElementById("hdr").addEventListener("click",e=>{const b=e.target.closest("button[data-k]"); if(!b) return;
@@ -580,6 +659,11 @@ document.getElementById("more").addEventListener("click",()=>{limit+=300; render
 document.getElementById("tab-all").addEventListener("click",()=>tab("all"));
 document.getElementById("tab-watch").addEventListener("click",()=>tab("watch"));
 document.getElementById("tab-grp").addEventListener("click",()=>tab("grp"));
+document.getElementById("tab-div").addEventListener("click",()=>tab("div"));
+document.getElementById("tab-fin").addEventListener("click",()=>tab("fin"));
+["dmk","dstreak","dup","dsafe"].forEach(id=>document.getElementById(id).addEventListener("input",divView));
+document.getElementById("fgrp").addEventListener("input",finView);
+document.querySelector("#dtab thead").addEventListener("click",e=>{const th=e.target.closest("th[data-dk]"); if(!th) return; const k=th.dataset.dk; if(dSort===k) dDir=-dDir; else {dSort=k; dDir=-1;} divView();});
 document.getElementById("csv").addEventListener("click",()=>{
   const headr=["순위","전날순위","종목코드","종목명","시장","사업군","비교n","종합","가치","퀄리티","추세","안정성","PER","PBR","ROE","12-1모멘텀","시총(억)","주 제외사유","제외사유 전체","경고","재무기준","공시일"];
   const lines=[headr].concat(filtered().map(r=>[r.rk??"",r.prk??"",r.c,r.n,r.mk,r.g||"",r.gn??"",r.sc??"",...r.b.map(v=>v??""),r.per??"",r.pbr??"",r.m.ROE??"",r.m["12-1모멘텀"]??"",r.mc?Math.round(r.mc/1e8):"",r.xp||"",r.x.join(" / "),r.w.join(" / "),r.pd||"",r.fd||""]));

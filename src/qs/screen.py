@@ -86,6 +86,84 @@ def primary_exclusion(reasons: list[str]) -> tuple[str, str] | None:
     return best[1], best[2]
 
 
+# ── 배당 (배당 탭) ──
+def dividend_info(corp_code: str | None, close: float | None) -> dict | None:
+    """가장 최근 사업보고서의 배당 항목 → 3개년 주당배당금, 현재가 기준 배당수익률, 배당성향, 배당 흐름 표시.
+    원천: DART alotMatter (L0 xcheck/alotMatter/<corp>/<연도>_11011)."""
+    from .collect.dart import parse_dividend_hist
+    from .storage import dart_path, exists
+    from .util import to_num
+    if not corp_code:
+        return None
+    close = to_num(close) if close is not None else None   # KRX 종가는 문자열
+    for y in range(dt.date.today().year, 2022, -1):
+        p = dart_path("xcheck", "alotMatter", corp_code, f"{y}_11011.json.gz")
+        if not exists(p):
+            continue
+        h = parse_dividend_hist(load_l0(p)["payload"])
+        d0, d1, d2 = h["dps"]
+        if d0 is None and d1 is None:
+            continue
+        paid = [x for x in (d0, d1, d2) if x is not None]
+        streak = sum(1 for x in (d0, d1, d2) if x and x > 0) if all(x is not None for x in (d0, d1, d2)) else None
+        trend = None
+        if d0 is not None and d1 is not None:
+            trend = "증가" if d0 > d1 * 1.001 else ("감소" if d0 < d1 * 0.999 else "유지")
+            if d0 == 0 and d1 > 0:
+                trend = "중단"
+        warn = []
+        if h["payout_pct"] is not None and h["payout_pct"] > 100:
+            warn.append(f"배당성향 {h['payout_pct']:.0f}% — 이익보다 많이 배당")
+        if trend in ("감소", "중단"):
+            warn.append(f"배당 {trend}")
+        return {"year": y, "dps": d0, "dps1": d1, "dps2": d2, "payout": h["payout_pct"],
+                "yield_now": (d0 / close * 100) if d0 and close else (0.0 if d0 == 0 else None),
+                "yield_report": h["yield_pct"], "streak3": streak, "trend": trend, "warn": warn, "n": len(paid)}
+    return None
+
+
+# ── 금융업 (금융업 탭) — 본 순위에서 빠진 은행·보험·증권 등을 따로 비교 (점수는 가설, 성과 미검증) ──
+def fin_subgroup(ksic: str | None, name: str | None) -> str:
+    k, n = ksic or "", name or ""
+    if "지주" in n or k.startswith("64992"):
+        return "금융지주"
+    if k.startswith("641"):
+        return "은행"
+    if k.startswith("65"):
+        return "보험"
+    if k.startswith("6612") or "증권" in n:
+        return "증권"
+    if k.startswith("649") or any(x in n for x in ("카드", "캐피탈", "파이낸셜", "저축")):
+        return "카드·캐피탈·기타여신"
+    return "기타 금융"
+
+
+def financial_scores(out: list[dict]) -> int:
+    """금융업 종목 중 다른 제외 사유가 없는 종목끼리: 장부가수익률(B/P)·ROE·현재 배당수익률 백분위 평균 = 금융 점수."""
+    rows = [r for r in out if r.get("group_id") == "EX"]
+    for r in rows:
+        r["fin_group"] = fin_subgroup(r.get("induty_code"), r.get("name"))
+        r["fin_other_ex"] = [x for x in r["exclude"] if not x.startswith("금융업")]
+    elig = [r for r in rows if not r["fin_other_ex"] and r.get("status") == "ok"]
+    if len(elig) < 5:
+        return 0
+    keys = {"B/P": lambda r: (r.get("metrics") or {}).get("B/P"), "ROE": lambda r: (r.get("metrics") or {}).get("ROE"),
+            "배당": lambda r: (r.get("dividend") or {}).get("yield_now")}
+    pct = {}
+    for k, f in keys.items():
+        vals = {r["stock_code"]: f(r) for r in elig}
+        w = Winsor.fit([v for v in vals.values() if v is not None])
+        pct[k] = percentile_ranks({c: (w.apply(v) if v is not None else None) for c, v in vals.items()})
+    for r in elig:
+        ps = [pct[k][r["stock_code"]] for k in keys if pct[k][r["stock_code"]] is not None]
+        r["fin_pct"] = {k: (None if pct[k][r["stock_code"]] is None else round(pct[k][r["stock_code"]], 1)) for k in keys}
+        r["fin_score"] = round(sum(ps) / len(ps), 1) if len(ps) >= 2 else None
+    ranked = sorted([r for r in elig if r.get("fin_score") is not None], key=lambda r: (-r["fin_score"], r["stock_code"]))
+    for i, r in enumerate(ranked, 1):
+        r["fin_rank"] = i
+    return len(ranked)
+
+
 MIN_GROUP_N = 10   # D-26: 비교 대상이 이보다 적은 사업군은 백분위가 무의미 → 순위에서 빼고 사유 표시
 
 
@@ -296,6 +374,9 @@ def run() -> dict:
         if c in kind_admin and "관리종목" not in (u.get("sect") or ""):
             u["sect"] = (u.get("sect") or "") + " 관리종목(KIND)"
     out, ranked, by_g = filter_and_score(evals, meta, asof, tv, halted, groups)
+    for r in out:
+        r["dividend"] = dividend_info(r.get("corp_code"), r.get("close")) if r.get("status") == "ok" else None
+    fin_n = financial_scores(out)
 
     write_gz_json(L2 / "screen.json.gz", out)
     # 실전 추적 (DESIGN 7.6): 날짜별 점수 기록 — 백테스트와 별개로 실제 사후 성과를 확인하는 근거. 시세 기준일별 1개 파일
@@ -318,7 +399,8 @@ def run() -> dict:
     res = {"asof_price": last_bd, "universe_collected": len(uni["rows"]), "universe_total": uni["total"],
            "collection_complete": uni.get("complete"), "evaluated": len(out), "build_status": dict(stat),
            "ranked": len(ranked), "groups": {g: len(v) for g, v in sorted(by_g.items())},
-           "exclusions": dict(exc.most_common()), "prev_asof": prev_asof}
+           "exclusions": dict(exc.most_common()), "prev_asof": prev_asof, "fin_ranked": fin_n,
+           "div_payers": sum(1 for r in out if (r.get("dividend") or {}).get("dps"))}
     # 데이터 상태 (DESIGN 8: 기준일·갱신 성공·품질 점검)
     from .collect.krx import suspicious_empty, weekdays
     from .util import now_kst

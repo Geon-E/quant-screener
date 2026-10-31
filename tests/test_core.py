@@ -917,3 +917,16 @@ def test_store_shards_pack_roundtrip(tmp_path):
         with tarfile.open(tmp_path / "out" / s["name"]) as tf:
             tf.extractall(dst, filter="data")
     assert sorted(p.relative_to(dst).as_posix() for p in dst.rglob("*") if p.is_file()) == sorted(files)
+
+
+def test_dividend_history_and_fin_subgroup():
+    from qs.collect.dart import parse_dividend_hist
+    from qs.screen import fin_subgroup
+    js = {"status": "000", "list": [
+        {"se": "주당 현금배당금(원)", "stock_knd": "보통주", "thstrm": "1,446", "frmtrm": "1,444", "lwfr": "1,444"},
+        {"se": "주당 현금배당금(원)", "stock_knd": "우선주", "thstrm": "1,447", "frmtrm": "1,445", "lwfr": "1,445"},
+        {"se": "(연결)현금배당성향(%)", "stock_knd": "", "thstrm": "25.1"}]}
+    h = parse_dividend_hist(js)
+    assert h["dps"] == [1446.0, 1444.0, 1444.0] and h["payout_pct"] == 25.1
+    assert fin_subgroup("64110", "기업은행") == "은행" and fin_subgroup("65110", "한화생명") == "보험"
+    assert fin_subgroup("64992", "KB금융") == "금융지주" and fin_subgroup("66121", "키움증권") == "증권"

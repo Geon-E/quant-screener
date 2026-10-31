@@ -157,6 +157,27 @@ def audit_opinion(js: dict) -> tuple[str | None, bool | None]:
     return None, None
 
 
+def parse_dividend_hist(js: dict) -> dict:
+    """사업보고서 배당 항목 하나로 3개년(당기·전기·전전기) 보통주 주당배당금을 읽는다 → {dps: [당기, 전기, 전전기], payout, yield_pct}."""
+    from ..util import to_num
+    out = {"dps": [None, None, None], "payout_pct": None, "yield_pct": None, "eps": None}
+    if js.get("status") != "000":
+        return out
+    for r in js.get("list") or []:
+        se = (r.get("se") or "").replace(" ", "")
+        knd = (r.get("stock_knd") or "").replace(" ", "")
+        common = (not knd) or ("보통" in knd)
+        if "주당현금배당금" in se and common and out["dps"] == [None, None, None]:
+            out["dps"] = [to_num(r.get("thstrm")), to_num(r.get("frmtrm")), to_num(r.get("lwfr"))]
+        elif "현금배당성향" in se and out["payout_pct"] is None and ("연결" in se or "(" not in se):
+            out["payout_pct"] = to_num(r.get("thstrm"))
+        elif "현금배당수익률" in se and common and out["yield_pct"] is None:
+            out["yield_pct"] = to_num(r.get("thstrm"))
+        elif "주당순이익" in se and out["eps"] is None and ("연결" in se or "(" not in se):
+            out["eps"] = to_num(r.get("thstrm"))
+    return out
+
+
 def parse_dividend(js: dict) -> dict:
     """배당 항목 → 당기 보통주 기준 {dps, yield_pct, payout_pct, total_mn}. 분기·중간배당은 사업보고서의 연간 합계를 따른다."""
     from ..util import to_num
