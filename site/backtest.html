@@ -8,49 +8,76 @@
 <body>
 <title>과거 성과 검증</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="fonts/pretendard/pretendardvariable-dynamic-subset.css">
 <style>
-/* 레이아웃: 상단 판정 띠 → 핵심 지표 표 → 누적가치 차트 → 낙폭·IC → 연도별·비교 실험 표 */
+/* 레이아웃: 상단 판정 띠 → 핵심 지표 표 → 누적가치 차트 → 낙폭·IC → 연도별·비교 실험 표
+   차트 원칙: 선 2px, 끝점 지름 8px+표면색 테두리 2px, 막대 24px 이하·끝만 4px 둥글게, 눈금선은 실선 1px(점선 없음),
+   글자는 글자색(계열색으로 칠하지 않음), 툴팁은 값이 먼저·이름이 뒤 */
 :root{
-  --bg:#f5f6f8; --surface:#fcfcfb; --ink:#16202c; --muted:#5d6878; --line:#dde1e7; --soft:#eceff3;
-  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
-  --up:#c8322b; --down:#2559b8; --warn:#9a6400; --warn-soft:#fbf1dc;
-  --font-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
-  --font-num:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --bg:#f5f6f8; --surface:#fcfcfb; --ink:#16202c; --ink2:#4a5566; --muted:#5d6878; --line:#dde1e7; --soft:#eceff3;
+  --grid:#e6e8ec; --axis:#b9c0ca;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --neutral:#a9b1bc;
+  --up:#c8322b; --down:#2559b8; --warn:#8a5700; --warn-soft:#fbf1dc;
+  --font-body:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+  --tip-shadow:0 6px 20px rgba(16,24,40,.14);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#10151c; --surface:#1a1a19; --ink:#f0efec; --muted:#c3c2b7; --line:#2f3640; --soft:#232a33;
-  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --up:#ef6b62; --down:#6f9cf0; --warn:#e2b04f; --warn-soft:#33290f; color-scheme:dark}}
+  --bg:#10151c; --surface:#1a1a19; --ink:#f0efec; --ink2:#d6d5cd; --muted:#b4b3a9; --line:#2f3640; --soft:#232a33;
+  --grid:#2c2c2a; --axis:#4a4a46;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --neutral:#5d6570;
+  --up:#ef6b62; --down:#6f9cf0; --warn:#e2b04f; --warn-soft:#33290f; --tip-shadow:0 6px 20px rgba(0,0,0,.5); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#10151c; --surface:#1a1a19; --ink:#f0efec; --muted:#c3c2b7; --line:#2f3640; --soft:#232a33;
-  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --up:#ef6b62; --down:#6f9cf0; --warn:#e2b04f; --warn-soft:#33290f; color-scheme:dark}
-body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.5}
+  --bg:#10151c; --surface:#1a1a19; --ink:#f0efec; --ink2:#d6d5cd; --muted:#b4b3a9; --line:#2f3640; --soft:#232a33;
+  --grid:#2c2c2a; --axis:#4a4a46;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --neutral:#5d6570;
+  --up:#ef6b62; --down:#6f9cf0; --warn:#e2b04f; --warn-soft:#33290f; --tip-shadow:0 6px 20px rgba(0,0,0,.5); color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.6;word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}
 .wrap{max-width:1100px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:16px}
-h1{font-size:22px;margin:0;text-wrap:balance} h2{font-size:15px;margin:0 0 8px}
+h1{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.3;margin:0;text-wrap:balance} h2{font-size:15px;font-weight:600;line-height:1.35;margin:0 0 4px}
+.sub{color:var(--muted);font-size:12.5px;margin:0 0 10px}
 .meta{color:var(--muted);font-size:13px;display:flex;flex-wrap:wrap;gap:4px 14px}
-.notice{background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:6px;padding:9px 12px;font-size:13px}
+.notice{background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 30%,transparent);border-radius:8px;padding:9px 12px;font-size:13px}
 .notice strong{color:var(--warn)}
 .wrap>*,#body,#body>*{min-width:0}
 #body{display:grid;gap:16px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;min-width:0}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:16px}
 .tbl{overflow-x:auto}
 table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:6px 8px;border-bottom:1px solid var(--soft);text-align:right;white-space:nowrap}
-th{color:var(--muted);font-weight:500;font-size:12px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--soft);text-align:right;white-space:nowrap}
+th{color:var(--muted);font-weight:600;font-size:12.5px}
 th.l,td.l{text-align:left}
-td{font-family:var(--font-num);font-variant-numeric:tabular-nums}
-td.l{font-family:var(--font-body)}
+td{font-variant-numeric:tabular-nums}
 .up{color:var(--up)} .down{color:var(--down)} .dash{color:var(--muted)}
-.chart{position:relative}
-.chart svg{display:block;width:100%;height:auto}
-.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);margin-bottom:6px}
-.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:6px}
-.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.12);display:none;white-space:nowrap}
-.tip b{font-family:var(--font-num);font-weight:500}
+/* 차트 */
+.chart{position:relative;touch-action:pan-y}
+.chart svg{display:block;width:100%;height:auto;overflow:visible;font-family:var(--font-body);font-variant-numeric:tabular-nums}
+.chart svg:focus{outline:none}
+.chart svg:focus-visible{outline:2px solid var(--s1);outline-offset:4px;border-radius:4px}
+.chart .grid{stroke:var(--grid);stroke-width:1;shape-rendering:crispEdges}
+.chart .axis{stroke:var(--axis);stroke-width:1;shape-rendering:crispEdges}
+.chart .tk{font-size:11px;fill:var(--muted)}
+.chart .lab{font-size:12px;fill:var(--ink);font-weight:600}
+.chart .lab2{font-size:11.5px;fill:var(--ink2)}
+.chart .cx{stroke:var(--muted);stroke-width:1;shape-rendering:crispEdges}
+.chart .bar{transition:opacity 120ms}
+.chart.hovering .bar{opacity:.45} .chart.hovering .bar.on{opacity:1}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:var(--ink2);margin:0 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend i{display:inline-block;width:16px;height:2px;border-radius:1px}
+.legend i.box{width:10px;height:10px;border-radius:2px}
+.tip{position:absolute;z-index:5;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:var(--tip-shadow);white-space:nowrap;opacity:0;transition:opacity 120ms;min-width:140px}
+.tip.show{opacity:1}
+.tip .d{color:var(--muted);font-size:11.5px;margin-bottom:4px}
+.tip .r{display:grid;grid-template-columns:14px auto 1fr;align-items:center;gap:6px;line-height:1.7}
+.tip .r i{display:block;width:12px;height:2px;border-radius:1px}
+.tip .r b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.tip .r span{color:var(--ink2)}
+.tip .r small{color:var(--muted);font-variant-numeric:tabular-nums;margin-left:4px}
+@media (prefers-reduced-motion:reduce){.tip,.chart .bar{transition:none}}
 .empty{color:var(--muted);padding:24px 0}
-a{color:var(--s1)}
-footer{color:var(--muted);font-size:12px}
+a{color:var(--s1);text-underline-offset:3px}
+footer{color:var(--muted);font-size:12.5px}
 </style>
 <div class="wrap">
   <header style="display:grid;gap:6px">
@@ -64,7 +91,7 @@ footer{color:var(--muted);font-size:12px}
 <script>
 const D = {"run":null,"nav":[],"variants":null,"index":{},"ew":[]};
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const pct = (v,d=1,color=true) => v==null||!isFinite(v) ? '<span class="dash">–</span>' : `<span class="${color?(v>0?'up':v<0?'down':''):''}">${(v*100).toFixed(d)}%</span>`;
+const pct = (v,d=1,color=true) => v==null||!isFinite(v) ? '<span class="dash">–</span>' : `<span class="${color?(v>0?'up':v<0?'down':''):''}">${color&&v>0?'+':''}${(v*100).toFixed(d)}%</span>`;
 const num = (v,d=2) => v==null||!isFinite(v) ? '<span class="dash">–</span>' : v.toFixed(d);
 const fmtD = d => `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6)}`;
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
@@ -84,10 +111,10 @@ if(!R){
     <tr><td class="l">순위 대상 전체 동일비중 (비용 전)</td><td>${pct((R.benchmark_universe_ew||{}).total_return)}</td><td colspan="4" class="l dash">구간 수익률만</td></tr></tbody></table></div>
     <div class="tbl" style="margin-top:10px"><table><thead><tr><th class="l">신호 품질</th><th>IC 평균</th><th>IC 표준편차</th><th>IC IR</th><th>표본 수</th><th>적중률(사업군 평균 초과)</th><th>평균 회전율</th><th>회당 비용</th><th>코스피 베타</th></tr></thead>
     <tbody><tr><td class="l">종합점수 vs 다음 기간 수익률</td><td>${num((R.ic||{}).mean,3)}</td><td>${num((R.ic||{}).std,3)}</td><td>${num((R.ic||{}).ir,2)}</td><td>${(R.ic||{}).n??'–'}</td><td>${pct(R.hit_rate,0,false)}</td><td>${pct(R.avg_turnover,0,false)}</td><td>${pct(R.avg_cost_per_rebalance,2,false)}</td><td>${num(R.beta_kospi,2)}</td></tr></tbody></table></div></div>
-  <div class="card"><h2>누적가치 (시작 = 1.0)</h2><div class="legend" id="lg"></div><div class="chart" id="c1"></div><div class="tip" id="t1"></div></div>
+  <div class="card"><h2>누적가치 (시작 = 1.0)</h2><p class="sub">1.0 위면 시작보다 불어난 것, 아래면 줄어든 것입니다. 차트 위에 손가락이나 마우스를 올리면 날짜별 값이 보입니다.</p><div class="legend" id="lg"></div><div class="chart" id="c1"><div class="tip" id="t1"></div></div></div>
   <div class="grid2">
-    <div class="card"><h2>전략 낙폭</h2><div class="chart" id="c2"></div></div>
-    <div class="card"><h2>리밸런싱별 IC</h2><div class="chart" id="c3"></div></div>
+    <div class="card"><h2>전략 낙폭</h2><p class="sub">직전 최고점에서 얼마나 내려와 있었는지 (0%가 최고점)</p><div class="chart" id="c2"><div class="tip" id="t2"></div></div></div>
+    <div class="card"><h2>리밸런싱별 IC</h2><p class="sub">점수 순서와 다음 기간 수익률 순서가 맞은 정도. <span id="ic-key"></span></p><div class="chart" id="c3"><div class="tip" id="t3"></div></div></div>
   </div>
   <div class="grid2">
     <div class="card"><h2>연도별 수익률</h2><div class="tbl" id="yr"></div></div>
@@ -96,56 +123,125 @@ if(!R){
   <div class="card"><h2>비교 실험 (DESIGN 7.5, 개발 구간)</h2><div class="tbl" id="vr"></div></div>
   <div class="card"><h2>마지막 보유 종목</h2><div class="tbl" id="hd"></div></div>`;
   drawNav(); drawDD(); drawIC(); tables();
+  let lastW=document.getElementById("c1").clientWidth, rq=0;
+  window.addEventListener("resize",()=>{cancelAnimationFrame(rq); rq=requestAnimationFrame(()=>{const w=document.getElementById("c1").clientWidth; if(w===lastW) return; lastW=w; drawNav(); drawDD(); drawIC();});});
 }
 function scale(d0,d1,r0,r1){return v=>r0+(v-d0)/(d1-d0||1)*(r1-r0);}
-function svgEl(w,h){return `<svg viewBox="0 0 ${w} ${h}" role="img">`;}
+function svgEl(w,h,label){return `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}" tabindex="0">`;}
+// 깔끔한 눈금: 1·2·2.5·5 × 10^n
+function niceTicks(lo,hi,n=5){const span=hi-lo||1, raw=span/n, p=Math.pow(10,Math.floor(Math.log10(raw)));
+  const st=[1,2,2.5,5,10].map(m=>m*p).find(m=>m>=raw); const a=Math.floor(lo/st)*st, b=Math.ceil(hi/st)*st;
+  const out=[]; for(let v=a; v<=b+st/2; v+=st) out.push(+v.toFixed(10)); return {ticks:out, lo:a, hi:b, step:st};}
+function decOf(st){return Math.max(0, -Math.floor(Math.log10(st)+1e-9));}
+function sgn(v){return v>0?'+':'';}
+function yearTicks(days,x,H,B,tick=true){const yrs=[...new Set(days.map(d=>d.slice(0,4)))]; let g="", last=-1e9;
+  yrs.forEach(yy=>{const i=days.findIndex(d=>d.startsWith(yy)), px=x(i); if(px-last<34) return; last=px;
+    g+=`${tick?`<line class="axis" x1="${px}" x2="${px}" y1="${H-B}" y2="${H-B+4}"/>`:''}<text class="tk" x="${px}" y="${H-B+17}" text-anchor="middle">${yy}</text>`;}); return g;}
+// 툴팁 (DOM으로 만들어 문자열 주입 없이)
+function tipShow(tip,host,px,head,rows){
+  tip.replaceChildren(); const d=document.createElement("div"); d.className="d"; d.textContent=head; tip.append(d);
+  rows.forEach(r=>{const e=document.createElement("div"); e.className="r";
+    const k=document.createElement("i"); k.style.background=r.c; if(r.box){k.style.height="8px";k.style.width="8px";k.style.borderRadius="2px";}
+    const v=document.createElement("b"); v.textContent=r.v; if(r.sub){const sm=document.createElement("small"); sm.textContent=r.sub; v.append(sm);}
+    const n=document.createElement("span"); n.textContent=r.n; e.append(k,v,n); tip.append(e);});
+  tip.classList.add("show");
+  const hw=host.clientWidth, tw=tip.offsetWidth; let left=px+14; if(left+tw>hw) left=px-14-tw; tip.style.left=Math.max(0,left)+"px"; tip.style.top="8px";
+}
+// 십자선 + 키보드(←→) 공통 연결
+function hover(host,svg,W,n,toIdx,onIdx,onOut){
+  let cur=null;
+  const fromEv=ev=>{const r=svg.getBoundingClientRect(); return toIdx((ev.clientX-r.left)/r.width*W);};
+  const set=i=>{cur=Math.max(0,Math.min(n-1,i)); onIdx(cur, svg.getBoundingClientRect().width/W);};
+  svg.addEventListener("pointermove",ev=>set(fromEv(ev)));
+  svg.addEventListener("pointerdown",ev=>set(fromEv(ev)));
+  svg.addEventListener("pointerleave",()=>{cur=null; onOut();});
+  svg.addEventListener("focus",()=>set(cur??n-1));
+  svg.addEventListener("blur",()=>{cur=null; onOut();});
+  svg.addEventListener("keydown",ev=>{ if(ev.key==="ArrowLeft"||ev.key==="ArrowRight"){ev.preventDefault(); set((cur??n-1)+(ev.key==="ArrowRight"?1:-1));}
+    else if(ev.key==="Home"){ev.preventDefault(); set(0);} else if(ev.key==="End"){ev.preventDefault(); set(n-1);} });
+}
 function drawNav(){
   const nav=D.nav; if(!nav.length) return;
   const base=nav[0][1], days=nav.map(x=>x[0]);
-  const series=[{k:"전략",c:"--s1",v:nav.map(x=>x[1]/base)}];
+  // 색은 대상에 고정 (순서가 바뀌거나 빠져도 그대로)
+  const series=[{k:"전략",c:"--s1",v:nav.map(x=>x[1]/base),main:true}];
   const ix=D.index||{};
   if(ix.KOSPI&&ix.KOSPI.length){const m=Object.fromEntries(ix.KOSPI);const b0=m[days.find(d=>m[d])];series.push({k:"코스피",c:"--s2",v:days.map(d=>m[d]?m[d]/b0:null)});}
-  if(ix.KOSDAQ&&ix.KOSDAQ.length){const m=Object.fromEntries(ix.KOSDAQ);const b0=m[days.find(d=>m[d])];series.push({k:"코스닥",c:"--s4",v:days.map(d=>m[d]?m[d]/b0:null)});}
-  const W=1000,H=360,L=48,Rr=70,T=12,B=28;
-  const all=series.flatMap(s=>s.v.filter(v=>v!=null)); const lo=Math.min(...all,1),hi=Math.max(...all,1);
-  const x=scale(0,days.length-1,L,W-Rr), y=scale(lo,hi,H-B,T);
-  let g=svgEl(W,H);
-  const ticks=5; for(let i=0;i<=ticks;i++){const v=lo+(hi-lo)*i/ticks;g+=`<line x1="${L}" x2="${W-Rr}" y1="${y(v)}" y2="${y(v)}" stroke="${css('--soft')}"/><text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="${css('--muted')}">${v.toFixed(2)}</text>`;}
-  const yrs=[...new Set(days.map(d=>d.slice(0,4)))]; yrs.forEach(yy=>{const i=days.findIndex(d=>d.startsWith(yy));g+=`<text x="${x(i)}" y="${H-8}" font-size="11" fill="${css('--muted')}">${yy}</text>`;});
-  g+=`<line x1="${L}" x2="${W-Rr}" y1="${y(1)}" y2="${y(1)}" stroke="${css('--muted')}" stroke-dasharray="3 3"/>`;
-  series.forEach(s=>{let p="";s.v.forEach((v,i)=>{if(v==null)return;p+=(p?"L":"M")+x(i).toFixed(1)+","+y(v).toFixed(1);});
-    g+=`<path d="${p}" fill="none" stroke="${css(s.c)}" stroke-width="2"/>`;
-    const li=s.v.length-1-[...s.v].reverse().findIndex(v=>v!=null);
-    g+=`<text x="${x(li)+6}" y="${y(s.v[li])+4}" font-size="11" fill="${css('--ink')}">${s.k} ${s.v[li].toFixed(2)}</text>`;});
-  g+=`<line id="cx" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="${css('--muted')}" visibility="hidden"/></svg>`;
-  const el=document.getElementById("c1"); el.innerHTML=g;
-  document.getElementById("lg").innerHTML=series.map(s=>`<span><i style="background:${css(s.c)}"></i>${s.k}</span>`).join("");
-  const svg=el.querySelector("svg"), tip=document.getElementById("t1"), cx=svg.querySelector("#cx");
-  svg.addEventListener("pointermove",ev=>{const r=svg.getBoundingClientRect();const px=(ev.clientX-r.left)/r.width*W;
-    const i=Math.max(0,Math.min(days.length-1,Math.round((px-L)/(W-Rr-L)*(days.length-1))));
-    cx.setAttribute("x1",x(i));cx.setAttribute("x2",x(i));cx.setAttribute("visibility","visible");
-    tip.style.display="block";tip.innerHTML=`${fmtD(days[i])}<br>`+series.map(s=>`${s.k} <b>${s.v[i]==null?'–':s.v[i].toFixed(3)}</b>`).join("<br>");
-    const tx=ev.clientX-el.getBoundingClientRect().left; tip.style.left=Math.min(tx+12,el.clientWidth-150)+"px"; tip.style.top="20px";});
-  svg.addEventListener("pointerleave",()=>{tip.style.display="none";cx.setAttribute("visibility","hidden");});
+  if(ix.KOSDAQ&&ix.KOSDAQ.length){const m=Object.fromEntries(ix.KOSDAQ);const b0=m[days.find(d=>m[d])];series.push({k:"코스닥",c:"--s3",v:days.map(d=>m[d]?m[d]/b0:null)});}
+  const el=document.getElementById("c1"), tip=document.getElementById("t1"); el.querySelector("svg")?.remove();
+  const W=Math.max(300,el.clientWidth||1000), H=W<640?260:360, L=42, Rr=W<640?84:96, T=14, B=30;
+  const all=series.flatMap(s=>s.v.filter(v=>v!=null)); const nt=niceTicks(Math.min(...all,1),Math.max(...all,1),5), dec=Math.max(1,decOf(nt.step));
+  const x=scale(0,days.length-1,L,W-Rr), y=scale(nt.lo,nt.hi,H-B,T);
+  let g=svgEl(W,H,`누적가치 차트: ${series.map(s=>{const lv=s.v.filter(v=>v!=null).pop(); return `${s.k} ${lv.toFixed(2)}`;}).join(", ")}`);
+  nt.ticks.forEach(v=>{ if(Math.abs(v-1)<1e-9) return; g+=`<line class="grid" x1="${L}" x2="${W-Rr}" y1="${y(v)}" y2="${y(v)}"/>`; });
+  nt.ticks.forEach(v=>g+=`<text class="tk" x="${L-8}" y="${y(v)+4}" text-anchor="end">${v.toFixed(dec)}</text>`);
+  g+=`<line class="axis" x1="${L}" x2="${W-Rr}" y1="${y(1)}" y2="${y(1)}"/>`;          // 기준선 1.0 (실선)
+  g+=`<line class="axis" x1="${L}" x2="${W-Rr}" y1="${H-B}" y2="${H-B}"/>` + yearTicks(days,x,H,B);
+  // 보조 계열 먼저, 전략을 맨 위에
+  [...series].reverse().forEach(s=>{let p="";s.v.forEach((v,i)=>{if(v==null){p+=" ";return;} p+=(p&&!p.endsWith(" ")?"L":"M")+x(i).toFixed(1)+","+y(v).toFixed(1);});
+    g+=`<path d="${p.replace(/ /g,'')}" fill="none" stroke="${css(s.c)}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;});
+  // 끝점 + 끝 값 이름표 (서로 14px 이내로 겹치면 전략만 남김: 위아래로 밀어내지 않음)
+  const ends=series.map(s=>{const li=s.v.length-1-[...s.v].reverse().findIndex(v=>v!=null); return {s,li,py:y(s.v[li])};});
+  const clash=ends.some((a,i)=>ends.some((b,j)=>i<j&&Math.abs(a.py-b.py)<15));
+  ends.forEach(e=>{g+=`<circle cx="${x(e.li)}" cy="${e.py}" r="4" fill="${css(e.s.c)}" stroke="${css('--surface')}" stroke-width="2"/>`;
+    if(!clash||e.s.main) g+=`<text x="${x(e.li)+10}" y="${e.py+4}"><tspan class="lab">${e.s.v[e.li].toFixed(2)}</tspan><tspan class="lab2" dx="5">${e.s.k}</tspan></text>`;});
+  g+=`<g id="hv" visibility="hidden"><line class="cx" id="cx" y1="${T}" y2="${H-B}"/>${series.map((s,k)=>`<circle id="hd${k}" r="4" fill="${css(s.c)}" stroke="${css('--surface')}" stroke-width="2"/>`).join("")}</g></svg>`;
+  el.insertAdjacentHTML("afterbegin",g);
+  document.getElementById("lg").innerHTML=series.map(s=>`<span><i style="background:${css(s.c)}"></i>${esc(s.k)}</span>`).join("");
+  const svg=el.querySelector("svg"), hv=svg.querySelector("#hv"), cx=svg.querySelector("#cx");
+  hover(el,svg,W,days.length,px=>Math.round((px-L)/(W-Rr-L)*(days.length-1)),(i,k)=>{
+    cx.setAttribute("x1",x(i)); cx.setAttribute("x2",x(i)); hv.setAttribute("visibility","visible");
+    series.forEach((s,j)=>{const c=svg.querySelector("#hd"+j); if(s.v[i]==null){c.setAttribute("visibility","hidden");return;} c.setAttribute("visibility","visible"); c.setAttribute("cx",x(i)); c.setAttribute("cy",y(s.v[i]));});
+    const rows=series.map(s=>({c:css(s.c),v:s.v[i]==null?'–':s.v[i].toFixed(3),sub:s.v[i]==null?'':`${sgn(s.v[i]-1)}${((s.v[i]-1)*100).toFixed(1)}%`,n:s.k}))
+      .sort((a,b)=>(parseFloat(b.v)||-1e9)-(parseFloat(a.v)||-1e9));
+    tipShow(tip,el,x(i)*k,fmtD(days[i]),rows);
+  },()=>{tip.classList.remove("show"); hv.setAttribute("visibility","hidden");});
 }
 function drawDD(){
-  const nav=D.nav; if(!nav.length) return; let pk=-1e9; const dd=nav.map(x=>{pk=Math.max(pk,x[1]);return x[1]/pk-1;});
-  const W=500,H=200,L=44,Rr=10,T=10,B=24, lo=Math.min(...dd,-0.01);
-  const x=scale(0,dd.length-1,L,W-Rr), y=scale(lo,0,H-B,T);
-  let p=`M${L},${y(0)}`; dd.forEach((v,i)=>p+=`L${x(i).toFixed(1)},${y(v).toFixed(1)}`); p+=`L${x(dd.length-1)},${y(0)}Z`;
-  let g=svgEl(W,H)+`<path d="${p}" fill="${css('--s1')}" fill-opacity=".25" stroke="${css('--s1')}" stroke-width="1.5"/>`;
-  [0,lo/2,lo].forEach(v=>g+=`<text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="${css('--muted')}">${(v*100).toFixed(0)}%</text>`);
-  const mi=dd.indexOf(Math.min(...dd)); g+=`<circle cx="${x(mi)}" cy="${y(dd[mi])}" r="4" fill="${css('--s1')}" stroke="${css('--surface')}" stroke-width="2"/><text x="${x(mi)>W*0.6?x(mi)-6:x(mi)+6}" text-anchor="${x(mi)>W*0.6?'end':'start'}" y="${y(dd[mi])+14}" font-size="11" fill="${css('--ink')}">최대 ${(dd[mi]*100).toFixed(1)}% (${fmtD(nav[mi][0])})</text></svg>`;
-  document.getElementById("c2").innerHTML=g;
+  const nav=D.nav; if(!nav.length) return; let pk=-1e9; const dd=nav.map(x=>{pk=Math.max(pk,x[1]);return x[1]/pk-1;}), days=nav.map(x=>x[0]);
+  const el=document.getElementById("c2"), tip=document.getElementById("t2"); el.querySelector("svg")?.remove();
+  const W=Math.max(300,el.clientWidth||500), H=W<640?200:220, L=42, Rr=12, T=12, B=30;
+  const nt=niceTicks(Math.min(...dd,-0.01),0,4), x=scale(0,dd.length-1,L,W-Rr), y=scale(nt.lo,0,H-B,T);
+  let p=`M${L},${y(0)}`; dd.forEach((v,i)=>p+=`L${x(i).toFixed(1)},${y(v).toFixed(1)}`); const line=p.slice(p.indexOf("L")).replace(/^L/,"M"); p+=`L${x(dd.length-1)},${y(0)}Z`;
+  const mi=dd.indexOf(Math.min(...dd));
+  let g=svgEl(W,H,`전략 낙폭 차트: 최대 ${(dd[mi]*100).toFixed(1)}%, ${fmtD(days[mi])}`);
+  nt.ticks.forEach(v=>{ if(v<0) g+=`<line class="grid" x1="${L}" x2="${W-Rr}" y1="${y(v)}" y2="${y(v)}"/>`; g+=`<text class="tk" x="${L-8}" y="${y(v)+4}" text-anchor="end">${(v*100).toFixed(0)}%</text>`;});
+  g+=`<path d="${p}" fill="${css('--s1')}" fill-opacity=".12"/><path d="${line}" fill="none" stroke="${css('--s1')}" stroke-width="2" stroke-linejoin="round"/>`;
+  g+=`<line class="axis" x1="${L}" x2="${W-Rr}" y1="${y(0)}" y2="${y(0)}"/>`+yearTicks(days,x,H,B,false);
+  g+=`<circle cx="${x(mi)}" cy="${y(dd[mi])}" r="4" fill="${css('--s1')}" stroke="${css('--surface')}" stroke-width="2"/><text x="${x(mi)>W*0.6?x(mi)-9:x(mi)+9}" text-anchor="${x(mi)>W*0.6?'end':'start'}" y="${y(dd[mi])+4}"><tspan class="lab">${(dd[mi]*100).toFixed(1)}%</tspan><tspan class="lab2" dx="5">최대 낙폭</tspan></text>`;
+  g+=`<g id="hv" visibility="hidden"><line class="cx" id="cx" y1="${T}" y2="${H-B}"/><circle id="hd" r="4" fill="${css('--s1')}" stroke="${css('--surface')}" stroke-width="2"/></g></svg>`;
+  el.insertAdjacentHTML("afterbegin",g);
+  const svg=el.querySelector("svg"), hv=svg.querySelector("#hv"), cx=svg.querySelector("#cx"), hd=svg.querySelector("#hd");
+  hover(el,svg,W,dd.length,px=>Math.round((px-L)/(W-Rr-L)*(dd.length-1)),(i,k)=>{
+    cx.setAttribute("x1",x(i)); cx.setAttribute("x2",x(i)); hd.setAttribute("cx",x(i)); hd.setAttribute("cy",y(dd[i])); hv.setAttribute("visibility","visible");
+    tipShow(tip,el,x(i)*k,fmtD(days[i]),[{c:css('--s1'),v:`${(dd[i]*100).toFixed(1)}%`,n:"최고점 대비"}]);
+  },()=>{tip.classList.remove("show"); hv.setAttribute("visibility","hidden");});
 }
 function drawIC(){
-  const ic=(D.ic||[]).filter(x=>x.ic!=null); if(!ic.length){document.getElementById("c3").innerHTML='<div class="empty">IC 없음</div>';return;}
-  const W=500,H=200,L=40,Rr=10,T=10,B=24, m=Math.max(0.05,...ic.map(x=>Math.abs(x.ic)));
-  const bw=(W-L-Rr)/ic.length, y=scale(-m,m,H-B,T);
-  let g=svgEl(W,H)+`<line x1="${L}" x2="${W-Rr}" y1="${y(0)}" y2="${y(0)}" stroke="${css('--muted')}"/>`;
-  ic.forEach((v,i)=>{const h=Math.abs(y(v.ic)-y(0));g+=`<rect x="${L+i*bw+1}" y="${v.ic>=0?y(v.ic):y(0)}" width="${Math.max(1,bw-2)}" height="${Math.max(1,h)}" rx="2" fill="${css('--s1')}"><title>${fmtD(v.r)} IC ${v.ic.toFixed(3)}</title></rect>`;});
-  [m,0,-m].forEach(v=>g+=`<text x="${L-6}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="${css('--muted')}">${v.toFixed(2)}</text>`);
-  document.getElementById("c3").innerHTML=g+"</svg>";
+  const ic=(D.ic||[]).filter(x=>x.ic!=null); if(!ic.length){const e=document.getElementById("c3"); if(!e.querySelector(".empty")) e.insertAdjacentHTML("afterbegin",'<div class="empty">IC 없음</div>');return;}
+  const el=document.getElementById("c3"), tip=document.getElementById("t3"); el.querySelector("svg")?.remove();
+  const W=Math.max(300,el.clientWidth||500), H=W<640?200:220, L=46, Rr=12, T=12, B=30;
+  const m=Math.max(0.05,...ic.map(x=>Math.abs(x.ic))), nt=niceTicks(-m,m,6), dec=Math.max(2,decOf(nt.step));
+  const slot=(W-L-Rr)/ic.length, bw=Math.min(24,Math.max(1,slot-2)), y=scale(nt.lo,nt.hi,H-B,T), y0=y(0);
+  const pos=ic.filter(v=>v.ic>0).length;
+  let g=svgEl(W,H,`리밸런싱별 IC 막대: ${ic.length}회 중 양수 ${pos}회`);
+  nt.ticks.forEach(v=>{ if(Math.abs(v)>1e-12) g+=`<line class="grid" x1="${L}" x2="${W-Rr}" y1="${y(v)}" y2="${y(v)}"/>`; g+=`<text class="tk" x="${L-8}" y="${y(v)+4}" text-anchor="end">${v===0?'0':v.toFixed(dec)}</text>`;});
+  // 막대: 기준선 쪽은 각지게, 끝만 4px 둥글게. 양수=1번 파랑, 0 이하=중립 회색
+  const r=Math.min(4,bw/2);
+  ic.forEach((v,i)=>{const cxm=L+slot*(i+.5), x0=cxm-bw/2, yv=y(v.ic), h=Math.abs(yv-y0);
+    let d; if(h<r){d=`M${x0},${Math.min(yv,y0)}h${bw}v${Math.max(1,h)}h${-bw}Z`;}
+    else if(v.ic>=0){d=`M${x0},${y0}V${yv+r}Q${x0},${yv} ${x0+r},${yv}H${x0+bw-r}Q${x0+bw},${yv} ${x0+bw},${yv+r}V${y0}Z`;}
+    else {d=`M${x0},${y0}V${yv-r}Q${x0},${yv} ${x0+r},${yv}H${x0+bw-r}Q${x0+bw},${yv} ${x0+bw},${yv-r}V${y0}Z`;}
+    g+=`<path class="bar" data-i="${i}" d="${d}" fill="${css(v.ic>0?'--s1':'--neutral')}"/>`;});
+  g+=`<line class="axis" x1="${L}" x2="${W-Rr}" y1="${y0}" y2="${y0}"/>`;
+  const rd=ic.map(v=>v.r); let last=-1e9; [...new Set(rd.map(d=>d.slice(0,4)))].forEach(yy=>{const i=rd.findIndex(d=>d.startsWith(yy)), px=L+slot*(i+.5); if(px-last<34) return; last=px; g+=`<text class="tk" x="${px}" y="${H-B+17}" text-anchor="middle">${yy}</text>`;});
+  el.insertAdjacentHTML("afterbegin",g+"</svg>");
+  document.getElementById("ic-key").innerHTML=`<span class="legend" style="display:inline-flex;margin:0;vertical-align:middle"><span><i class="box" style="background:${css('--s1')}"></i>맞음(양수) ${pos}회</span><span><i class="box" style="background:${css('--neutral')}"></i>틀림(0 이하) ${ic.length-pos}회</span></span>`;
+  const svg=el.querySelector("svg"), bars=[...svg.querySelectorAll(".bar")];
+  hover(el,svg,W,ic.length,px=>Math.floor((px-L)/slot),(i,k)=>{
+    el.classList.add("hovering"); bars.forEach(b=>b.classList.toggle("on",+b.dataset.i===i));
+    tipShow(tip,el,(L+slot*(i+.5))*k,`리밸런싱 ${fmtD(ic[i].r)}`,[{c:css(ic[i].ic>0?'--s1':'--neutral'),v:`${sgn(ic[i].ic)}${ic[i].ic.toFixed(3)}`,n:"IC",box:true}]);
+  },()=>{tip.classList.remove("show"); el.classList.remove("hovering"); bars.forEach(b=>b.classList.remove("on"));});
 }
 function tables(){
   const y=R.yearly||{}, ks=D.index&&D.index.KOSPI?Object.fromEntries(D.index.KOSPI):{};

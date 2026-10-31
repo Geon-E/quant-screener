@@ -138,6 +138,7 @@ h1{font-size:26px;font-weight:700;line-height:1.3;margin:0;letter-spacing:-.02em
 .strip{display:block;width:132px;height:22px}
 .strip .base{stroke:var(--line)} .strip .tick{stroke:var(--faint);opacity:.55} .strip .me{fill:var(--accent);stroke:var(--surface);stroke-width:2}
 .strip .me.muted{fill:var(--faint)}
+.strip .end{font-size:11.5px;fill:var(--muted);font-family:var(--f-body);font-variant-numeric:tabular-nums}
 .more{justify-self:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 22px;min-height:44px;color:var(--accent);font-weight:500;cursor:pointer}
 .more:hover{background:var(--accent-soft);border-color:transparent}
 .emptybox{padding:28px 18px;color:var(--muted);text-align:center}
@@ -162,9 +163,9 @@ table.gt{border-collapse:collapse;width:100%;font-size:13.5px}
 .gt th[data-dk]{cursor:pointer}
 .gt th[aria-sort="descending"]::after{content:" ▼";font-size:9px}
 .gt th[aria-sort="ascending"]::after{content:" ▲";font-size:9px}
-.trend{display:inline-flex;align-items:flex-end;gap:2px;height:20px;vertical-align:middle}
-.trend i{display:block;width:8px;background:var(--accent);opacity:.75;border-radius:1px}
-.trend i.z{background:var(--line);height:2px!important}
+.trend{display:inline-flex;align-items:flex-end;gap:2px;height:20px;vertical-align:middle;border-bottom:1px solid var(--line);padding:0 1px}
+.trend i{display:block;width:8px;background:var(--accent);border-radius:2px 2px 0 0}
+.trend i.z{background:none;height:0!important}
 .gt .nmcell{font-weight:600}
 .gt .nmcell small{display:block;color:var(--muted);font-weight:400;font-size:12px}
 
@@ -192,14 +193,14 @@ table.gt{border-collapse:collapse;width:100%;font-size:13.5px}
 .bk div{background:var(--soft);border-radius:var(--r-md);padding:8px 10px}
 .bk span{display:block;font-size:12.5px;color:var(--muted)}
 .bk b{font-size:18px}
-.bk .bar{height:4px;border-radius:2px;background:var(--line);margin-top:6px;position:relative;overflow:hidden}
-.bk .bar i{position:absolute;inset:0 auto 0 0;background:var(--accent)}
+.bk .bar{height:6px;border-radius:3px;background:var(--accent-soft);margin-top:6px;position:relative;overflow:hidden}
+.bk .bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:3px}
 table.mt{border-collapse:collapse;width:100%;font-size:13px}
 .mt th,.mt td{padding:7px 6px;border-bottom:1px solid var(--soft);text-align:right}
 .mt th{color:var(--muted);font-weight:600;font-size:12.5px}
 .mt .l{text-align:left}
 .mt small{color:var(--faint);font-size:11px;margin-left:3px}
-.pc{display:inline-block;width:52px;height:5px;border-radius:3px;background:var(--soft);vertical-align:middle;margin-left:6px;position:relative}
+.pc{display:inline-block;width:52px;height:6px;border-radius:3px;background:var(--accent-soft);vertical-align:middle;margin-left:8px;position:relative}
 .pc i{position:absolute;inset:0 auto 0 0;border-radius:3px;background:var(--accent)}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:0}
 .kv dt{color:var(--muted)} .kv dd{margin:0}
@@ -392,7 +393,8 @@ function strip(r, W=132, H=22){
   if(r.sc==null||!peers.length) return `<svg class="strip" viewBox="0 0 ${W} ${H}"${sty} aria-hidden="true"><line class="base" x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}"/></svg>`;
   const ticks=peers.map(v=>`<line class="tick" x1="${xs(v).toFixed(1)}" y1="${y-5}" x2="${xs(v).toFixed(1)}" y2="${y+5}"/>`).join("");
   const below=peers.filter(v=>v<r.sc).length;
-  return `<svg class="strip" viewBox="0 0 ${W} ${H}"${sty} role="img" aria-label="${esc(r.g||'')} 사업군 순위 대상 ${peers.length}개 중 이 종목보다 점수 낮은 종목 ${below}개"><line class="base" x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}"/>${ticks}<circle class="me ${r.rk?'':'muted'}" cx="${xs(r.sc).toFixed(1)}" cy="${y}" r="5"/></svg>`;
+  const big=W>200, ends=big?`<text class="end" x="${pad}" y="${H+14}">최저 ${lo.toFixed(1)}</text><text class="end" x="${W-pad}" y="${H+14}" text-anchor="end">최고 ${hi.toFixed(1)}</text>`:'';
+  return `<svg class="strip" viewBox="0 0 ${W} ${big?H+18:H}"${big?` style="width:100%;height:${H+18}px;overflow:visible"`:''} role="img" aria-label="${esc(r.g||'')} 사업군 순위 대상 ${peers.length}개 중 이 종목보다 점수 낮은 종목 ${below}개"><line class="base" x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}"/>${ticks}<circle class="me ${r.rk?'':'muted'}" cx="${xs(r.sc).toFixed(1)}" cy="${y}" r="5"/>${ends}</svg>`;
 }
 function chg(r){
   if(!S.prev_asof || !r.rk) return "";
@@ -596,7 +598,7 @@ let dSort="yield_now", dDir=-1;
 function trend(d){
   const v=[d.dps2,d.dps1,d.dps]; const mx=Math.max(...v.filter(x=>x!=null),0);
   if(!mx) return D;
-  return `<span class="trend" title="전전기 ${v[0]??'–'} → 전기 ${v[1]??'–'} → 당기 ${v[2]??'–'}원">${v.map(x=>x==null?'<i class="z"></i>':x===0?'<i class="z"></i>':`<i style="height:${Math.max(3,Math.round(20*x/mx))}px"></i>`).join("")}</span>`;
+  return `<span class="trend" role="img" aria-label="3년 배당 추이" title="전전기 ${v[0]==null?'–':won(v[0])} → 전기 ${v[1]==null?'–':won(v[1])} → 당기 ${v[2]==null?'–':won(v[2])}">${v.map(x=>x==null?'<i class="z"></i>':x===0?'<i class="z"></i>':`<i style="height:${Math.max(3,Math.round(20*x/mx))}px"></i>`).join("")}</span>`;
 }
 function divView(){
   const mk=document.getElementById("dmk").value, st=document.getElementById("dstreak").checked, up=document.getElementById("dup").checked, sf=document.getElementById("dsafe").checked;
