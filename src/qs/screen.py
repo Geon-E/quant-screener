@@ -257,12 +257,25 @@ def risk_flags(r: dict, debt_top10: float | None, exclude_loss: bool = True, exc
         r["warn"].append("이자보상배율이 금융원가 대용으로 계산됨")
 
 
+HYBRID_W = 0.7   # 혼합 방식: 업종 안 점수 70% + 시장 전체 점수 30% (결과 보기 전 2026-10-31 사전 등록, EXPERIMENTS #4)
+
+
+def market_composite(rows: list[dict], weights: dict | None = None) -> dict[str, float | None]:
+    """업종 구분 없이 전체를 한 묶음으로 같은 방식 채점. 원본 행은 바꾸지 않는다."""
+    copies = [{"stock_code": r["stock_code"], "metrics": {k: v for k, v in (r.get("metrics") or {}).items() if k != "PBR-ROE잔차"},
+               "exclude": []} for r in rows]
+    if len(copies) < MIN_GROUP_N:
+        return {}
+    score_group(copies, weights)
+    return {c["stock_code"]: c.get("composite") for c in copies}
+
+
 def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv: dict[str, list[float]],
                      halted: set[str], groups, opts: dict | None = None) -> tuple[list[dict], list[dict], dict]:
     """평가 결과 → 유니버스 필터·사업군 점수·위험 필터·순위. 현재 화면과 백테스트가 같은 규칙을 쓰도록 분리.
     meta[code] = {market, sect, list_dd}. tv[code] = 최근 20거래일 거래대금 목록.
     opts (비교 실험용, 기본 = 전략 v1): weights, exclude_loss, exclude_fscore,
-          grouping = table(사업군 표) | ksic2(KSIC 앞 2자리) | market(전체 시장)"""
+          grouping = table(사업군 표) | ksic2(KSIC 앞 2자리) | market(전체 시장) | hybrid(업종 70% + 시장 30%)"""
     opts = opts or {}
     grouping = opts.get("grouping", "table")
     overrides, gnames = load_overrides(), group_names()
@@ -316,14 +329,20 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
     by_g = defaultdict(list)
     for r in out:
         if not r["exclude"]:
-            key = {"table": r["group_id"], "ksic2": "K" + (r.get("induty_code") or "")[:2], "market": "ALL"}[grouping]
+            key = {"table": r["group_id"], "hybrid": r["group_id"], "ksic2": "K" + (r.get("induty_code") or "")[:2], "market": "ALL"}[grouping]
             r["score_group"] = key
             by_g[key].append(r)
+    # 시장 전체 기준 점수 (같은 지표·가중치, 업종 구분 없이) — 화면 참고용 + 혼합 방식(2026-10-31 사전 등록)
+    mkt = market_composite([r for rows in by_g.values() for r in rows], opts.get("weights"))
     for gid, rows in by_g.items():
         drs = sorted(x["debt_ratio"] for x in rows if x["debt_ratio"] is not None)
         top10 = drs[int(len(drs) * 0.9)] if len(drs) >= 10 else None
         score_group(rows, opts.get("weights"))
         for r in rows:
+            r["mkt_composite"] = mkt.get(r["stock_code"])
+            if grouping == "hybrid":
+                r["composite"] = (round(HYBRID_W * r["composite"] + (1 - HYBRID_W) * r["mkt_composite"], 1)
+                                  if r.get("composite") is not None and r.get("mkt_composite") is not None else None)
             r["group_n"] = len(rows)
             r["reliability"] = reliability(len(rows))
             if len(rows) < MIN_GROUP_N:
@@ -374,6 +393,9 @@ def run() -> dict:
         if c in kind_admin and "관리종목" not in (u.get("sect") or ""):
             u["sect"] = (u.get("sect") or "") + " 관리종목(KIND)"
     out, ranked, by_g = filter_and_score(evals, meta, asof, tv, halted, groups)
+    for i, r in enumerate(sorted([x for x in ranked if x.get("mkt_composite") is not None],
+                                 key=lambda x: (-x["mkt_composite"], x["stock_code"])), 1):
+        r["mkt_rank"] = i
     for r in out:
         r["dividend"] = dividend_info(r.get("corp_code"), r.get("close")) if r.get("status") == "ok" else None
     fin_n = financial_scores(out)

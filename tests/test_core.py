@@ -957,3 +957,24 @@ def test_us_ttm_with_derived_q4_and_metrics():
     g = load_groups()
     assert group_of("3674", g)[0] == "U06" and group_of("3672", g)[0] == "U07" and group_of("6798", g)[0] == "EX"
     assert group_of("7372", g)[0] == "U10" and group_of("8731", g)[0] == "U03" and group_of("5812", g)[0] == "U26"
+
+
+def test_market_and_hybrid_scores():
+    """시장 전체 점수는 업종 구분 없이 계산되고, 혼합은 업종 70% + 시장 30% (사전 등록 EXPERIMENTS #4)."""
+    from qs.screen import filter_and_score, load_groups, HYBRID_W
+    def ev(code, k, i):
+        m = {"E/P": 0.02 + i * 0.01, "B/P": 0.5 + i * 0.05, "EBIT/EV": 0.03 + i * 0.01, "ROE": 0.05 + (i % 5) * 0.02,
+             "GP/A": 0.1 + i * 0.01, "CFO/NI": 1.0, "12-1모멘텀": 0.05 * i, "영업이익증가율": 0.1, "이자보상배율": 5.0 + i}
+        return {"stock_code": code, "name": code, "status": "ok", "induty_code": k, "mcap": 1e12, "metrics": m,
+                "stock": {"equity_owners": 1e11}, "ttm": {"ni_owners": 1e10}}
+    evs = [ev(f"9{i:05d}", "264", i) for i in range(12)] + [ev(f"7{i:05d}", "21", i + 5) for i in range(12)]
+    tv = {r["stock_code"]: [1e10] * 20 for r in evs}
+    import copy
+    out_t, _, _ = filter_and_score(copy.deepcopy(evs), {}, dt.date(2026, 10, 22), tv, set(), load_groups())
+    out_h, _, _ = filter_and_score(copy.deepcopy(evs), {}, dt.date(2026, 10, 22), tv, set(), load_groups(), {"grouping": "hybrid"})
+    t = {r["stock_code"]: r for r in out_t}
+    for r in out_h:
+        a, m = t[r["stock_code"]].get("composite"), r.get("mkt_composite")
+        if a is not None and m is not None:
+            assert abs(r["composite"] - round(HYBRID_W * a + (1 - HYBRID_W) * m, 1)) < 0.11
+    assert any(r.get("mkt_composite") is not None for r in out_t)

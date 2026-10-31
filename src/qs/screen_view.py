@@ -45,6 +45,7 @@ def compact(r: dict) -> dict:
         "fd": pm.get("rcept_dt_first"), "av": pm.get("available_date"),
         "mr": {k: v for k, v in mr.items() if k in SHOW},
         "prk": r.get("prev_rank"), "pk": r.get("prev_known"),
+        "msc": _r(r.get("mkt_composite"), 1), "mrk": r.get("mkt_rank"),
         "dv": ({k: (_r(v, 3) if isinstance(v, float) else v) for k, v in r["dividend"].items()} if r.get("dividend") else None),
         "fg": r.get("fin_group"), "fs2": r.get("fin_score"), "frk": r.get("fin_rank"), "fp": r.get("fin_pct"),
         "fx": r.get("fin_other_ex"),
@@ -337,6 +338,7 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
       <input type="search" id="q" placeholder="종목명 또는 코드" aria-label="종목 검색">
       <select id="mk" aria-label="시장"><option value="">전체 시장</option><option value="KOSPI">코스피</option><option value="KOSDAQ">코스닥</option></select>
       <select id="grp" aria-label="사업군"><option value="">전체 사업군</option></select>
+      <select id="basis" aria-label="순위 기준"><option value="g">순위 기준: 업종 안 비교</option><option value="m">순위 기준: 시장 전체 비교 (참고)</option></select>
       <label><input type="checkbox" id="showx"> 순위 제외 종목 보기</label>
       <button class="ghost" id="csv">CSV 받기</button>
       <span class="count" id="count"></span>
@@ -456,7 +458,10 @@ let sortK="rk", sortDir=1, limit=150, view="all", openCode=null, lastFocus=null;
 const WKEY = US ? "qs-watch-us" : "qs-watch";
 let WATCH=new Set(); try{WATCH=new Set(JSON.parse(localStorage.getItem(WKEY)||"[]"));}catch(e){}
 function saveWatch(){try{localStorage.setItem(WKEY,JSON.stringify([...WATCH]));}catch(e){}}
-const val = (r,k) => k==="roe"?r.m.ROE : k==="mom"?r.m["12-1모멘텀"] : k==="g"?(r.g||"") : k==="n"?(r.n||"") : r[k];
+let BASIS="g";
+const RK = r => BASIS==="m" ? r.mrk : r.rk;
+const SC = r => BASIS==="m" ? r.msc : r.sc;
+const val = (r,k) => k==="rk" ? RK(r) : k==="sc" ? SC(r) : k==="roe"?r.m.ROE : k==="mom"?r.m["12-1모멘텀"] : k==="g"?(r.g||"") : k==="n"?(r.n||"") : r[k];
 
 function marketSetup(){
   if(!US){ if(!S.has_us) document.getElementById("other-mkt").hidden=true; return; }
@@ -535,10 +540,10 @@ function flag(r){
 }
 function row(r){
   return `<div class="grid row ${openCode===r.c?'sel':''}" role="row" tabindex="0" data-c="${r.c}">
-    <div class="g-rk rk" role="cell">${r.rk?`<b>${r.rk}</b>${chg(r)}`:(r.x.length?'<span class="xr">제외</span>':D)}</div>
+    <div class="g-rk rk" role="cell">${RK(r)?`<b>${RK(r)}</b>${BASIS==="g"?chg(r):''}`:(r.x.length?'<span class="xr">제외</span>':D)}</div>
     <div class="g-nm nm" role="cell"><button class="star ${WATCH.has(r.c)?'on':''}" data-w="${r.c}" aria-label="관심 종목 ${WATCH.has(r.c)?'해제':'추가'}" aria-pressed="${WATCH.has(r.c)}">★</button><span class="t"><span class="n">${esc(r.n)}</span><span class="cd">${r.c} · ${mkname(r.mk)}</span></span></div>
     <div class="g-grp grp" role="cell" title="${esc(r.g||'')}${r.gn?` · 비교 대상 ${r.gn}개`:''}">${esc(r.g||'미배정')}${r.gn?`<small class="${r.rel==='낮음'?'low':''}">${r.gn}</small>`:''}${flag(r)?`<span class="m-flag"> ${flag(r)}</span>`:''}</div>
-    <div class="g-sc sc ${r.rk?'':'muted'}" role="cell">${num(r.sc,1)}</div>
+    <div class="g-sc sc ${r.rk?'':'muted'}" role="cell">${num(SC(r),1)}</div>
     <div class="g-strip" role="cell">${strip(r)}</div>
     <div class="g-per r" role="cell">${r.per==null?D:num(r.per,1)}</div><div class="g-pbr r" role="cell">${r.pbr==null?D:num(r.pbr,2)}</div>
     <div class="g-roe r" role="cell">${pct(r.m.ROE)}</div><div class="g-mom r" role="cell">${pct(r.m["12-1모멘텀"],0,true)}</div>
@@ -566,7 +571,7 @@ function why(r){
   const bi=r.b.map((v,i)=>[v,i]).filter(x=>x[0]!=null).sort((a,b)=>b[0]-a[0]);
   const nv=Object.keys(LABEL).filter(k=>r.m[k]!=null).length;
   const L=[];
-  L.push(r.rk ? `<b>전체 ${r.rk}위</b>, ${esc(r.g)} 사업군 ${r.gn}개 중 ${r.grk}위입니다.`
+  L.push(r.rk ? `<b>전체 ${r.rk}위</b>, ${esc(r.g)} 사업군 ${r.gn}개 중 ${r.grk}위입니다.${r.mrk?` <span class="note">(업종 구분 없이 시장 전체로 비교하면 ${r.mrk}위, ${r.msc}점)</span>`:''}`
         : r.x.length ? `<b>순위 제외</b>: ${esc(r.xpf||r.x[0])}${r.x.length>1?` 외 ${r.x.length-1}건`:''}` : '<b>점수 없음</b>');
   if(bi.length) L.push(`가장 높은 묶음은 <b>${BK[bi[0][1]]}</b>(${bi[0][0].toFixed(0)}점)${bi.length>1?`, 가장 낮은 묶음은 <b>${BK[bi[bi.length-1][1]]}</b>(${bi[bi.length-1][0].toFixed(0)}점)`:''}입니다.`);
   if(strong.length) L.push(`<span class="pos">강점</span> ${strong.map(k=>`${LABEL[k]} 사업군 상위 ${Math.max(1,Math.round(100-r.p[k]))}%`).join(", ")}`);
@@ -681,6 +686,7 @@ document.addEventListener("click",e=>{const o=e.target.closest("[data-open]"); i
 document.getElementById("sh-close").addEventListener("click",closeSheet);
 document.getElementById("scrim").addEventListener("click",closeSheet);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && openCode) closeSheet(); });
+document.getElementById("basis").addEventListener("input",e=>{BASIS=e.target.value; sortK="rk"; sortDir=1; limit=150; render();});
 ["q","mk","grp","showx"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{limit=150;
   if(id==="showx"){const x=document.getElementById("showx").checked; sortK=x?"mc":"rk"; sortDir=x?-1:1;} render();}));
 document.getElementById("more").addEventListener("click",()=>{limit+=300; render();});

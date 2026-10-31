@@ -348,6 +348,7 @@ VARIANTS = {
     "F스코어미적용": {"exclude_fscore": False},
     "KSIC원분류": {"grouping": "ksic2"},
     "전체시장": {"grouping": "market"},
+    "혼합(업종70·시장30)": {"grouping": "hybrid"},   # 2026-10-31 사전 등록 (사용자 요청, 수익률 보기 전) — EXPERIMENTS #4
 }
 KEEP = ("stock_code", "corp_code", "name", "status", "error", "induty_code", "mcap", "close", "metrics", "ttm", "stock",
         "fscore", "fscore_items", "interest_basis", "period", "flags", "fs_div", "audit")
