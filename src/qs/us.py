@@ -380,6 +380,7 @@ def run(work: Path | None = None, price_calls: int = 60) -> dict:
            "groups": {g: len(v) for g, v in sorted(by_g.items(), key=lambda x: str(x[0]))},
            "status": dict(Counter_(r["status"] for r in out))}
     write_gz_json(L1 / "us" / "screen.json.gz", {"asof": dt.date.today().isoformat(), "rows": out, "summary": res})
+    res["etfs"] = etf_view(hist)
     publish(out, res)
     (REPORTS / "us").mkdir(parents=True, exist_ok=True)
     (REPORTS / "us" / "summary.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -390,6 +391,24 @@ def run(work: Path | None = None, price_calls: int = 60) -> dict:
 def Counter_(it):
     from collections import Counter
     return Counter(it)
+
+
+def etf_view(hist: dict) -> list[dict]:
+    """보유 ETF 요약: 현재가, 1개월·1년 수익률(가격 기준, 분배금 제외), 52주 고점 대비. 분배금 수익률은 후속(배당 API 호출 필요)."""
+    out = []
+    with (CONFIG / "us_etfs.csv").open(encoding="utf-8") as f:
+        for e in csv.DictReader(f):
+            px = hist.get(e["ticker"]) or []
+            if not px:
+                out.append({**e, "close": None})
+                continue
+            c = px[-1][1]
+            def ret(n):
+                return (c / px[-1 - n][1] - 1) if len(px) > n and px[-1 - n][1] else None
+            hi = max(x[1] for x in px[-252:])
+            out.append({**e, "close": c, "asof": px[-1][0], "r1m": ret(21), "r1y": ret(251), "from_high": c / hi - 1 if hi else None,
+                        "days": len(px)})
+    return out
 
 
 def compact_us(r: dict) -> dict:
@@ -422,6 +441,6 @@ def publish(out: list[dict], res: dict) -> None:
     warns = [] if res["prices"] else ["시세 키(MASSIVE_API_KEY)가 아직 없어 가치·추세 지표와 순위를 계산하지 못했습니다"]
     summary = {"market": "US", "asof_price": asof.replace("-", "") if asof else "", "ranked": res["ranked"],
                "evaluated": res["with_financials"], "universe_collected": res["companies"], "universe_total": res["companies"],
-               "collection_complete": True, "prev_asof": None,
+               "collection_complete": True, "prev_asof": None, "etfs": res.get("etfs") or [],
                "status": {"built_at": now_kst().isoformat(timespec="minutes"), "warnings": warns, "history": None}}
     build_view(out, summary, REPORTS / "us", compact_fn=compact_us, site_name="us.html", keep_reports=False)

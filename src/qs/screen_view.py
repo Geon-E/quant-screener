@@ -217,6 +217,9 @@ table.gt{border-collapse:collapse;width:100%;font-size:13.5px}
 .gwrap{overflow-x:auto}
 .gwrap table{min-width:760px}
 .pane-note{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+.etfbox{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.etfbox h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 8px}
+.etfbox table{min-width:560px}
 .gt th[data-dk]{cursor:pointer}
 .gt th[aria-sort="descending"]::after{content:" ▼";font-size:9px}
 .gt th[aria-sort="ascending"]::after{content:" ▲";font-size:9px}
@@ -313,6 +316,8 @@ footer{color:var(--muted);font-size:12px;display:grid;gap:4px}
       <details><summary>점수 계산 방법</summary><span class="more" id="method"></span></details></div>
   </header>
 
+  <section class="etfbox" id="etfbox" hidden><h2>관심 ETF</h2><div class="gwrap"><table class="gt"><thead><tr><th class="l">ETF</th><th class="l">구분</th><th>현재가</th><th>1개월</th><th>1년</th><th>52주 고점 대비</th></tr></thead><tbody id="etftb"></tbody></table></div>
+    <p class="pane-note" style="margin-top:6px">가격 기준 수익률(분배금 제외)입니다. 분배금 수익률은 추가 예정.</p></section>
   <div class="glance" id="glance">
     <section><h2>오늘의 상위 후보</h2><ol class="top5" id="top5"></ol></section>
     <section><h2 id="chg-title">어제 대비 변화</h2><div class="mini" id="chg"></div></section>
@@ -462,6 +467,9 @@ function marketSetup(){
   const mk=document.getElementById("mk"); mk.innerHTML='<option value="">전체 거래소</option><option value="NYSE">NYSE</option><option value="Nasdaq">Nasdaq</option>';
   document.getElementById("foot").innerHTML='<div>자료: SEC EDGAR(재무·업종 SIC, 무료 공식), Massive(시세, 무료 등급 장마감 기준). 재무는 최근 4개 분기 합(TTM), SEC 달력 분기 기준.</div><div>사업군: SIC 업종코드를 묶은 고정 표(v1). 금융·리츠·스팩은 본 순위에서 제외. 다중 클래스 주식은 대표 티커 가격 × 전체 주식수.</div>';
   ["tab-fin"].forEach(id=>document.getElementById(id).hidden=true);
+  const E=(S.etfs||[]).filter(e=>e.close!=null);
+  if(E.length){ document.getElementById("etfbox").hidden=false;
+    document.getElementById("etftb").innerHTML=E.map(e=>`<tr><td class="l nmcell">${esc(e.ticker)}<small>${esc(e.name)}</small></td><td class="l">${esc(e.kind)}</td><td>${won(e.close)}</td><td>${pct(e.r1m,1,true)}</td><td>${pct(e.r1y,1,true)}</td><td>${pct(e.from_high,1,true)}</td></tr>`).join(""); }
   if(!ROWS.some(r=>r.dv&&r.dv.dps>0)) document.getElementById("tab-div").hidden=true;
   document.querySelector("#pane-div .pane-note").textContent="SEC 공시의 주당 배당 선언액 최근 4분기 합과 지금 주가로 계산한 배당수익률입니다. 시가총액·거래대금 기준 미달, 자본잠식은 뺐습니다.";
 }

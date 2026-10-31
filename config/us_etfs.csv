@@ -1,0 +1,10 @@
+ticker,name,kind
+QQQ,Invesco QQQ (나스닥100),지수
+VOO,Vanguard S&P 500,지수
+SPY,SPDR S&P 500,지수
+SCHD,Schwab US Dividend Equity (미국 배당다우존스),고배당
+VYM,Vanguard High Dividend Yield,고배당
+JEPQ,JPMorgan Nasdaq Equity Premium Income,프리미엄 인컴
+JEPI,JPMorgan Equity Premium Income,프리미엄 인컴
+GLD,SPDR Gold Shares,금
+IAU,iShares Gold Trust,금
