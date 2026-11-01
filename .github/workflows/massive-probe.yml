@@ -1,0 +1,32 @@
+name: massive-probe
+# 임시 진단: Massive 무료 등급에서 재무·종목정보 API가 되는지 (확인 후 삭제)
+on: workflow_dispatch
+permissions: {contents: read}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env: {K: "${{ secrets.MASSIVE_API_KEY }}"}
+        run: |
+          set +e
+          for path in "vX/reference/financials?ticker=AAPL&limit=2&timeframe=quarterly" "stocks/financials/v1/income-statements?tickers=AAPL&limit=2" "v3/reference/tickers/AAPL" "v3/reference/dividends?ticker=AAPL&limit=2"; do
+            case "$path" in *\?*) sep="&";; *) sep="?";; esac
+            code=$(curl -s --compressed -o /tmp/b -w '%{http_code}' "https://api.massive.com/${path}${sep}apiKey=$K")
+            echo "== $code $path"
+            python3 -c "
+          import json,sys
+          try:
+              d=json.load(open('/tmp/b'))
+          except Exception as e:
+              print('not json', open('/tmp/b').read(200)); sys.exit()
+          print('status',d.get('status'),'msg',str(d.get('message') or d.get('error') or '')[:200])
+          r=d.get('results')
+          if isinstance(r,list) and r:
+              x=r[0]; print('keys',list(x)[:20])
+              f=x.get('financials') or {}
+              print('fin sections',list(f)); print('income keys',list((f.get('income_statement') or {}))[:15])
+          elif isinstance(r,dict): print('keys',list(r)[:30]); print('sic',r.get('sic_code'),r.get('sic_description'),'shares',r.get('share_class_shares_outstanding'),r.get('weighted_shares_outstanding'))
+          "
+            sleep 13
+          done
