@@ -332,6 +332,7 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
   .g-nums{gap:2px 10px;font-size:12px}
 }
 .g-nums{display:none}
+.lite .col-po,.lite .col-sc{display:none}
 .m-flag{display:none}
 @media (max-width:720px){.m-flag{display:inline}}
 @media (prefers-reduced-motion:reduce){.sheet{transition:opacity 150ms linear}.sheet.closed{transform:none;opacity:0}.scrim{animation:none}.star:active,.ghost:active,.more:active,.close:active{transform:none}}
@@ -350,8 +351,8 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
       <details><summary>점수 계산 방법</summary><span class="more" id="method"></span></details></div>
   </header>
 
-  <section class="etfbox" id="etfbox" hidden><h2>관심 ETF</h2><div class="gwrap"><table class="gt"><thead><tr><th class="l">ETF</th><th class="l">구분</th><th>현재가 <span class="u">($)</span></th><th>1개월 <span class="u">(%)</span></th><th>1년 <span class="u">(%)</span></th><th>52주 고점 대비 <span class="u">(%)</span></th></tr></thead><tbody id="etftb"></tbody></table></div>
-    <p class="pane-note" style="margin-top:6px">가격 기준 수익률(분배금 제외)입니다. 분배금 수익률은 추가 예정.</p></section>
+  <section class="etfbox" id="etfbox" hidden><h2>관심 ETF</h2><div class="gwrap"><table class="gt"><thead><tr><th class="l">ETF</th><th class="l">구분</th><th>현재가 <span class="u">($)</span></th><th>1개월 <span class="u">(%)</span></th><th>1년 <span class="u">(%)</span></th><th>52주 고점 대비 <span class="u">(%)</span></th><th>분배금 수익률 <span class="u">(%)</span></th></tr></thead><tbody id="etftb"></tbody></table></div>
+    <p class="pane-note" style="margin-top:6px">1개월·1년·고점 대비는 가격 기준(분배금 제외)입니다. 분배금 수익률은 최근 12개월 정기 분배금 합 ÷ 현재가입니다.</p></section>
   <div class="glance" id="glance">
     <section><h2>오늘의 상위 후보</h2><ol class="top5" id="top5"></ol></section>
     <section><h2 id="chg-title">어제 대비 변화</h2><div class="mini" id="chg"></div></section>
@@ -398,7 +399,7 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
       <span class="count" id="dcount"></span>
     </div>
     <div class="list gwrap" style="margin-top:10px"><table class="gt" id="dtab"><thead><tr>
-      <th class="l">종목</th><th class="l">사업군</th><th data-dk="yield_now">배당수익률 <span class="u">(%)</span></th><th data-dk="dps">주당배당금 <span class="u" id="dps-u">(원)</span></th><th class="c">3년 추이</th><th data-dk="payout">배당성향 <span class="u">(%)</span></th><th data-dk="sc">종합점수</th><th class="l">비고</th>
+      <th class="l">종목</th><th class="l" id="dg-h">사업군</th><th data-dk="yield_now">배당수익률 <span class="u">(%)</span></th><th data-dk="dps">주당배당금 <span class="u" id="dps-u">(원)</span></th><th class="c" id="dtr-h">3년 추이</th><th data-dk="payout" class="col-po">배당성향 <span class="u">(%)</span></th><th data-dk="sc" class="col-sc">종합점수</th><th class="l">비고</th>
     </tr></thead><tbody id="dtb"></tbody></table></div>
   </div>
 
@@ -453,6 +454,7 @@ const num = (v,d=1) => v==null ? D : v.toLocaleString("ko-KR",{maximumFractionDi
 const pct = (v,d=1,color=false,unit=true) => v==null ? D : `<span class="${color?(v>0?'up':v<0?'down':''):''}">${color&&v>0?'+':''}${(v*100).toFixed(d)}${unit?'%':''}</span>`;
 const pctc = (v,d=1,color=false) => pct(v,d,color,false);   // 표 칸: 단위는 머리에
 const US = (S.market==="US");
+const LITE = US && !!S.lite;   // 미국 ETF·배당만 (재무 없이)
 const mcap = v => v==null ? D : US ? (v>=1e9 ? `$${(v/1e9).toLocaleString("en-US",{maximumFractionDigits:1,minimumFractionDigits:1})}B` : `$${Math.round(v/1e6).toLocaleString()}M`)
   : v>=1e12 ? `${(v/1e12).toLocaleString("ko-KR",{maximumFractionDigits:1,minimumFractionDigits:1})}조` : `${Math.round(v/1e8).toLocaleString()}억`;
 const mcc = v => v==null ? D : US ? (v/1e9).toLocaleString("en-US",{maximumFractionDigits:1,minimumFractionDigits:1}) : Math.round(v/1e8).toLocaleString("ko-KR");
@@ -504,19 +506,29 @@ function marketSetup(){
   if(!ROWS.some(r=>r.dv&&r.dv.dps>0)) document.getElementById("tab-div").hidden=true;
   if(!ROWS.some(r=>r.fg)) document.getElementById("tab-fin").hidden=true;
   if(!ROWS.some(r=>r.mrk)) document.getElementById("basis").hidden=true;
+  if(LITE){
+    document.body.classList.add("lite");
+    document.title="미국 ETF·배당";
+    ["tab-all","tab-watch","tab-grp","tab-fin","glance"].forEach(id=>document.getElementById(id).hidden=true);
+    ["dstreak","dsafe"].forEach(id=>document.getElementById(id).closest("label").hidden=true);
+    document.getElementById("dg-h").textContent="배당 주기";
+    document.getElementById("dtr-h").textContent="2년 추이";
+    document.querySelector(".lede").textContent="관심 ETF와 미국 배당주를 최근 12개월 배당 기준으로 봅니다. 미국 재무 자료(SEC)를 받을 수 없어 저평가 순위는 아직 없습니다.";
+    document.querySelector(".caution").innerHTML="<strong>배당수익률은 지난 12개월 기준입니다.</strong> 앞으로의 배당을 보장하지 않으며, 특별배당은 빼고 계산합니다. <details><summary>계산 방법</summary><span class='more' id='method'></span></details>";
+  }
   if(!US){ if(!S.has_us) document.getElementById("other-mkt").hidden=true; return; }
-  document.title="미국 업종 대비 저평가 후보";
-  document.querySelector("h1").textContent="미국 업종 대비 저평가 후보";
+  if(!LITE) document.title="미국 업종 대비 저평가 후보";
+  document.querySelector("h1").textContent=LITE?"미국 ETF·배당":"미국 업종 대비 저평가 후보";
   const o=document.getElementById("other-mkt"); o.href="index.html"; o.textContent="국내 보기";
   document.getElementById("bt-link").hidden=true;
   const mk=document.getElementById("mk"); mk.innerHTML='<option value="">전체 거래소</option><option value="NYSE">NYSE</option><option value="Nasdaq">Nasdaq</option>';
-  document.getElementById("foot").innerHTML='<div>자료: SEC EDGAR(재무·업종 SIC, 무료 공식), Massive(시세, 무료 등급 장마감 기준). 재무는 최근 4개 분기 합(TTM), SEC 달력 분기 기준.</div><div>사업군: SIC 업종코드를 묶은 고정 표(v1). 금융·리츠·스팩은 본 순위에서 제외. 다중 클래스 주식은 대표 티커 가격 × 전체 주식수.</div>';
+  document.getElementById("foot").innerHTML=LITE?'<div>자료: Massive(시세·배당 기록, 무료 등급 장마감 기준). NYSE·Nasdaq 보통주 중 20일 평균 거래대금 200만 달러 이상, 주가 1달러 이상.</div><div>미국 저평가 순위는 재무 자료(SEC)를 GitHub 서버에서 받을 수 없어 보류 중입니다.</div>':'<div>자료: SEC EDGAR(재무·업종 SIC, 무료 공식), Massive(시세, 무료 등급 장마감 기준). 재무는 최근 4개 분기 합(TTM), SEC 달력 분기 기준.</div><div>사업군: SIC 업종코드를 묶은 고정 표(v1). 금융·리츠·스팩은 본 순위에서 제외. 다중 클래스 주식은 대표 티커 가격 × 전체 주식수.</div>';
   ["tab-fin"].forEach(id=>document.getElementById(id).hidden=true);
   const E=(S.etfs||[]).filter(e=>e.close!=null);
   if(E.length){ document.getElementById("etfbox").hidden=false;
-    document.getElementById("etftb").innerHTML=E.map(e=>`<tr><td class="l nmcell">${esc(e.ticker)}<small>${esc(e.name)}</small></td><td class="l">${esc(e.kind)}</td><td>${Number(e.close).toLocaleString("en-US",{maximumFractionDigits:2,minimumFractionDigits:2})}</td><td>${pctc(e.r1m,1,true)}</td><td>${pctc(e.r1y,1,true)}</td><td>${pctc(e.from_high,1,true)}</td></tr>`).join(""); }
+    document.getElementById("etftb").innerHTML=E.map(e=>`<tr><td class="l nmcell">${esc(e.ticker)}<small>${esc(e.name)}</small></td><td class="l">${esc(e.kind)}</td><td>${Number(e.close).toLocaleString("en-US",{maximumFractionDigits:2,minimumFractionDigits:2})}</td><td>${pctc(e.r1m,1,true)}</td><td>${pctc(e.r1y,1,true)}</td><td>${pctc(e.from_high,1,true)}</td><td>${e.dy==null?D:e.dy.toFixed(2)}${e.dfreq?`<small style="display:block;color:var(--faint)">${esc(e.dfreq)} 분배</small>`:''}</td></tr>`).join(""); }
   document.getElementById("dps-u").textContent="($)";
-  document.querySelector("#pane-div .pane-note").textContent="SEC 공시의 주당 배당 선언액 최근 4분기 합과 지금 주가로 계산한 배당수익률입니다. 시가총액·거래대금 기준 미달, 자본잠식은 뺐습니다.";
+  document.querySelector("#pane-div .pane-note").textContent=LITE?"최근 12개월 정기 배당금 합을 지금 주가로 나눈 배당수익률입니다. 2년 추이는 전년 12개월과 최근 12개월 배당 합 비교입니다.":"SEC 공시의 주당 배당 선언액 최근 4분기 합과 지금 주가로 계산한 배당수익률입니다. 시가총액·거래대금 기준 미달, 자본잠식은 뺐습니다.";
 }
 function head(){
   const d=S.asof_price, ds=d?dfmt(d):"";
@@ -525,6 +537,12 @@ function head(){
   const pill = !S.collection_complete
     ? `<span class="pill wait"><i></i>잠정 순위 · 재무 수집 ${S.universe_collected.toLocaleString()}/${S.universe_total.toLocaleString()}개사</span>`
     : w.length ? `<span class="pill wait"><i></i>확인 필요 ${w.length}건</span>` : `<span class="pill ok"><i></i>오늘 갱신됨</span>`;
+  if(LITE){
+    document.getElementById("state").innerHTML = `<span class="pill ok"><i></i>ETF·배당만</span><span>시세 기준 <b>${ds||'–'}</b></span><span>배당주 <b>${S.evaluated.toLocaleString()}</b>개</span>`+
+      (w.length?`<span>${w.map(esc).join(" / ")}</span>`:"");
+    document.getElementById("method").textContent="배당수익률 = 최근 12개월 정기 배당 합(특별배당 제외) ÷ 최근 종가. 배당 주기는 지난 1년 배당 기록에서 가장 많은 주기입니다.";
+    return;
+  }
   document.getElementById("state").innerHTML = pill +
     `<span>시세 기준 <b>${ds}</b></span><span>순위 <b>${S.ranked.toLocaleString()}</b>개 / 평가 ${S.evaluated.toLocaleString()}개사</span>` +
     (h&&h.targets&&!h.complete?`<span>과거 재무 수집 ${Math.round(100*h.processed/h.targets)}% (백테스트 준비)</span>`:"") +
@@ -690,6 +708,7 @@ let dSort="yield_now", dDir=-1;
 function trend(d){
   const v=[d.dps2,d.dps1,d.dps]; const mx=Math.max(...v.filter(x=>x!=null),0);
   if(!mx) return D;
+  if(LITE) return `<span class="trend" role="img" aria-label="2년 배당 추이" title="전년 12개월 ${v[1]==null?'–':won(v[1])} → 최근 12개월 ${v[2]==null?'–':won(v[2])}">${[v[1],v[2]].map(x=>x==null||x===0?'<i class="z"></i>':`<i style="height:${Math.max(3,Math.round(20*x/mx))}px"></i>`).join("")}</span>`;
   return `<span class="trend" role="img" aria-label="3년 배당 추이" title="전전기 ${v[0]==null?'–':won(v[0])} → 전기 ${v[1]==null?'–':won(v[1])} → 당기 ${v[2]==null?'–':won(v[2])}">${v.map(x=>x==null?'<i class="z"></i>':x===0?'<i class="z"></i>':`<i style="height:${Math.max(3,Math.round(20*x/mx))}px"></i>`).join("")}</span>`;
 }
 function divView(){
@@ -701,9 +720,9 @@ function divView(){
   document.getElementById("dcount").textContent=`${rs.length.toLocaleString()}개 종목`;
   document.querySelectorAll("#dtab th[data-dk]").forEach(th=>{ if(th.dataset.dk===dSort) th.setAttribute("aria-sort",dDir>0?"ascending":"descending"); else th.removeAttribute("aria-sort"); });
   document.getElementById("dtb").innerHTML = rs.slice(0,300).map(r=>{const d=r.dv; const w=[...d.warn]; if(r.x.some(x=>x.startsWith("적자"))) w.push("적자");
-    return `<tr><td class="l nmcell"><button class="toplink" data-open="${r.c}">${esc(r.n)}</button><small>${r.c} · ${mkname(r.mk)}</small></td><td class="l">${esc(r.g||r.fg||'')}</td>
-    <td><b>${d.yield_now==null?D:d.yield_now.toFixed(2)}</b></td><td>${d.dps==null?D:(US?Number(d.dps).toLocaleString("en-US",{maximumFractionDigits:2,minimumFractionDigits:2}):Math.round(d.dps).toLocaleString("ko-KR"))}<small style="display:block;color:var(--faint)">${US?'최근 4분기 합':d.year+' 사업연도'}</small></td>
-    <td class="c">${trend(d)}</td><td class="${d.payout>100?'low':''}">${d.payout==null?D:d.payout.toFixed(0)}</td><td>${r.sc==null?'–':num(r.sc,1)+(r.rk?`<small style="display:block;color:var(--faint)">${r.rk}위</small>`:'')}</td>
+    return `<tr><td class="l nmcell">${LITE?`<span>${esc(r.n)}</span>`:`<button class="toplink" data-open="${r.c}">${esc(r.n)}</button>`}<small>${r.c} · ${mkname(r.mk)}</small></td><td class="l">${esc(LITE?(d.freq?d.freq+' 배당':''):(r.g||r.fg||''))}</td>
+    <td><b>${d.yield_now==null?D:d.yield_now.toFixed(2)}</b></td><td>${d.dps==null?D:(US?Number(d.dps).toLocaleString("en-US",{maximumFractionDigits:2,minimumFractionDigits:2}):Math.round(d.dps).toLocaleString("ko-KR"))}<small style="display:block;color:var(--faint)">${US?'최근 12개월 합':d.year+' 사업연도'}</small></td>
+    <td class="c">${trend(d)}</td><td class="col-po ${d.payout>100?'low':''}">${d.payout==null?D:d.payout.toFixed(0)}</td><td class="col-sc">${r.sc==null?'–':num(r.sc,1)+(r.rk?`<small style="display:block;color:var(--faint)">${r.rk}위</small>`:'')}</td>
     <td class="l">${w.length?`<span class="chip">${esc(w.join(' · '))}</span>`:''}</td></tr>`;}).join("") || '<tr><td colspan="8" class="l dash">조건에 맞는 종목이 없습니다. 위의 선택을 풀어 보세요.</td></tr>';
 }
 // ── 금융업 탭 ──
@@ -749,5 +768,6 @@ document.getElementById("csv").addEventListener("click",()=>{
   try{const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=`screener_${S.asof_price}.csv`; a.click();}catch(e){}
 });
 marketSetup(); head(); glance(); render();
+if(LITE) tab("div");
 </script>
 """

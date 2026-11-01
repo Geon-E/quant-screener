@@ -7,6 +7,10 @@
   - Massive grouped daily (하루 1회 호출로 전 종목 종가·거래대금), 무료 분당 5회·과거 2년 → 환경변수 MASSIVE_API_KEY
 보관: 원본 zip은 다시 받을 수 있으므로 저장하지 않고, 회사별 요약(L1 us/fundamentals)과 일별 시세(L0 us/grouped)만 둔다.
 한계: 다중 클래스 주식은 대표 티커 가격 × 전체 주식수, 회계연도는 SEC 'frame'(달력 분기 정렬)에 의존.
+
+2026-11-01: SEC가 GitHub 실행 서버 접속을 차단(403 'Undeclared Automated Tool'·'Request Rate Threshold', 4회 시험 모두).
+Massive 무료 등급은 재무 API가 없음(403 not entitled). 사용자 결정: 'ETF·배당만 먼저' → 기본은 run_lite.
+SEC 경로는 코드만 남겨 두고 환경변수 US_SEC=1일 때만 쓴다 (차단된 상태에서 재시도로 SEC를 두드리지 않도록).
 """
 from __future__ import annotations
 
@@ -252,56 +256,238 @@ def sic_map(subm_zip: Path, ciks: set[int]) -> dict[int, dict]:
 # ── 시세 (Massive grouped daily) ──
 def grouped(date: str) -> list[dict] | None:
     """date(YYYY-MM-DD) 전 종목 일봉. 휴장일은 빈 목록. L0 us/grouped/<date>.json.gz에 보관."""
-    import requests
     p = L0 / "us" / "grouped" / f"{date}.json.gz"
     if p.exists():
         return read_gz_json(p)
-    key = os.environ.get("MASSIVE_API_KEY", "").strip()
-    if not key:
+    if not os.environ.get("MASSIVE_API_KEY", "").strip():
         return None
-    for i in range(3):
-        r = requests.get(f"{MASSIVE}/v2/aggs/grouped/locale/us/market/stocks/{date}",
-                         params={"adjusted": "true", "apiKey": key}, timeout=120)
-        if r.status_code == 429:
-            time.sleep(65)
-            continue
-        if r.status_code == 200:
-            rows = [{"T": x["T"], "c": x.get("c"), "v": x.get("v"), "vw": x.get("vw")} for x in (r.json().get("results") or [])]
-            write_gz_json(p, rows)
-            time.sleep(12.5)      # 무료 분당 5회
-            return rows
-        break
-    raise RuntimeError(f"Massive {date} HTTP {r.status_code}: {r.text[:120].replace(key, '***')}")
+    js = _massive(f"/v2/aggs/grouped/locale/us/market/stocks/{date}", {"adjusted": "true"})   # 분당 5회 간격은 _massive가 지킴
+    rows = [{"T": x["T"], "c": x.get("c"), "v": x.get("v"), "vw": x.get("vw")} for x in (js.get("results") or [])]
+    write_gz_json(p, rows)
+    return rows
 
 
 def price_history(days_back: int = 380, budget_calls: int = 60) -> dict[str, list[tuple[str, float, float]]]:
-    """최근 days_back일 평일 일봉(이미 받은 날짜는 건너뜀) → {ticker: [(date, close, dollar_vol)]}. 새 호출은 budget_calls까지."""
+    """최근 days_back일 평일 일봉 → {ticker: [(date, close, dollar_vol)]} (날짜 오름차순).
+    아직 없는 날짜는 최근 날짜부터 새로 받는다(새 호출은 budget_calls까지) — 첫 실행에도 최신 종가가 먼저 생기도록."""
     today = dt.date.today()
-    calls = 0
-    hist = defaultdict(list)
-    for k in range(days_back, 0, -1):
-        d = today - dt.timedelta(days=k)
-        if d.weekday() >= 5:
-            continue
-        ds = d.isoformat()
-        p = L0 / "us" / "grouped" / f"{ds}.json.gz"
-        if not p.exists():
-            if calls >= budget_calls:
-                continue
-            calls += 1
+    days = [(today - dt.timedelta(days=k)).isoformat() for k in range(days_back, 0, -1)
+            if (today - dt.timedelta(days=k)).weekday() < 5]
+    missing = [d for d in reversed(days) if not (L0 / "us" / "grouped" / f"{d}.json.gz").exists()]
+    for ds in missing[:budget_calls]:
         try:
-            rows = grouped(ds)
+            grouped(ds)
         except RuntimeError as e:
             log(f"!! 미국 시세 {ds}: {e}")
+    hist = defaultdict(list)
+    for ds in days:
+        p = L0 / "us" / "grouped" / f"{ds}.json.gz"
+        if not p.exists():
             continue
-        for x in rows or []:
+        for x in read_gz_json(p) or []:
             if x.get("c"):
                 hist[x["T"]].append((ds, x["c"], (x.get("vw") or x["c"]) * (x.get("v") or 0)))
     return hist
 
 
+# ── Massive 공통 호출 (무료 분당 5회) ──
+_LAST_CALL = [0.0]
+
+
+def _massive(url: str, params: dict | None = None) -> dict:
+    import requests
+    key = os.environ.get("MASSIVE_API_KEY", "").strip()
+    if not key:
+        raise RuntimeError("MASSIVE_API_KEY 없음")
+    params = dict(params or {}, apiKey=key)
+    for i in range(4):
+        wait = 12.5 - (time.time() - _LAST_CALL[0])
+        if wait > 0:
+            time.sleep(wait)
+        r = requests.get(url if url.startswith("http") else f"{MASSIVE}{url}", params=params, timeout=120)
+        _LAST_CALL[0] = time.time()
+        if r.status_code == 429:
+            time.sleep(65)
+            continue
+        if r.status_code == 200:
+            return r.json()
+        break
+    raise RuntimeError(f"Massive {url.split('?')[0][-60:]} HTTP {r.status_code}: {r.text[:120].replace(key, '***')}")
+
+
+def _pages(path: str, params: dict, max_pages: int = 60) -> list[dict]:
+    out, url, prm = [], path, params
+    for _ in range(max_pages):
+        js = _massive(url, prm)
+        out += js.get("results") or []
+        nxt = js.get("next_url")
+        if not nxt:
+            return out
+        url, prm = nxt, {}          # next_url에 조건이 들어 있음 (키는 _massive가 붙임)
+    log(f"!! {path}: {max_pages}쪽에서 멈춤")
+    return out
+
+
+# ── ETF·배당 (재무 없이) ──
+FREQ = {12: "월", 4: "분기", 2: "반기", 1: "연"}
+EXCH = {"XNYS": "NYSE", "XNAS": "Nasdaq"}
+
+
+def us_tickers(max_age_days: int = 7) -> list[dict]:
+    """보통주(CS) 목록: 티커·이름·거래소. 1주일에 한 번만 다시 받음 (L0 us/tickers/<날짜>)."""
+    d = L0 / "us" / "tickers"
+    have = sorted(d.glob("*.json.gz")) if d.exists() else []
+    if have and (dt.date.today() - dt.date.fromisoformat(have[-1].name[:10])).days < max_age_days:
+        return read_gz_json(have[-1])
+    rows = _pages("/v3/reference/tickers", {"market": "stocks", "type": "CS", "active": "true", "limit": 1000})
+    keep = [{"t": x["ticker"], "n": x.get("name"), "ex": EXCH.get(x.get("primary_exchange"))} for x in rows
+            if EXCH.get(x.get("primary_exchange")) and x.get("ticker")]
+    write_gz_json(d / f"{dt.date.today().isoformat()}.json.gz", keep)
+    return keep
+
+
+def dividends(months: int = 25, deadline: float | None = None) -> tuple[list[dict], int]:
+    """최근 months개월 배당 기록 (월별 파일 L0 us/dividends/<YYYY-MM>). 지난달·이번 달은 매번 다시, 그 전 달은 한 번만.
+    → (기록 목록, 확보한 개월 수)"""
+    today = dt.date.today()
+    d = L0 / "us" / "dividends"
+    out, got = [], 0
+    y, m = today.year, today.month
+    for k in range(months):
+        mm = (m - 1 - k) % 12 + 1
+        yy = y + (m - 1 - k) // 12
+        tag = f"{yy:04d}-{mm:02d}"
+        p = d / f"{tag}.json.gz"
+        if p.exists() and k >= 2:
+            out += read_gz_json(p); got += 1
+            continue
+        if deadline and time.time() > deadline:
+            if p.exists():
+                out += read_gz_json(p); got += 1
+            continue
+        nxt = f"{yy + (mm == 12):04d}-{mm % 12 + 1:02d}-01"
+        try:
+            rows = _pages("/v3/reference/dividends", {"ex_dividend_date.gte": f"{tag}-01", "ex_dividend_date.lt": nxt,
+                                                     "limit": 1000, "order": "asc", "sort": "ex_dividend_date"})
+        except RuntimeError as e:
+            log(f"!! 배당 {tag}: {e}")
+            if p.exists():
+                out += read_gz_json(p); got += 1
+            continue
+        keep = [{"t": x.get("ticker"), "a": x.get("cash_amount"), "cur": x.get("currency"), "ex": x.get("ex_dividend_date"),
+                 "f": x.get("frequency"), "ty": x.get("dividend_type")} for x in rows if x.get("ticker")]
+        write_gz_json(p, keep)
+        out += keep; got += 1
+    return out, got
+
+
+def div_stats(recs: list[dict], today: dt.date, full_two_years: bool) -> dict[str, dict]:
+    """티커별 최근 12개월 정기배당 합(특별배당 제외), 그 전 12개월 합, 배당 주기, 경고."""
+    y1, y2 = today - dt.timedelta(days=365), today - dt.timedelta(days=730)
+    by = defaultdict(list)
+    for r in recs:
+        if (r.get("cur") or "USD") == "USD" and r.get("a") and r.get("ex"):
+            by[r["t"]].append(r)
+    out = {}
+    for t, rs in by.items():
+        last, prev, spec, fq = 0.0, 0.0, 0, []
+        for r in rs:
+            ex = dt.date.fromisoformat(r["ex"][:10])
+            if ex > today:
+                continue
+            special = r.get("ty") not in (None, "CD")
+            if ex > y1:
+                if special:
+                    spec += 1
+                else:
+                    last += r["a"]; fq.append(r.get("f"))
+            elif ex > y2 and not special:
+                prev += r["a"]
+        if last <= 0:
+            continue
+        f = max(set(fq), key=fq.count) if fq else None
+        trend = None
+        if full_two_years:
+            trend = "신규" if prev <= 0 else ("증가" if last > prev * 1.001 else "감소" if last < prev * 0.999 else "유지")
+        warn = [f"특별배당 {spec}회는 수익률에서 제외"] if spec else []
+        out[t] = {"dps": round(last, 4), "dps1": round(prev, 4) if full_two_years else None, "trend": trend,
+                  "freq": FREQ.get(f) if isinstance(f, int) else None, "warn": warn}
+    return out
+
+
+def run_lite(price_calls: int = 40, time_budget_min: float = 40) -> dict:
+    deadline = time.time() + time_budget_min * 60
+    today = dt.date.today()
+    tick = us_tickers()
+    log(f"미국 보통주(NYSE·Nasdaq): {len(tick)}개")
+    recs, months = dividends(deadline=deadline - 10 * 60)
+    stats = div_stats(recs, today, full_two_years=months >= 25)
+    left = max(0, int((deadline - time.time()) / 13))
+    hist = price_history(budget_calls=min(price_calls, left))
+    out = []
+    for x in tick:
+        st = stats.get(x["t"])
+        px = hist.get(x["t"]) or []
+        if not st or not px:
+            continue
+        close = px[-1][1]
+        dv20 = sum(v[2] for v in px[-20:]) / len(px[-20:])
+        if close < 1 or dv20 < MIN_DV20 or len(px) < 5:
+            continue
+        y = st["dps"] / close * 100
+        warn = list(st["warn"])
+        if y > 12:
+            warn.append("수익률 12% 초과: 주가 급락·일시 배당 확인")
+        out.append({"ticker": x["t"], "name": x["n"], "exchange": x["ex"], "close": close, "dv20": dv20, "asof_px": px[-1][0],
+                    "dividend": {**st, "warn": warn, "yield_now": round(y, 3)}})
+    etfs = etf_view(hist)
+    for e in etfs:
+        st = stats.get(e["ticker"])
+        e["dy"] = round(st["dps"] / e["close"] * 100, 2) if st and e.get("close") else None
+        e["dfreq"] = st["freq"] if st else None
+    days = len({d for v in hist.values() for d, _, _ in v})
+    res = {"mode": "lite", "tickers": len(tick), "div_payers": len(out), "dividend_months": months, "price_days": days, "etfs": etfs}
+    publish_lite(out, res)
+    (REPORTS / "us").mkdir(parents=True, exist_ok=True)
+    (REPORTS / "us" / "summary.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
+    log(f"미국(ETF·배당): {json.dumps({k: v for k, v in res.items() if k != 'etfs'}, ensure_ascii=False)}")
+    return res
+
+
+def compact_lite(r: dict) -> dict:
+    from .screen_view import SHOW
+    d = r["dividend"]
+    return {"c": r["ticker"], "n": r.get("name"), "mk": r.get("exchange"), "g": None, "gid": None, "gn": None, "rel": None,
+            "rk": None, "grk": None, "sc": None, "b": [None] * 4, "x": [], "w": [], "mc": None, "px": r["close"],
+            "tv": round(r["dv20"]), "per": None, "pbr": None, "m": {k: None for k in SHOW}, "p": {k: None for k in SHOW},
+            "pd": None, "fs": "", "fsc": None, "ksic": None, "fb": [], "ib": None, "xp": None, "xpf": None, "fd": None, "av": None,
+            "mr": {}, "prk": None, "pk": None,
+            "dv": {"year": None, "dps": d["dps"], "dps1": d["dps1"], "dps2": None, "payout": None, "yield_now": d["yield_now"],
+                   "streak3": None, "trend": d["trend"], "warn": d["warn"], "freq": d["freq"]},
+            "fg": None, "fs2": None, "frk": None, "fp": None, "fx": None, "co": None}
+
+
+def publish_lite(out: list[dict], res: dict) -> None:
+    from .screen_view import build_view
+    from .util import now_kst
+    asof = max((r["asof_px"] for r in out if r.get("asof_px")), default=None) or \
+        max((e.get("asof") for e in res["etfs"] if e.get("asof")), default=None)
+    warns = []
+    if res["price_days"] < 252:
+        warns.append(f"1년 수익률은 시세가 1년치 쌓이면 표시됩니다 (현재 {res['price_days']}거래일)")
+    if res["dividend_months"] < 25:
+        warns.append("배당 증감 비교는 2년치 배당 기록이 모이면 표시됩니다")
+    summary = {"market": "US", "lite": True, "asof_price": asof.replace("-", "") if asof else "", "ranked": 0,
+               "evaluated": len(out), "universe_collected": res["tickers"], "universe_total": res["tickers"],
+               "collection_complete": True, "prev_asof": None, "etfs": res["etfs"], "price_days": res["price_days"],
+               "status": {"built_at": now_kst().isoformat(timespec="minutes"), "warnings": warns, "history": None}}
+    build_view(out, summary, REPORTS / "us", compact_fn=compact_lite, site_name="us.html", keep_reports=False)
+
+
 # ── 실행 ──
 def run(work: Path | None = None, price_calls: int = 60) -> dict:
+    if os.environ.get("US_SEC") != "1":
+        return run_lite(price_calls=price_calls)
     from .screen import score_group, reliability, MIN_GROUP_N
     work = work or Path("/tmp/us_sec")
     tick = _get(SEC_TICKERS).json()

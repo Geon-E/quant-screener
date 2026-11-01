@@ -990,3 +990,21 @@ def test_ksic_name_and_company_info(tmp_path, monkeypatch):
     info = screen.company_info("00000000", "29210")
     assert info == {"ind": "농업 및 임업용 기계 제조업", "ind_approx": None, "est": None, "hm": None}
     assert screen.company_info(None, None) is None
+
+
+def test_us_div_stats():
+    import datetime as dt
+    from qs.us import div_stats
+    today = dt.date(2026, 11, 1)
+    recs = [{"t": "AAA", "a": 0.25, "cur": "USD", "ex": f"2026-{m:02d}-10", "f": 4, "ty": "CD"} for m in (2, 5, 8)] + \
+           [{"t": "AAA", "a": 0.30, "cur": "USD", "ex": "2026-10-10", "f": 4, "ty": "CD"},
+            {"t": "AAA", "a": 1.00, "cur": "USD", "ex": "2026-06-01", "f": 0, "ty": "SC"},      # 특별배당 제외
+            {"t": "AAA", "a": 0.20, "cur": "USD", "ex": "2025-08-10", "f": 4, "ty": "CD"},      # 전년
+            {"t": "BBB", "a": 0.10, "cur": "USD", "ex": "2026-12-15", "f": 12, "ty": "CD"},     # 미래 기준일 → 제외
+            {"t": "CCC", "a": 0.10, "cur": "CAD", "ex": "2026-09-01", "f": 12, "ty": "CD"}]     # 달러 아님
+    st = div_stats(recs, today, full_two_years=True)
+    assert set(st) == {"AAA"}
+    a = st["AAA"]
+    assert a["dps"] == 1.05 and a["dps1"] == 0.2 and a["trend"] == "증가" and a["freq"] == "분기"
+    assert a["warn"] and "특별배당 1회" in a["warn"][0]
+    assert div_stats(recs, today, full_two_years=False)["AAA"]["trend"] is None

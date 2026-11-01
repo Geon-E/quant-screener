@@ -1,7 +1,8 @@
 name: us-collect
 
-# 미국 저평가 후보: SEC EDGAR 재무(무료) + Massive 무료 시세 → site/us.html
-# 필요한 비밀값: SEC_CONTACT (SEC 요청자 연락처 "이름 이메일"), MASSIVE_API_KEY (없으면 재무만, 순위 없음)
+# 미국 ETF·배당 (기본): Massive 무료 시세·배당 기록 → site/us.html
+# 2026-11-01 SEC가 GitHub 실행 서버를 차단해 재무 기반 저평가 순위는 보류 (US_SEC=1일 때만 SEC 경로)
+# 필요한 비밀값: MASSIVE_API_KEY (SEC_CONTACT는 SEC 경로에서만)
 # 시세는 무료 분당 5회 → 실행마다 --us-price-calls 만큼만 과거 일봉을 채운다 (12-1 모멘텀에 약 250거래일 필요)
 
 on:
