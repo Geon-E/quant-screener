@@ -330,6 +330,7 @@ def _pages(path: str, params: dict, max_pages: int = 60) -> list[dict]:
 
 # ── ETF·배당 (재무 없이) ──
 FREQ = {12: "월", 4: "분기", 2: "반기", 1: "연"}
+MAX_YIELD = 20.0          # 배당수익률 20% 초과는 목록에서 제외 (12~20%는 경고와 함께 표시)
 EXCH = {"XNYS": "NYSE", "XNAS": "Nasdaq"}
 
 
@@ -395,7 +396,7 @@ def div_stats(recs: list[dict], today: dt.date, full_two_years: bool) -> dict[st
             ex = dt.date.fromisoformat(r["ex"][:10])
             if ex > today:
                 continue
-            special = r.get("ty") not in (None, "CD")
+            special = r.get("ty") not in (None, "CD") or r.get("f") == 0     # 주기 0 = 일회성 (정기배당 유형이어도 제외)
             if ex > y1:
                 if special:
                     spec += 1
@@ -424,7 +425,7 @@ def run_lite(price_calls: int = 40, time_budget_min: float = 40) -> dict:
     stats = div_stats(recs, today, full_two_years=months >= 25)
     left = max(0, int((deadline - time.time()) / 13))
     hist = price_history(budget_calls=min(price_calls, left))
-    out = []
+    out, dropped = [], 0
     for x in tick:
         st = stats.get(x["t"])
         px = hist.get(x["t"]) or []
@@ -435,6 +436,9 @@ def run_lite(price_calls: int = 40, time_budget_min: float = 40) -> dict:
         if close < 1 or dv20 < MIN_DV20 or len(px) < 5:
             continue
         y = st["dps"] / close * 100
+        if y > MAX_YIELD:          # 일회성·주가 붕괴로 숫자만 큰 경우가 대부분 → 목록에서 빼고 개수만 남김
+            dropped += 1
+            continue
         warn = list(st["warn"])
         if y > 12:
             warn.append("수익률 12% 초과: 주가 급락·일시 배당 확인")
@@ -446,7 +450,7 @@ def run_lite(price_calls: int = 40, time_budget_min: float = 40) -> dict:
         e["dy"] = round(st["dps"] / e["close"] * 100, 2) if st and e.get("close") else None
         e["dfreq"] = st["freq"] if st else None
     days = len({d for v in hist.values() for d, _, _ in v})
-    res = {"mode": "lite", "tickers": len(tick), "div_payers": len(out), "dividend_months": months, "price_days": days, "etfs": etfs}
+    res = {"mode": "lite", "tickers": len(tick), "div_payers": len(out), "dropped_high_yield": dropped, "dividend_months": months, "price_days": days, "etfs": etfs}
     publish_lite(out, res)
     (REPORTS / "us").mkdir(parents=True, exist_ok=True)
     (REPORTS / "us" / "summary.json").write_text(json.dumps(res, ensure_ascii=False, indent=1), encoding="utf-8")
@@ -475,6 +479,8 @@ def publish_lite(out: list[dict], res: dict) -> None:
     warns = []
     if res["price_days"] < 252:
         warns.append(f"1년 수익률은 시세가 1년치 쌓이면 표시됩니다 (현재 {res['price_days']}거래일)")
+    if res.get("dropped_high_yield"):
+        warns.append(f"배당수익률 20% 초과 {res['dropped_high_yield']}개는 일회성 배당·주가 급락 가능성이 커서 목록에서 뺐습니다")
     if res["dividend_months"] < 25:
         warns.append("배당 증감 비교는 2년치 배당 기록이 모이면 표시됩니다")
     summary = {"market": "US", "lite": True, "asof_price": asof.replace("-", "") if asof else "", "ranked": 0,

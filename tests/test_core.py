@@ -1001,7 +1001,8 @@ def test_us_div_stats():
             {"t": "AAA", "a": 1.00, "cur": "USD", "ex": "2026-06-01", "f": 0, "ty": "SC"},      # 특별배당 제외
             {"t": "AAA", "a": 0.20, "cur": "USD", "ex": "2025-08-10", "f": 4, "ty": "CD"},      # 전년
             {"t": "BBB", "a": 0.10, "cur": "USD", "ex": "2026-12-15", "f": 12, "ty": "CD"},     # 미래 기준일 → 제외
-            {"t": "CCC", "a": 0.10, "cur": "CAD", "ex": "2026-09-01", "f": 12, "ty": "CD"}]     # 달러 아님
+            {"t": "CCC", "a": 0.10, "cur": "CAD", "ex": "2026-09-01", "f": 12, "ty": "CD"},     # 달러 아님
+            {"t": "DDD", "a": 15.0, "cur": "USD", "ex": "2026-07-01", "f": 0, "ty": "CD"}]      # 주기 0 = 일회성 → 제외
     st = div_stats(recs, today, full_two_years=True)
     assert set(st) == {"AAA"}
     a = st["AAA"]
