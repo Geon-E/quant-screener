@@ -12,11 +12,14 @@ jobs:
           set +e
           C="$SEC_CONTACT"
           echo "contact_has_at=$([[ "$C" == *@* ]] && echo yes || echo no) contact_has_space=$([[ "$C" == *" "* ]] && echo yes || echo no) len=${#C}"
-          for ua in "Geon-E $C"; do
+          E=$(echo "$C" | grep -oE '[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}' | head -1)
+          echo "contact_non_ascii=$(LC_ALL=C grep -q '[^ -~]' <<<"$C" && echo yes || echo no) email_found=$([ -n "$E" ] && echo yes || echo no)"
+          sleep 60
+          for ua in "Geon-E Research $E"; do
             for u in https://www.sec.gov/files/company_tickers_exchange.json https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json https://data.sec.gov/submissions/CIK0000320193.json; do
               code=$(curl -s --compressed -o /tmp/b -w '%{http_code}' -H "User-Agent: $ua" -H "Accept-Encoding: gzip, deflate" "$u")
               tag=$(echo "$ua" | cut -d' ' -f1)
-              echo "$tag $code $u :: $(head -c 400 /tmp/b | tr -d '\r\n' | sed "s/$C/[contact]/g" | sed 's/<[^>]*>/ /g' | tr -s ' ' | head -c 200)"
+              echo "$tag $code $u :: $(head -c 400 /tmp/b | tr -d '\r\n' | sed "s/$E/[email]/g" | sed 's/<[^>]*>/ /g' | tr -s ' ' | head -c 200)"
               sleep 1
             done
           done
