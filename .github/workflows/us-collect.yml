@@ -62,7 +62,7 @@ jobs:
           for p in site/us.html reports/us; do [ -e "$p" ] && git add "$p"; done
           if git diff --cached --quiet; then echo "no changes"; exit 0; fi
           git commit -m "미국 화면 갱신 ($(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST)"
-          for i in 1 2 3; do git pull --rebase -X theirs -q && git push -q && exit 0; git rebase --abort 2>/dev/null || true; sleep 5; done
+          for i in 1 2 3; do git pull --rebase --autostash -X theirs -q && git push -q && exit 0; git rebase --abort 2>/dev/null || true; sleep 5; done
           exit 1
       - name: Fail on error
         if: steps.run.outputs.code != '0'
