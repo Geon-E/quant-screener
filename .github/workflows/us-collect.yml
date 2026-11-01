@@ -16,8 +16,10 @@ on:
 permissions:
   contents: write
 
+# 미국 자료는 보관소에서 'us-' 조각·index-us.json만 써서 국내(l0·derived)와 겹치지 않음 → 별도 순서.
+# (같은 묶음이면 국내 연속 실행이 대기 중인 미국 실행을 취소함)
 concurrency:
-  group: data-store
+  group: us-store
   cancel-in-progress: false
 
 env:
