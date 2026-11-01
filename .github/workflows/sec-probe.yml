@@ -1,0 +1,23 @@
+name: sec-probe
+# 임시 진단: SEC 403 원인 확인용 (확인 후 삭제)
+on: workflow_dispatch
+permissions: {contents: read}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env: {SEC_CONTACT: "${{ secrets.SEC_CONTACT }}"}
+        run: |
+          set +e
+          C="$SEC_CONTACT"
+          echo "contact_has_at=$([[ "$C" == *@* ]] && echo yes || echo no) contact_has_space=$([[ "$C" == *" "* ]] && echo yes || echo no) len=${#C}"
+          for ua in "quant-screener $C" "Geon-E $C" "Personal Research $C"; do
+            for u in https://www.sec.gov/files/company_tickers_exchange.json https://data.sec.gov/api/xbrl/companyfacts/CIK0000320193.json https://data.sec.gov/submissions/CIK0000320193.json; do
+              code=$(curl -s -o /tmp/b -w '%{http_code}' -H "User-Agent: $ua" -H "Accept-Encoding: gzip, deflate" "$u")
+              tag=$(echo "$ua" | cut -d' ' -f1)
+              echo "$tag $code $u :: $(head -c 400 /tmp/b | tr -d '\r\n' | sed "s/$C/[contact]/g" | sed 's/<[^>]*>/ /g' | tr -s ' ' | head -c 200)"
+              sleep 1
+            done
+          done
+          curl -s https://api.ipify.org; echo
