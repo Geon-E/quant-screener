@@ -76,15 +76,15 @@
  "fin_ranked": 43,
  "div_payers": 1091,
  "status": {
-  "built_at": "2026-11-07T10:49+09:00",
+  "built_at": "2026-11-08T10:32+09:00",
   "warnings": [],
   "history": {
-   "processed": 2040,
+   "processed": 2401,
    "targets": 2792,
    "complete": false
   },
   "kind_admin": {
-   "date": "20261107",
+   "date": "20261108",
    "count": 189
   }
  },
