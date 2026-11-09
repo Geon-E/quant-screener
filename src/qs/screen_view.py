@@ -267,6 +267,8 @@ table.gt{border-collapse:collapse;width:100%;font-size:13.5px}
 .sh-head .about small{color:var(--faint);font-weight:400}
 .sh-head .about i{font-style:normal;color:var(--faint)}
 .sh-head .about a{color:var(--accent);font-weight:500;text-underline-offset:3px}
+.sh-head .desc{margin:8px 0 0;font-size:13.5px;line-height:1.65;color:var(--ink);max-width:62ch}
+.sh-head .desc small{display:block;margin-top:2px;font-size:12px;color:var(--faint)}
 .sh-head .big{font-size:26px;font-weight:700;color:var(--accent);line-height:1}
 .sh-head .big.muted{color:var(--faint)}
 .sh-head .big small{display:block;font-size:12px;font-weight:500;color:var(--muted);text-align:right;margin-top:4px}
@@ -427,7 +429,7 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
 <div class="scrim" id="scrim" hidden></div>
 <aside class="sheet closed" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-name" hidden>
   <div class="sh-head">
-    <div class="t"><h3 id="sh-name"></h3><div class="cd" id="sh-cd"></div><div class="about" id="sh-about" hidden></div></div>
+    <div class="t"><h3 id="sh-name"></h3><div class="cd" id="sh-cd"></div><div class="about" id="sh-about" hidden></div><p class="desc" id="sh-desc" hidden></p></div>
     <div class="big" id="sh-big"></div>
     <button class="close" id="sh-close" aria-label="닫기">×</button>
   </div>
@@ -649,6 +651,8 @@ function openSheet(c){
   const about=document.getElementById("sh-about");
   about.hidden=!co; if(co) about.innerHTML=[co.ind?`<span class="ind">${esc(co.ind)}${co.ind_approx?' <small>(상위 분류)</small>':''}</span>`:'',
     co.est?`<span>${esc(co.est)}년 설립</span>`:'', hm?`<a href="${esc(hm)}" target="_blank" rel="noopener noreferrer">홈페이지 ↗</a>`:''].filter(Boolean).join('<i aria-hidden="true">·</i>');
+  const dsc=document.getElementById("sh-desc");
+  dsc.hidden=!(co&&co.desc); if(co&&co.desc) dsc.innerHTML=`${esc(co.desc)}${co.desc_src?`<small>출처: ${esc(co.desc_src)} 사업의 개요</small>`:''}`;
   document.getElementById("sh-big").className="big"+(r.rk?"":" muted");
   document.getElementById("sh-big").innerHTML = r.sc==null?'–':`${r.sc.toFixed(1)}<small>${r.rk?`전체 ${r.rk}위 ${chg(r)}`:'순위 제외'}</small>`;
   const med=MED[r.gid]||{};

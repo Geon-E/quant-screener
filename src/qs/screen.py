@@ -112,7 +112,7 @@ def company_info(corp_code: str | None, induty_code: str | None) -> dict | None:
     """DART 기업개황(company.json, 이미 수집하는 원천)에서 화면용 기본 정보만."""
     from .storage import dart_path, exists
     name, approx = ksic_name(induty_code)
-    out = {"ind": name, "ind_approx": approx or None, "est": None, "hm": None}
+    out = {"ind": name, "ind_approx": approx or None, "est": None, "hm": None, "desc": None, "desc_src": None}
     if corp_code:
         p = dart_path("company", f"{corp_code}.json.gz")
         if exists(p):
@@ -127,7 +127,16 @@ def company_info(corp_code: str | None, induty_code: str | None) -> dict | None:
             if hm and " " not in hm and "." in hm:
                 hm = hm if hm.lower().startswith(("http://", "https://")) else "https://" + hm.lstrip("/")
                 out["hm"] = hm[:200]
-    return out if any(out[k] for k in ("ind", "est", "hm")) else None
+        dp = dart_path("desc", f"{corp_code}.json.gz")      # B단계: 사업보고서 '사업의 개요' 앞 2~3문장 (qs.desc)
+        if exists(dp):
+            try:
+                pl = load_l0(dp)["payload"] or {}
+                if pl.get("text"):
+                    out["desc"] = pl["text"][:400]
+                    out["desc_src"] = (pl.get("report_nm") or "").replace("[기재정정]", "").strip() or None
+            except Exception:
+                pass
+    return out if any(out[k] for k in ("ind", "est", "hm", "desc")) else None
 
 
 def dividend_info(corp_code: str | None, close: float | None) -> dict | None:

@@ -988,7 +988,7 @@ def test_ksic_name_and_company_info(tmp_path, monkeypatch):
     assert screen.ksic_name(None) == (None, False)
     # 원천 파일이 없으면 업종명만
     info = screen.company_info("00000000", "29210")
-    assert info == {"ind": "농업 및 임업용 기계 제조업", "ind_approx": None, "est": None, "hm": None}
+    assert info == {"ind": "농업 및 임업용 기계 제조업", "ind_approx": None, "est": None, "hm": None, "desc": None, "desc_src": None}
     assert screen.company_info(None, None) is None
 
 
