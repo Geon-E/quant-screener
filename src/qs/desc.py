@@ -56,6 +56,20 @@ _WS = re.compile(r"\s+")
 _SENT = re.compile(r"(?<=[다요음함])\.\s*")       # '…있습니다.농기계…'처럼 띄어쓰기 없는 경계도 문장 끝으로
 _SKIP_START = ("※", "주)", "주1", "주2", "(주1", "[", "<", "【", "(단위", "가.", "나.", "다.", "라.", "1)", "2)", "(1)", "(2)", "-", "▶", "■", "□", "○", "●")
 _MARK = re.compile(r"^(?:[가-하]\.|\(?\d{1,2}\)|\d{1,2}\.|[①-⑳]|[■□▶○●◆◇▣\-])\s*")
+_HEAD = re.compile(r"^(?:\[[^\]]{1,20}\]|【[^】]{1,20}】|<[^>]{1,20}>|사업\s*개요|사업의\s*(?:개요|내용)\s*(?:\(요약\))?|"
+                   r"사업부문별\s*현황|회사의\s*개요|개요)\s*")
+
+
+def _lead(t: str) -> str:
+    """'[차량부문]당사는…', '사업개요 삼성바이오로직스는…', '(1) CL 사업부문 당사의…'의 앞머리를 뗀다 (여러 겹이면 반복)."""
+    for _ in range(4):
+        u = _MARK.sub("", _HEAD.sub("", t)).strip()
+        if u == t:
+            break
+        t = u
+    return t
+
+
 _BOILER = ("기재를 생략", "참고하시기", "참조하시기", "작성기준일", "본 보고서", "이 보고서", "해당사항 없", "기재하지 않",
            "아래의 표", "아래 표", "다음과 같습니다", "아래와 같습니다", "다음 표", "하기 표")
 
@@ -107,11 +121,11 @@ def summarize(paras: list[str], max_chars: int = MAX_CHARS) -> str | None:
     """앞쪽 문단에서 쓸 만한 문장 2~3개 (제목·주석·안내 문구 제외)."""
     picked: list[str] = []
     for p in paras[:20]:
-        p = _MARK.sub("", p).strip()                     # 앞머리 번호·기호('가.', '(1)', '■')는 떼고 본문만
-        if len(p) < 25 or p.startswith(_SKIP_START) or any(b in p for b in _BOILER):
+        p = _lead(p)                                     # 앞머리 번호·기호·붙은 소제목은 떼고 본문만
+        if len(p) < 25 or p.startswith(("※", "주)", "주1", "주2", "(주1", "(단위")):
             continue
         for s in _SENT.split(p):
-            s = s.strip().strip("·-").strip()
+            s = _lead(s.strip().strip("·-").strip())
             if len(s) < 20 or any(b in s for b in _BOILER) or s.startswith(_SKIP_START):
                 continue
             if not s.endswith(("다", "요", "음", "함")):   # 문장으로 끝나지 않는 조각(표 숫자·제목)은 버림
