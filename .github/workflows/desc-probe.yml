@@ -5,7 +5,7 @@ permissions: {contents: read}
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -14,7 +14,7 @@ jobs:
       - env: {DART_API_KEY: "${{ secrets.DART_API_KEY }}"}
         run: |
           export PYTHONPATH=src
-          python -m qs.cli desc-sample --codes 005930,000660,035420,005380,051910,068270,105560,033780,097950,028300,247540,035720,096770,042700,023160,002900,000120,263750,093370,011200 2>&1 | tail -15 || true
+          timeout 1200 python -u -m qs.cli desc-sample --codes 002900,033780,005380,105560,247540,035720,093370,005930 2>&1 | grep -E '^\[' || true
           python - <<'PY'
           import json
           r=json.load(open("reports/phase1/last_run.json"))["results"]["cmd_desc_sample"]

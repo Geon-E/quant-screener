@@ -183,7 +183,9 @@ def run(d: DART, force: bool = False, limit: int | None = None) -> dict:
 
 def sample(d: DART, stock_codes: list[str]) -> list[dict]:
     """진단용: L0 없이 몇 회사만 받아 결과를 보여 준다 (저장하지 않음)."""
+    t = time.time()
     corp = {c["stock_code"]: c for c in d.corpcode() if c.get("stock_code")}
+    log(f"회사 코드 목록 {len(corp)}개 ({time.time() - t:.1f}s)")
     out = []
     for sc in stock_codes:
         c = corp.get(sc)
@@ -193,8 +195,10 @@ def sample(d: DART, stock_codes: list[str]) -> list[dict]:
         if not ann:
             out.append({"stock_code": sc, "name": c.get("corp_name"), "text": None, "why": "사업보고서 없음"})
             continue
+        t = time.time()
         r = d.http.get(f"{BASE}/document.xml", params={"crtfc_key": d.key, "rcept_no": ann["rcept_no"]}, timeout=180)
         text = extract(r.content) if r.content[:2] == b"PK" else None
+        log(f"{sc} {c.get('corp_name')}: {len(r.content) // 1024}KB {time.time() - t:.1f}s → {(text or '(없음)')[:300]}")
         out.append({"stock_code": sc, "name": c.get("corp_name"), "report": ann["report_nm"], "kb": len(r.content) // 1024,
                     "text": text})
     return out
