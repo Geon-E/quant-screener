@@ -55,6 +55,7 @@ _TAG = re.compile(r"<[^>]+>")
 _WS = re.compile(r"\s+")
 _SENT = re.compile(r"(?<=[다요음함])\.\s*")       # '…있습니다.농기계…'처럼 띄어쓰기 없는 경계도 문장 끝으로
 _SKIP_START = ("※", "주)", "주1", "주2", "(주1", "[", "<", "【", "(단위", "가.", "나.", "다.", "라.", "1)", "2)", "(1)", "(2)", "-", "▶", "■", "□", "○", "●")
+_MARK = re.compile(r"^(?:[가-하]\.|\(?\d{1,2}\)|\d{1,2}\.|[①-⑳]|[■□▶○●◆◇▣\-])\s*")
 _BOILER = ("기재를 생략", "참고하시기", "참조하시기", "작성기준일", "본 보고서", "이 보고서", "해당사항 없", "기재하지 않",
            "아래의 표", "아래 표", "다음과 같습니다", "아래와 같습니다", "다음 표", "하기 표")
 
@@ -105,15 +106,17 @@ def _paragraphs(sec: str, tables: bool = False) -> list[str]:
 def summarize(paras: list[str], max_chars: int = MAX_CHARS) -> str | None:
     """앞쪽 문단에서 쓸 만한 문장 2~3개 (제목·주석·안내 문구 제외)."""
     picked: list[str] = []
-    for p in paras[:12]:
+    for p in paras[:20]:
+        p = _MARK.sub("", p).strip()                     # 앞머리 번호·기호('가.', '(1)', '■')는 떼고 본문만
         if len(p) < 25 or p.startswith(_SKIP_START) or any(b in p for b in _BOILER):
             continue
         for s in _SENT.split(p):
             s = s.strip().strip("·-").strip()
             if len(s) < 20 or any(b in s for b in _BOILER) or s.startswith(_SKIP_START):
                 continue
-            if s.endswith(("다", "요", "음", "함")):
-                s += "."
+            if not s.endswith(("다", "요", "음", "함")):   # 문장으로 끝나지 않는 조각(표 숫자·제목)은 버림
+                continue
+            s += "."
             if sum(len(x) for x in picked) + len(s) > max_chars and picked:
                 return " ".join(picked)
             picked.append(s)
@@ -219,11 +222,12 @@ def sample(d: DART, stock_codes: list[str]) -> list[dict]:
             continue
         text = extract(content)
         log(f"{sc} {c.get('corp_name')} [{ann['report_nm']}] {len(content) // 1024}KB {time.time() - t:.1f}s → {(text or '(없음)')[:300]}")
-        if not text:      # 진단: 원문 안의 '사업' 들어간 제목들
+        if not text:      # 진단: 개요 구간의 앞 문단들
             with zipfile.ZipFile(io.BytesIO(content)) as z:
                 for n in z.namelist():
-                    x = _decode(z.read(n))
-                    ts = [ _WS.sub(" ", _TAG.sub("", t)).strip() for t in re.findall(r"<TITLE[^>]*>.*?</TITLE>", x, re.S)]
-                    log(f"   {n}: {[t for t in ts if '사업' in t][:8]}")
+                    sec = _section(_decode(z.read(n)))
+                    if sec:
+                        log(f"   구간 {len(sec)}자, 원문 앞부분: {_WS.sub(' ', sec[:700])}")
+                        log(f"   문단: {[p[:80] for p in _paragraphs(sec)[:8]]}")
         out.append({"stock_code": sc, "name": c.get("corp_name"), "text": text})
     return out
