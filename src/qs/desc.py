@@ -22,7 +22,7 @@ from .util import elapsed_min, log, read_gz_json
 
 UNTIL_MIN = 25          # 이 단계에 쓰는 최대 시간(분). 남은 회사는 다음 실행에서
 LATE_MIN = 90           # 실행이 이미 이만큼 지났으면 이번에는 건너뜀 (뒤 단계·저장 시간 확보)
-WORKERS = 4             # 원문은 커서 동시 요청을 적게
+WORKERS = 6             # 원문 한 건이 수 초~수십 초 (DART 응답 속도에 따라)
 MAX_CHARS = 230
 
 _ANNUAL = re.compile(r"사업보고서\s*\((\d{4})\.(\d{2})\)")
@@ -54,8 +54,9 @@ def get_document(d: DART, filings: list[dict]) -> tuple[dict | None, bytes | Non
 _TAG = re.compile(r"<[^>]+>")
 _WS = re.compile(r"\s+")
 _SENT = re.compile(r"(?<=[다요음함])\.\s*")       # '…있습니다.농기계…'처럼 띄어쓰기 없는 경계도 문장 끝으로
-_SKIP_START = ("※", "주)", "(주1", "(단위", "가.", "나.", "다.", "라.", "1)", "2)", "(1)", "(2)", "-", "▶", "■", "□", "○", "●")
-_BOILER = ("기재를 생략", "참고하시기", "참조하시기", "작성기준일", "본 보고서", "이 보고서", "해당사항 없", "기재하지 않")
+_SKIP_START = ("※", "주)", "주1", "주2", "(주1", "[", "<", "【", "(단위", "가.", "나.", "다.", "라.", "1)", "2)", "(1)", "(2)", "-", "▶", "■", "□", "○", "●")
+_BOILER = ("기재를 생략", "참고하시기", "참조하시기", "작성기준일", "본 보고서", "이 보고서", "해당사항 없", "기재하지 않",
+           "아래의 표", "아래 표", "다음과 같습니다", "아래와 같습니다", "다음 표", "하기 표")
 
 
 def _decode(b: bytes) -> str:
@@ -68,20 +69,28 @@ def _decode(b: bytes) -> str:
     return b.decode("utf-8", "ignore")
 
 
+_TITLE = re.compile(r"<TITLE[^>]*>(.*?)</TITLE>", re.S)
+
+
 def _section(xml: str) -> str | None:
-    """'사업의 개요' 제목 뒤부터 다음 제목(TITLE) 전까지의 원문."""
-    m = re.search(r"<TITLE[^>]*>\s*(?:\d+\.\s*)?사업의\s*개요\s*</TITLE>", xml)
-    if not m:
-        m = re.search(r"<TITLE[^>]*>[^<]{0,20}사업의\s*개요[^<]{0,20}</TITLE>", xml)
-    if not m:
-        return None
-    rest = xml[m.end():]
-    n = re.search(r"<TITLE[^>]*>", rest)
-    return rest[: n.start()] if n else rest[:20000]
+    """'사업의 개요' 제목 뒤부터 같은 단계의 다음 제목('2. …', 'III. …') 전까지의 원문.
+    '1. (제조서비스업)사업의 개요'처럼 업종이 붙은 제목, 제목 안의 꾸밈 태그도 허용. 하위 제목('가. …')은 본문으로 둔다."""
+    for m in _TITLE.finditer(xml):
+        t = _WS.sub(" ", _TAG.sub("", m.group(1))).strip()
+        if re.search(r"사업의\s*개요", t) and len(t) <= 40:
+            rest = xml[m.end():]
+            for n in _TITLE.finditer(rest):
+                nt = _WS.sub(" ", _TAG.sub("", n.group(1))).strip()
+                if re.match(r"^(\d+\.|[IVX]+\.)", nt):
+                    return rest[: n.start()]
+            return rest[:40000]
+    return None
 
 
-def _paragraphs(sec: str) -> list[str]:
-    sec = re.sub(r"<TABLE.*?</TABLE>", " ", sec, flags=re.S | re.I)          # 표는 버림
+def _paragraphs(sec: str, tables: bool = False) -> list[str]:
+    if not tables:
+        sec = re.sub(r"<TABLE.*?</TABLE>", " ", sec, flags=re.S | re.I)      # 표는 버림 (본문이 없을 때만 표 안 글을 씀)
+    sec = _TITLE.sub("</P>", sec)                                           # 하위 제목은 짧아서 걸러짐
     parts = re.split(r"</?(?:P|BR|SPAN-BR|TR)[^>]*>", sec, flags=re.I)
     out = []
     for p in parts:
@@ -124,7 +133,7 @@ def extract(zip_bytes: bytes) -> str | None:
                 continue
             sec = _section(_decode(z.read(n)))
             if sec:
-                return summarize(_paragraphs(sec))
+                return summarize(_paragraphs(sec)) or summarize(_paragraphs(sec, tables=True))
     return None
 
 

@@ -1009,3 +1009,17 @@ def test_us_div_stats():
     assert a["dps"] == 1.05 and a["dps1"] == 0.2 and a["trend"] == "증가" and a["freq"] == "분기"
     assert a["warn"] and "특별배당 1회" in a["warn"][0]
     assert div_stats(recs, today, full_two_years=False)["AAA"]["trend"] is None
+
+
+def test_desc_extract():
+    import io, zipfile
+    from qs.desc import extract
+    xml = ('<?xml version="1.0" encoding="utf-8"?><DOCUMENT><SECTION-1><TITLE>II. 사업의 내용</TITLE>'
+           '<SECTION-2><TITLE ATOC="Y">1. (제조서비스업)<SPAN>사업의 개요</SPAN></TITLE>'
+           '<SECTION-3><TITLE>가. 업계의 현황</TITLE><P>[사업부문별 요약] 2025년 매출액은 아래의 표와 같습니다.</P>'
+           '<P>당사는 자동차와 부품을 만들어 국내외에 판매하는 완성차 제조회사입니다. 주요 시장은 한국, 북미, 유럽입니다.</P></SECTION-3>'
+           '</SECTION-2><SECTION-2><TITLE>2. 주요 제품</TITLE><P>제품</P></SECTION-2></SECTION-1></DOCUMENT>')
+    b = io.BytesIO()
+    with zipfile.ZipFile(b, "w") as z:
+        z.writestr("1.xml", xml.encode())
+    assert extract(b.getvalue()) == "당사는 자동차와 부품을 만들어 국내외에 판매하는 완성차 제조회사입니다. 주요 시장은 한국, 북미, 유럽입니다."

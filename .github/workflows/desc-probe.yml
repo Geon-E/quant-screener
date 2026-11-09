@@ -14,7 +14,7 @@ jobs:
       - env: {DART_API_KEY: "${{ secrets.DART_API_KEY }}"}
         run: |
           export PYTHONPATH=src
-          timeout 1200 python -u -m qs.cli desc-sample --codes 002900,005380,105560,055550,003550,068270,000120,028260,086790,207940 2>&1 | grep -E '^\[' || true
+          timeout 1200 python -u -m qs.cli desc-sample --codes 005380,000120,207940,086790 2>&1 | grep -E '^\[' || true
           python - <<'PY'
           import json
           r=json.load(open("reports/phase1/last_run.json"))["results"]["cmd_desc_sample"]
