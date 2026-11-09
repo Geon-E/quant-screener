@@ -13,7 +13,7 @@ jobs:
       - run: pip install -r requirements.txt
       - env: {DART_API_KEY: "${{ secrets.DART_API_KEY }}"}
         run: |
-          python -m qs.cli desc-sample --codes 005930,000660,035420,005380,051910,068270,105560,033780,097950,028300,247540,035720,096770,042700,023160,002900,000120,263750,093370,011200 > /dev/null 2>&1 || true
+          python -m qs.cli desc-sample --codes 005930,000660,035420,005380,051910,068270,105560,033780,097950,028300,247540,035720,096770,042700,023160,002900,000120,263750,093370,011200 2>&1 | tail -15 || true
           python - <<'PY'
           import json
           r=json.load(open("reports/phase1/last_run.json"))["results"]["cmd_desc_sample"]
