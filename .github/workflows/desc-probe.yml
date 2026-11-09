@@ -1,0 +1,24 @@
+name: desc-probe
+# 임시 진단: 사업보고서 '사업의 개요' 추출이 실제 원문에서 잘 되는지 (확인 후 삭제)
+on: workflow_dispatch
+permissions: {contents: read}
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -r requirements.txt
+      - env: {DART_API_KEY: "${{ secrets.DART_API_KEY }}"}
+        run: |
+          python -m qs.cli desc-sample --codes 005930,000660,035420,005380,051910,068270,105560,033780,097950,028300,247540,035720,096770,042700,023160,002900,000120,263750,093370,011200 > /dev/null 2>&1 || true
+          python - <<'PY'
+          import json
+          r=json.load(open("reports/phase1/last_run.json"))["results"]["cmd_desc_sample"]
+          if "sample" not in r: print(r); raise SystemExit
+          for x in r["sample"]:
+              print(f"== {x['stock_code']} {x['name']} | {x.get('report')} | {x.get('kb')}KB")
+              print("   ", x.get("text"))
+          PY
