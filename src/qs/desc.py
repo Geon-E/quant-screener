@@ -28,19 +28,32 @@ MAX_CHARS = 230
 _ANNUAL = re.compile(r"사업보고서\s*\((\d{4})\.(\d{2})\)")
 
 
+def annuals(filings: list[dict]) -> list[dict]:
+    """사업보고서 목록, 최근 접수부터 (정정 포함)."""
+    return sorted([f for f in filings or [] if _ANNUAL.search(f.get("report_nm", ""))], key=lambda f: f["rcept_no"], reverse=True)
+
+
 def latest_annual(filings: list[dict]) -> dict | None:
-    """공시 목록에서 가장 최근 사업보고서(정정 포함 최신 접수) 한 건."""
-    best = None
-    for f in filings or []:
-        if _ANNUAL.search(f.get("report_nm", "")) and (best is None or f["rcept_no"] > best["rcept_no"]):
-            best = f
-    return best
+    a = annuals(filings)
+    return a[0] if a else None
+
+
+def get_document(d: DART, filings: list[dict]) -> tuple[dict | None, bytes | None]:
+    """최근 사업보고서부터 원문(zip)을 받을 수 있는 첫 건 (기재정정 원문이 없는 경우가 있어 최대 3건 시도)."""
+    for f in annuals(filings)[:3]:
+        r = d.http.get(f"{BASE}/document.xml", params={"crtfc_key": d.key, "rcept_no": f["rcept_no"]}, timeout=180)
+        if r.content[:2] == b"PK":
+            return f, r.content
+        txt = r.content[:300].decode("utf-8", "ignore")
+        if "<status>020" in txt or ('"020"' in txt):
+            raise BudgetExceeded("DART 일일 호출 한도 초과(020)")
+    return None, None
 
 
 # ── 원문에서 개요 뽑기 ──
 _TAG = re.compile(r"<[^>]+>")
 _WS = re.compile(r"\s+")
-_SENT = re.compile(r"(?<=[다요음함])\.\s+|(?<=[다요음함])\.$")
+_SENT = re.compile(r"(?<=[다요음함])\.\s*")       # '…있습니다.농기계…'처럼 띄어쓰기 없는 경계도 문장 끝으로
 _SKIP_START = ("※", "주)", "(주1", "(단위", "가.", "나.", "다.", "라.", "1)", "2)", "(1)", "(2)", "-", "▶", "■", "□", "○", "●")
 _BOILER = ("기재를 생략", "참고하시기", "참조하시기", "작성기준일", "본 보고서", "이 보고서", "해당사항 없", "기재하지 않")
 
@@ -118,24 +131,23 @@ def extract(zip_bytes: bytes) -> str | None:
 # ── 수집 ──
 def fetch_one(d: DART, corp_code: str) -> dict:
     path = dart_path("desc", f"{corp_code}.json.gz")
-    ann = latest_annual(d.filings(corp_code))
+    filings = d.filings(corp_code)
+    ann = latest_annual(filings)
     if not ann:
         return {"status": "no_annual"}
-    if exists(path) and (load_l0(path)["payload"] or {}).get("rcept_no") == ann["rcept_no"]:
+    if exists(path) and (load_l0(path)["payload"] or {}).get("latest") == ann["rcept_no"]:
         return {"status": "cached"}
-    r = d.http.get(f"{BASE}/document.xml", params={"crtfc_key": d.key, "rcept_no": ann["rcept_no"]}, timeout=180)
-    if r.content[:2] != b"PK":
-        txt = r.content[:300].decode("utf-8", "ignore")
-        if "020" in txt and "한도" in txt or "<status>020" in txt:
-            raise BudgetExceeded("DART 일일 호출 한도 초과(020)")
+    used, content = get_document(d, filings)
+    if not content:
         return {"status": "no_document"}
     try:
-        text = extract(r.content)
+        text = extract(content)
     except (zipfile.BadZipFile, KeyError):
         text = None
+    ann = {**used, "latest": ann["rcept_no"]}
     save_l0(path, source={"provider": "DART", "api": "document.xml", "corp_code": corp_code, "rcept_no": ann["rcept_no"]},
-            payload={"rcept_no": ann["rcept_no"], "rcept_dt": ann.get("rcept_dt"), "report_nm": ann.get("report_nm"),
-                     "text": text})
+            payload={"rcept_no": ann["rcept_no"], "latest": ann["latest"], "rcept_dt": ann.get("rcept_dt"),
+                     "report_nm": ann.get("report_nm"), "text": text})
     return {"status": "ok" if text else "not_found"}
 
 
@@ -191,14 +203,18 @@ def sample(d: DART, stock_codes: list[str]) -> list[dict]:
         c = corp.get(sc)
         if not c:
             continue
-        ann = latest_annual(d.filings(c["corp_code"], refresh=True))
-        if not ann:
-            out.append({"stock_code": sc, "name": c.get("corp_name"), "text": None, "why": "사업보고서 없음"})
-            continue
         t = time.time()
-        r = d.http.get(f"{BASE}/document.xml", params={"crtfc_key": d.key, "rcept_no": ann["rcept_no"]}, timeout=180)
-        text = extract(r.content) if r.content[:2] == b"PK" else None
-        log(f"{sc} {c.get('corp_name')}: {len(r.content) // 1024}KB {time.time() - t:.1f}s → {(text or '(없음)')[:300]}")
-        out.append({"stock_code": sc, "name": c.get("corp_name"), "report": ann["report_nm"], "kb": len(r.content) // 1024,
-                    "text": text})
+        ann, content = get_document(d, d.filings(c["corp_code"], refresh=True))
+        if not content:
+            log(f"{sc} {c.get('corp_name')}: 원문 없음")
+            continue
+        text = extract(content)
+        log(f"{sc} {c.get('corp_name')} [{ann['report_nm']}] {len(content) // 1024}KB {time.time() - t:.1f}s → {(text or '(없음)')[:300]}")
+        if not text:      # 진단: 원문 안의 '사업' 들어간 제목들
+            with zipfile.ZipFile(io.BytesIO(content)) as z:
+                for n in z.namelist():
+                    x = _decode(z.read(n))
+                    ts = [ _WS.sub(" ", _TAG.sub("", t)).strip() for t in re.findall(r"<TITLE[^>]*>.*?</TITLE>", x, re.S)]
+                    log(f"   {n}: {[t for t in ts if '사업' in t][:8]}")
+        out.append({"stock_code": sc, "name": c.get("corp_name"), "text": text})
     return out
