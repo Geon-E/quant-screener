@@ -21,7 +21,9 @@ from .storage import L1, dart_path, exists, load_l0, save_l0
 from .util import elapsed_min, log, read_gz_json
 
 UNTIL_MIN = 25          # 이 단계에 쓰는 최대 시간(분). 남은 회사는 다음 실행에서
-LATE_MIN = 90           # 실행이 이미 이만큼 지났으면 이번에는 건너뜀 (뒤 단계·저장 시간 확보)
+START_BY_MIN = 60       # 실행이 이만큼 지났으면 이번에는 시작하지 않음
+STOP_AT_MIN = 75        # 실행 경과가 이 시각이 되면 멈춤 (뒤 단계: 인벤토리·수정주가·평가·화면·교차검증 ~45분 + 저장 확보)
+# 2026-11-10: 90분 기준으로 시작했다가 뒤 단계가 밀려 128분 시간 초과(화면 게시 건너뜀) → 앞당김
 WORKERS = 6             # 원문 한 건이 수 초~수십 초 (DART 응답 속도에 따라)
 MAX_CHARS = 230
 
@@ -184,14 +186,14 @@ def run(d: DART, force: bool = False, limit: int | None = None) -> dict:
         prog = {}
     if not force and not prog.get("complete"):
         return {"skipped": "과거 재무 수집 중 (끝난 뒤 시작)", "history": f"{prog.get('processed')}/{prog.get('targets')}"}
-    if elapsed_min() > LATE_MIN:
+    if elapsed_min() > START_BY_MIN:
         return {"skipped": f"실행 {elapsed_min():.0f}분 경과, 다음 실행에서"}
     rows = read_gz_json(L1 / "universe.json.gz").get("rows", [])
     corps = [r["corp_code"] for r in rows if r.get("corp_code")][: limit or None]
     t0, stat, stopped = time.time(), {}, None
 
     def one(cc):
-        if stopped or time.time() - t0 > UNTIL_MIN * 60 or elapsed_min() > LATE_MIN + UNTIL_MIN:
+        if stopped or time.time() - t0 > UNTIL_MIN * 60 or elapsed_min() > STOP_AT_MIN:
             return None
         try:
             return fetch_one(d, cc)
