@@ -621,8 +621,9 @@ def test_perf_and_spearman():
 def test_dev_mode_refuses_validation_window():
     with pytest.raises(ValueError):
         BT.run(start="2022-04-01", end="2023-01-01", mode="dev")
-    with pytest.raises(ValueError):
-        BT.run(start="2022-04-01", end="2023-01-01", mode="validation")      # 전략 frozen 전
+    with pytest.raises(ValueError):                                         # D-30 후보가 아닌 변형은 검증 구간 금지
+        BT.run(start="2022-04-01", end="2023-01-01", mode="validation", variant="가치만")
+    assert BT.VARIANT_ALIAS["hybrid"] in BT.VALIDATION_CANDIDATES
 
 
 def test_list_since_extends_range_and_merges(tmp_path, monkeypatch):
