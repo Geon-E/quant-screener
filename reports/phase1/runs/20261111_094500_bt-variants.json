@@ -1,0 +1,17 @@
+{
+ "command": "bt-variants",
+ "started": "2026-11-11T09:45:00.590704+09:00",
+ "finished": "2026-11-11T10:05:22.611497+09:00",
+ "ok": false,
+ "secret_scan_hits": [],
+ "results": {
+  "cmd_bt_variants": {
+   "error": "ValueError: dict contains fields not in fieldnames: 'ic_sector'",
+   "trace": "Traceback (most recent call last):\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/cli.py\", line 213, in main\n    results[name] = fn(args)\n                    ^^^^^^^^\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/cli.py\", line 160, in cmd_bt_variants\n    return backtest.run_variants(start=args.bt_start or backtest.DEV[0], end=args.bt_end or backtest.DEV[1], mode=\"dev\",\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/backtest.py\", line 957, in run_variants\n    _write(REPORTS / \"backtest\" / \"variants\" / f\"{start}_{end}_{scenario}\" / name, P, sim, res | {\"variant\": name}, mode, False)\n  File \"/home/runner/work/quant-screener/quant-screener/src/qs/backtest.py\", line 887, in _write\n    w.writerows(sim[\"ic\"])\n  File \"/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/csv.py\", line 167, in writerows\n    return self.writer.writerows(map(self._dict_to_list, rowdicts))\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/opt/hostedtoolcache/Python/3.12.16/x64/lib/python3.12/csv.py\", line 159, in _dict_to_list\n    raise ValueError(\"dict contains fields not in fieldnames: \"\nValueError: dict contains fields not in fieldnames: 'ic_sector'\n"
+  }
+ },
+ "log": [
+  "[09:50:10] 백테스트 준비: 리밸런싱 16회 ['20180406', '20180523']…",
+  "[10:04:30] !! cmd_bt_variants 실패: dict contains fields not in fieldnames: 'ic_sector'"
+ ]
+}
