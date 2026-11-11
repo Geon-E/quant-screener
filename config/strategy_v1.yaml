@@ -1,10 +1,11 @@
 # 전략 설정 v1 (DESIGN 5장) — 변경 시 새 버전 파일을 만들고 docs/EXPERIMENTS.md에 기록
 version: v1
-status: draft   # 결과(수익률)를 보기 전 확정. 1단계 게이트 통과 시 frozen으로 변경
+status: frozen  # 2026-11-11 D-30: 검증 구간 실행 전 고정. 이후 변경은 새 버전 파일(v2)로만
 history:
   - 2026-10-24: DESIGN v0.2 5장 기본값
   - 2026-10-25: D-20 EBITDA/EV → EBIT/EV (데이터 커버리지 12% vs 96%, 수익률 미계산 상태에서 결정)
   - 2026-10-25: 제외 필터에 '감사·검토의견 비적정' 추가 (상장폐지 핵심 신호, 수익률 미계산 상태에서 결정 — EXPERIMENTS #1)
+  - 2026-11-11: frozen (D-30). 검증 후보 = v1 + 혼합(업종70·시장30). 검증 구간 결과를 보기 전 고정
 
 universe:
   markets: [KOSPI, KOSDAQ]

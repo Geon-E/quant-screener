@@ -350,6 +350,10 @@ VARIANTS = {
     "전체시장": {"grouping": "market"},
     "혼합(업종70·시장30)": {"grouping": "hybrid"},   # 2026-10-31 사전 등록 (사용자 요청, 수익률 보기 전) — EXPERIMENTS #4
 }
+
+VARIANT_ALIAS = {"hybrid": "혼합(업종70·시장30)"}          # 명령줄용 (괄호·한글 없이)
+# D-30 (2026-11-11, 사용자 결정 B): 검증 구간에 들고 가는 후보 — 검증 결과를 보기 전 고정
+VALIDATION_CANDIDATES = ("v1", "혼합(업종70·시장30)")
 KEEP = ("stock_code", "corp_code", "name", "status", "error", "induty_code", "mcap", "close", "metrics", "ttm", "stock",
         "fscore", "fscore_items", "interest_basis", "period", "flags", "fs_div", "audit")
 
@@ -909,13 +913,19 @@ LIMITS = ["재무 값: 첫 정정 전 시점은 최초본 XBRL(D-17), 정정 3�
 
 def run(start: str = DEV[0], end: str = DEV[1], mode: str = "dev", scenario: str = "base",
         adj_policy: str = "confirmed_only", capital: float | None = None, delist_policy: str = "design",
-        unver_hold: str = "price") -> dict:
-    """전략 v1 단일 실행. mode: dev / validation(전략 frozen 필요) / smoke(구조 점검, 수익률 미출력)."""
+        unver_hold: str = "price", variant: str = "v1") -> dict:
+    """전략 단일 실행. mode: dev / validation(전략 frozen 필요) / smoke(구조 점검, 수익률 미출력).
+    variant: VARIANTS 이름 또는 별칭(VARIANT_ALIAS). 검증 구간 후보는 D-30에서 사전 등록한 v1·혼합만."""
+    variant = VARIANT_ALIAS.get(variant, variant)
+    if variant not in VARIANTS:
+        raise ValueError(f"알 수 없는 변형: {variant}")
+    if mode == "validation" and variant not in VALIDATION_CANDIDATES:
+        raise ValueError(f"검증 구간 후보가 아님: {variant} (D-30 사전 등록: {VALIDATION_CANDIDATES})")
     strat = guard(mode, start, end)
     P = prepare(start, end, adj_policy)
-    sim = simulate(P, {}, scenario, capital, delist_policy, unver_hold)
+    sim = simulate(P, VARIANTS[variant], scenario, capital, delist_policy, unver_hold)
     smoke = mode == "smoke"
-    res = {"mode": mode, "window": [start, end], "scenario": scenario, "adj_policy": adj_policy, "variant": "v1",
+    res = {"mode": mode, "window": [start, end], "scenario": scenario, "adj_policy": adj_policy, "variant": variant,
            "strategy": strat.get("version"), "rebalances": len(sim["holdings"]), "structure": sim["structure"],
            "limitations": LIMITS + ["미확인 기업행위 처리 정책: " + adj_policy]}
     if smoke:
@@ -925,8 +935,9 @@ def run(start: str = DEV[0], end: str = DEV[1], mode: str = "dev", scenario: str
                     "survivorship_check": _survivorship(sim["structure"])})
     else:
         res.update(summarize(sim, P))
-        _log_run(mode, start, end, strat, scenario, adj_policy, "v1", res)
-    out_dir = REPORTS / "backtest" / f"{mode}_{start}_{end}_{scenario}_{adj_policy}"
+        _log_run(mode, start, end, strat, scenario, adj_policy, variant, res)
+    tag = "" if variant == "v1" else "_" + {v: k for k, v in VARIANT_ALIAS.items()}.get(variant, variant)
+    out_dir = REPORTS / "backtest" / f"{mode}_{start}_{end}_{scenario}_{adj_policy}{tag}"
     _write(out_dir, P, sim, res, mode, smoke)
     if not smoke:
         from .backtest_view import build

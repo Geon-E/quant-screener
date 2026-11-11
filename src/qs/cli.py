@@ -142,9 +142,9 @@ def cmd_backtest(args) -> dict:
                             scenario=args.bt_scenario, adj_policy=args.bt_adj)
     if args.bt_mode == "validation":
         return backtest.run(start=args.bt_start or backtest.VALIDATION_START, end=args.bt_end or "2099-12-31",
-                            mode="validation", scenario=args.bt_scenario, adj_policy=args.bt_adj)
+                            mode="validation", scenario=args.bt_scenario, adj_policy=args.bt_adj, variant=args.bt_variant)
     return backtest.run(start=args.bt_start or backtest.DEV[0], end=args.bt_end or backtest.DEV[1], mode="dev",
-                        scenario=args.bt_scenario, adj_policy=args.bt_adj)
+                        scenario=args.bt_scenario, adj_policy=args.bt_adj, variant=args.bt_variant)
 
 
 def cmd_exp_admin_rules(args) -> dict:
@@ -201,6 +201,7 @@ def main(argv=None):
     ap.add_argument("--bt-mode", default="smoke", choices=["dev", "validation", "smoke"])
     ap.add_argument("--bt-start")
     ap.add_argument("--bt-end")
+    ap.add_argument("--bt-variant", default="v1")              # v1 | hybrid (D-30 검증 후보)
     ap.add_argument("--bt-scenario", default="base", choices=["optimistic", "base", "conservative"])
     ap.add_argument("--bt-adj", default="confirmed_only", choices=["confirmed_only", "all"])
     args = ap.parse_args(argv)
