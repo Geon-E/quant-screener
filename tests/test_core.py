@@ -1023,3 +1023,12 @@ def test_desc_extract():
     with zipfile.ZipFile(b, "w") as z:
         z.writestr("1.xml", xml.encode())
     assert extract(b.getvalue()) == "당사는 자동차와 부품을 만들어 국내외에 판매하는 완성차 제조회사입니다. 주요 시장은 한국, 북미, 유럽입니다."
+
+
+def test_backtest_write_ic_sector(tmp_path):
+    """2026-11-11 사고: ic 기록에 ic_sector가 붙은 뒤 ic.csv 쓰기가 실패해 비교 실험 전체가 멈춤."""
+    from qs.backtest import _write
+    sim = {"nav_days": ["20180406"], "nav": [1.0], "ic": [{"rebalance": "20180406", "ic": 0.1, "n": 50, "ic_sector": 0.05}],
+           "exposure": {}, "holdings": []}
+    _write(tmp_path / "x", None, sim, {"ok": 1}, "dev", False)
+    assert "ic_sector" in (tmp_path / "x" / "ic.csv").read_text(encoding="utf-8").splitlines()[0]

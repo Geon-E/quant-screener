@@ -882,7 +882,7 @@ def _write(out_dir, P, sim, res, mode, smoke):
             w.writerow(["date", "nav"])
             w.writerows(zip(sim["nav_days"], sim["nav"]))
         with (out_dir / "ic.csv").open("w", newline="", encoding="utf-8") as f:
-            w = csv.DictWriter(f, fieldnames=["rebalance", "ic", "n"])
+            w = csv.DictWriter(f, fieldnames=["rebalance", "ic", "n", "ic_sector"], extrasaction="ignore")
             w.writeheader()
             w.writerows(sim["ic"])
         (out_dir / "exposure.json").write_text(json.dumps(sim["exposure"], ensure_ascii=False, indent=1), encoding="utf-8")
