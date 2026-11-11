@@ -1033,3 +1033,22 @@ def test_backtest_write_ic_sector(tmp_path):
            "exposure": {}, "holdings": []}
     _write(tmp_path / "x", None, sim, {"ok": 1}, "dev", False)
     assert "ic_sector" in (tmp_path / "x" / "ic.csv").read_text(encoding="utf-8").splitlines()[0]
+
+
+def test_forward_snapshot_and_stats(tmp_path, monkeypatch):
+    import json
+    from qs import forward as F
+    monkeypatch.setattr(F, "DIR", tmp_path / "fw")
+    monkeypatch.setattr(F, "MIN_RANKED", 5)
+    out = [{"stock_code": f"{i:06d}", "rank": i, "close": 1000.0, "composite": 100 - i, "mkt_composite": 50 + (i % 3),
+            "group_id": "G01" if i <= 5 else "G02", "name": f"n{i}"} for i in range(1, 11)] + \
+          [{"stock_code": "999999", "rank": None, "close": 10.0, "composite": None}]
+    s1 = F.maybe_snapshot(out, "20261116")
+    assert s1 and s1["ranked"] == 10
+    assert F.maybe_snapshot(out, "20261130") is None            # 84일 안에는 다시 만들지 않음
+    snap = json.loads((tmp_path / "fw" / "snapshots" / "20261116.json").read_text(encoding="utf-8"))
+    assert snap["top"]["v1"][:3] == ["000001", "000002", "000003"] and len(snap["quintiles_v1"]["5"]) == 2
+    ret = {c: (0.10 if int(c) <= 5 else -0.10) for c in snap["rows"]}
+    st = F.period_stats(snap, ret)
+    assert abs(st["universe_ew"]) < 1e-12 and abs(st["top20_v1_excess"]) < 1e-12
+    assert abs(st["quintile_vs_sector"]["1"]) < 1e-12           # 같은 사업군 안에서는 차이 없음

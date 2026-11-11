@@ -8,10 +8,10 @@ on:
   workflow_dispatch:
     inputs:
       command:
-        description: "phase1 | evaluate | determinism | krx-backfill | sample | dart-sample | inventory | collect-all"
+        description: "phase1 | forward | evaluate | determinism | krx-backfill | sample | dart-sample | inventory | collect-all"
         default: phase1
         type: choice
-        options: [phase1, universe, screen, backtest, bt-variants, bt-robust, exp-admin-rules, exp-listing, xcheck, adjust, evaluate, determinism, collect-all, krx-backfill, sample, dart-sample, inventory]
+        options: [phase1, forward, universe, screen, backtest, bt-variants, bt-robust, exp-admin-rules, exp-listing, xcheck, adjust, evaluate, determinism, collect-all, krx-backfill, sample, dart-sample, inventory]
       extra:
         description: "추가 인자 (예: --reselect, --start 2025-09-01)"
         default: ""
@@ -102,7 +102,7 @@ jobs:
           git config user.name "Geon-E"
           git config user.email "326496254+Geon-E@users.noreply.github.com"
           # 없는 경로가 하나라도 있으면 git add 전체가 실패한다 → 경로별로 있는 것만 추가 (2026-10-25: reports/backtest 미존재로 커밋 누락)
-          for p in reports/phase1 reports/screen/screen.json reports/backtest site config/sample_v1.csv; do
+          for p in reports/phase1 reports/screen/screen.json reports/backtest reports/forward site config/sample_v1.csv; do
             if [ -e "$p" ]; then git add "$p"; fi
           done
           if git diff --cached --quiet; then echo "no changes"; exit 0; fi

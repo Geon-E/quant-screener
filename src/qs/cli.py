@@ -109,6 +109,16 @@ def cmd_universe(args) -> dict:
     return universe.run(DART(budget=args.universe_budget))
 
 
+def cmd_forward(args) -> dict:
+    """실시간 기록(D-32): 분기마다 스냅샷 + 매 실행 성적 갱신. 실패해도 다른 단계에 영향 없음."""
+    from . import forward
+    try:
+        return forward.run()
+    except Exception as e:  # noqa: BLE001
+        log(f"!! 실시간 기록 건너뜀: {e}")
+        return {"error": scrub(str(e))[:200]}
+
+
 def cmd_desc(args) -> dict:
     """회사 개요 B단계 (과거 재무 수집이 끝난 뒤에만 실제로 돈다). 실패해도 뒤 단계(화면)는 계속."""
     from . import desc
@@ -182,10 +192,10 @@ COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [c
             "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory],
             "evaluate": [cmd_evaluate], "determinism": [cmd_determinism], "adjust": [cmd_adjust],
             "xcheck": [cmd_xcheck], "exp-listing": [cmd_exp_listing],
-            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "us": [cmd_us], "backtest": [cmd_backtest], "bt-variants": [cmd_bt_variants], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
+            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "us": [cmd_us], "backtest": [cmd_backtest], "forward": [cmd_forward], "bt-variants": [cmd_bt_variants], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
             "desc-sample": [cmd_desc_sample],
             "phase1": [cmd_krx, cmd_kind, cmd_dart, cmd_universe, cmd_desc, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_xcheck,
-                       cmd_screen, cmd_determinism]}
+                       cmd_screen, cmd_forward, cmd_determinism]}
 
 
 def main(argv=None):
