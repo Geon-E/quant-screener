@@ -349,14 +349,14 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
     </div>
     <p class="lede">같은 업종 회사들과 비교해 싸고, 실적이 괜찮고, 흐름이 좋은 종목을 찾는 후보 목록입니다.</p>
     <div class="state" id="state"></div>
-    <div class="caution"><strong>점수는 가설이며 매수 목록이 아닙니다.</strong> 과거 성과로 아직 검증되지 않았습니다.
+    <div class="caution"><strong>점수는 가설이며 매수 목록이 아닙니다.</strong> <span id="vres">과거 성과로 아직 검증되지 않았습니다.</span>
       <details><summary>점수 계산 방법</summary><span class="more" id="method"></span></details></div>
   </header>
 
   <section class="etfbox" id="etfbox" hidden><h2>관심 ETF</h2><div class="gwrap"><table class="gt"><thead><tr><th class="l">ETF</th><th class="l">구분</th><th>현재가 <span class="u">($)</span></th><th>1개월 <span class="u">(%)</span></th><th>1년 <span class="u">(%)</span></th><th>52주 고점 대비 <span class="u">(%)</span></th><th>분배금 수익률 <span class="u">(%)</span></th></tr></thead><tbody id="etftb"></tbody></table></div>
     <p class="pane-note" style="margin-top:6px">1개월·1년·고점 대비는 가격 기준(분배금 제외)입니다. 분배금 수익률은 최근 12개월 정기 분배금 합 ÷ 현재가입니다.</p></section>
   <div class="glance" id="glance">
-    <section><h2>오늘의 상위 후보</h2><ol class="top5" id="top5"></ol></section>
+    <section><h2>오늘 점수 상위</h2><ol class="top5" id="top5"></ol></section>
     <section><h2 id="chg-title">어제 대비 변화</h2><div class="mini" id="chg"></div></section>
     <section><h2>관심 종목</h2><div class="mini" id="wsum"></div></section>
   </div>
@@ -533,6 +533,9 @@ function marketSetup(){
   document.querySelector("#pane-div .pane-note").textContent=LITE?"최근 12개월 정기 배당금 합을 지금 주가로 나눈 배당수익률입니다. 2년 추이는 전년 12개월과 최근 12개월 배당 합 비교입니다.":"SEC 공시의 주당 배당 선언액 최근 4분기 합과 지금 주가로 계산한 배당수익률입니다. 시가총액·거래대금 기준 미달, 자본잠식은 뺐습니다.";
 }
 function head(){
+  const V=S.validation;   // 검증 구간 결과 (D-31, 5차 협의 Q4: 불합격을 첫 화면에 숫자로 공개)
+  if(V&&!US){ const p=v=>(v>0?'+':'')+(v*100).toFixed(1)+'%';
+    document.getElementById("vres").innerHTML=`검증 결과 <b>기준 미통과</b> (${esc(V.from)}~${esc(V.to)}, 분기마다 상위 20종목 교체: 연 ${p(V.cagr)} · 전 종목 평균 ${p(V.ew)} · 코스피 ${p(V.kospi)}). 점수 순서에는 정보가 있었지만 상위 종목을 사는 방식은 이기지 못했습니다. 순위는 참고용 지표로만 보세요. <a href="backtest.html">자세히</a>`; }
   const d=S.asof_price, ds=d?dfmt(d):"";
   const st=S.status||{}, w=(st.warnings||[]).filter(x=>!x.startsWith("재무 수집 진행 중"));
   const h=st.history;

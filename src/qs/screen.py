@@ -412,6 +412,26 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
     return out, ranked, by_g
 
 
+def validation_summary() -> dict | None:
+    """검증 구간(v1) 결과 요약 — 화면 첫 줄 공개용 (D-31, 5차 Q4)."""
+    fs = sorted((REPORTS / "backtest").glob("validation_*_base_confirmed_only/summary.json"))
+    if not fs:
+        return None
+    try:
+        d = json.loads(fs[-1].read_text(encoding="utf-8"))
+        w = d.get("window") or ["", ""]
+        end = w[1]
+        nav = fs[-1].parent / "nav.csv"                 # 끝이 '현재'(2099)로 열린 구간은 마지막 평가일로 표시
+        if end.startswith("2099") and nav.exists():
+            last = nav.read_text(encoding="utf-8").strip().splitlines()[-1].split(",")[0]
+            end = f"{last[:4]}-{last[4:6]}"
+        return {"status": d["judgement"]["status"], "from": w[0][:7].replace("-", "."), "to": end[:7].replace("-", "."),
+                "cagr": d["judgement"]["annual"]["portfolio_period_based"], "ew": d["judgement"]["annual"]["universe_ew"],
+                "kospi": d["benchmark_KOSPI"]["cagr"]}
+    except (KeyError, ValueError, TypeError):
+        return None
+
+
 def run() -> dict:
     uni = read_gz_json(L1 / "universe.json.gz")
     targets = [u for u in uni["rows"] if u.get("status") == "ok"]
@@ -507,6 +527,7 @@ def run() -> dict:
         log("!! " + res["status"]["warnings"][-1])
         return res
     res["has_us"] = (REPORTS.parent / "site" / "us.html").exists()
+    res["validation"] = validation_summary()
     from .screen_view import build_view
     build_view(out, res, REPORTS / "screen")
     res["published"] = True
