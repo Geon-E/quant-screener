@@ -1,0 +1,27 @@
+{
+ "command": "krx-backfill",
+ "started": "2026-11-12T19:38:59.694048+09:00",
+ "finished": "2026-11-12T20:15:09.628241+09:00",
+ "ok": true,
+ "secret_scan_hits": [],
+ "results": {
+  "cmd_krx": {
+   "start": "2015-01-01",
+   "end": "2026-11-12",
+   "saved": 2059,
+   "skipped": 10023,
+   "trading_days_touched": 2910,
+   "stopped": null,
+   "kept_nonempty": [],
+   "suspicious_empty_days": [],
+   "fetch_errors": 0,
+   "fetch_error_samples": [],
+   "calls": 2059,
+   "errors": 0,
+   "budget": 6000
+  }
+ },
+ "log": [
+  "[20:14:16] KRX 백필 결과: {'start': '2015-01-01', 'end': '2026-11-12', 'saved': 2059, 'skipped': 10023, 'trading_days_touched': 2910, 'stopped': None, 'kept_nonempty': [], 'suspicious_empty_days': [], 'fetch_errors': 0, 'fetch_error_samples': [], 'calls': 2059, 'errors': 0, 'budget': 6000}"
+ ]
+}
