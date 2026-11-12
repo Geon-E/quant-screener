@@ -1070,19 +1070,136 @@ def test_diagnose_xs_basic():
 
 
 def test_holdout_judges_and_h1_values():
-    from qs.backtest import judge_h1, judge_h2, h1_values, T_CRIT, HOLDOUT_SIGNALS
+    from qs.backtest import judge_h1, judge_h2, h1_values, gls_stats, T_CRIT, HOLDOUT_SIGNALS
     assert abs(T_CRIT - 3.182) < 1e-3 and len(HOLDOUT_SIGNALS) == 4
-    assert judge_h1([-0.02, -0.021, -0.019, -0.02])["verdict"] == "통과"
-    assert judge_h1([-0.05, 0.01, -0.01, -0.02])["verdict"] == "미판정"      # 평균 음수, 3개 음수, 신뢰구간 미달
-    assert judge_h1([-0.01, 0.02, 0.0, -0.005])["verdict"] == "실패"
+    d = [45, 92, 91, 130]
+    g = gls_stats([0.01 * x / 100 for x in d], d)                      # 하루 1bp로 정확히 비례 → 잔차 0
+    assert abs(g["per_day"] - 0.0001) < 1e-12 and g["se_per_day"] < 1e-12 and g["total_days"] == 358
+    assert judge_h1([-0.0002 * x * (1 + e) for x, e in zip(d, (0.01, -0.01, 0.02, -0.02))], d)["verdict"] == "통과"
+    assert judge_h1([-0.05, 0.01, -0.01, -0.02], d)["verdict"] == "미판정"
+    assert judge_h1([-0.01, 0.02, 0.0, -0.005], d)["verdict"] == "실패"
     b = [0.01, 0.02, 0.01, 0.03]
-    ok = judge_h2([x + 0.02 for x in b], b, 355)
+    ok = judge_h2([x + 0.0004 * L * (1 + e) for x, L, e in zip(b, d, (0.01, -0.02, 0.0, 0.01))], b, d, 358)
     assert ok["verdict"] == "통과" and ok["positive_intervals"] == 4 and ok["ann_excess"] > 0.03
-    assert judge_h2([x + 0.002 for x in b], b, 355)["verdict"] == "미판정"    # 초과 양수지만 3%p 미만
-    assert judge_h2([x - 0.01 for x in b], b, 355)["verdict"] == "실패"
+    assert judge_h2([x + 0.002 for x in b], b, d, 358)["verdict"] == "미판정"
+    assert judge_h2([x - 0.01 for x in b], b, d, 358)["verdict"] == "실패"
+    assert "equal_weight_raw" in ok["reference_only"]
     rows = [{"c": f"{i:06d}", "rk": i, "f": -0.1 if i > 80 else 0.0, "g": -0.02} for i in range(1, 101)]
     v = h1_values([{"rebalance": "20170407", "start": "20170410", "end": "20170523", "rows": rows}])
     assert v[0]["q5"] == 20 and abs(v[0]["h"] - (-0.08)) < 1e-12
+
+
+def _fake_holdout_sim(sigs=("20170407", "20170522", "20170822", "20171121")):
+    import random
+    rnd = random.Random(1)
+    bounds = ["20170410", "20170523", "20170823", "20171122", "20180330"]
+    xs, hold, bench, val = [], [], [], 1.0
+    for k, R in enumerate(sigs):
+        rows = [{"c": f"{i:06d}", "rk": i, "f": rnd.gauss(0.01, 0.05) - (0.02 if i > 400 else 0), "g": 0.01}
+                for i in range(1, 501)]
+        xs.append({"rebalance": R, "start": bounds[k], "end": bounds[k + 1], "rows": rows})
+        bench.append((bounds[k], bounds[k + 1], 0.01))
+        hold.append({"rebalance": R, "exec": bounds[k], "n": 100, "turnover": 1.0 if k == 0 else 0.6,
+                     "cost": 0.002, "value_before": val})
+        val *= 1.015
+    return {"xs": xs, "holdings": hold, "bench_ew": bench, "nav": [val], "nav_days": [bounds[-1]],
+            "delistings": [], "unverified_held": []}
+
+
+def _holdout_env(tmp_path, monkeypatch, frozen=True, claim=True, sigs=None):
+    import json as _j
+    import qs.backtest as bt
+    (tmp_path / "reviews" / "round5").mkdir(parents=True)
+    (tmp_path / "reviews" / "round5" / "ADDENDUM_H2.md").write_text("상태: **고정 (D-35, 2026-11-13)**" if frozen else "초안",
+                                                                     encoding="utf-8")
+    out = tmp_path / "reports" / "backtest" / bt.HOLDOUT_OUT
+    out.mkdir(parents=True)
+    monkeypatch.setenv("GITHUB_RUN_ID", "123")
+    if claim:
+        (out / "CLAIM.json").write_text(_j.dumps({"run_id": "123"}), encoding="utf-8")
+    monkeypatch.setattr(bt, "ROOT", tmp_path)
+    monkeypatch.setattr(bt, "REPORTS", tmp_path / "reports")
+    calls = {"simulate": 0}
+    monkeypatch.setattr(bt, "guard", lambda *a: {"version": "v1"})
+    monkeypatch.setattr(bt, "prepare", lambda *a: {"signals": [{"R": r} for r in (sigs or bt.HOLDOUT_SIGNALS)]})
+
+    def sim(*a, **k):
+        calls["simulate"] += 1
+        assert k.get("pick") == "q1_all" and a[2] == "base"
+        return _fake_holdout_sim()
+    monkeypatch.setattr(bt, "simulate", sim)
+    return bt, out, calls
+
+
+def test_holdout_full_run_four_intervals(tmp_path, monkeypatch):
+    import json as _j
+    bt, out, calls = _holdout_env(tmp_path, monkeypatch)
+    res = bt.holdout_test()
+    assert calls["simulate"] == 1
+    assert [x["rebalance"] for x in res["intervals"]] == list(bt.HOLDOUT_SIGNALS)
+    assert [x["days"] for x in res["intervals"]] == [43, 92, 91, 128]
+    assert res["H1"]["n"] == 4 and res["H2"]["n"] == 4 and len(res["H2"]["excess_by_interval"]) == 4
+    assert all(x["h1"] is not None and x["h2_net"] is not None for x in res["intervals"])
+    assert res["H1"]["per_day"] < 0                                     # 하위 20%에 -2% 심어 둠
+    assert (out / "result.json").exists() and not (out / "result.json.tmp").exists()
+    assert _j.loads((out / "STATUS.json").read_text(encoding="utf-8"))["stage"] == "written"
+    import pytest
+    with pytest.raises(ValueError, match="이미 한 번"):                  # 같은 실행 번호로도 다시 못 함
+        bt.holdout_test()
+    assert calls["simulate"] == 1
+
+
+def test_holdout_stops_before_returns(tmp_path, monkeypatch):
+    import pytest
+    bt, out, calls = _holdout_env(tmp_path, monkeypatch, frozen=False)
+    with pytest.raises(ValueError, match="고정"):
+        bt.holdout_test()
+    assert calls["simulate"] == 0 and not (out / "STATUS.json").exists()
+
+
+def test_holdout_signal_mismatch_and_claims(tmp_path, monkeypatch):
+    import json as _j, pytest
+    bt, out, calls = _holdout_env(tmp_path, monkeypatch, sigs=("20170407", "20170522", "20170822"))
+    with pytest.raises(ValueError, match="신호일"):
+        bt.holdout_test()
+    assert calls["simulate"] == 0
+    assert _j.loads((out / "STATUS.json").read_text(encoding="utf-8"))["stage"] == "stopped_signal_mismatch"
+    with pytest.raises(ValueError, match="이전 시도"):                   # 실패한 시도 뒤에도 자동 재실행 없음
+        bt.holdout_test()
+    assert calls["simulate"] == 0
+
+
+def test_holdout_requires_own_claim(tmp_path, monkeypatch):
+    import json as _j, pytest
+    bt, out, calls = _holdout_env(tmp_path, monkeypatch, claim=False)
+    with pytest.raises(ValueError, match="CLAIM"):
+        bt.holdout_test()
+    (out / "CLAIM.json").write_text(_j.dumps({"run_id": "999"}), encoding="utf-8")   # 다른 실행의 기록
+    with pytest.raises(ValueError, match="CLAIM"):
+        bt.holdout_test()
+    monkeypatch.delenv("GITHUB_RUN_ID")
+    with pytest.raises(ValueError, match="CLAIM"):
+        bt.holdout_test()
+    assert calls["simulate"] == 0
+    import inspect
+    assert "force" not in inspect.signature(bt.holdout_test).parameters
+
+
+def test_holdout_compute_rejects_misaligned():
+    import pytest
+    from qs.backtest import holdout_compute
+    s = _fake_holdout_sim()
+    s["holdings"] = s["holdings"][:3]
+    with pytest.raises(ValueError, match="구간 수"):
+        holdout_compute(s)
+    s = _fake_holdout_sim()
+    s["xs"][1], s["xs"][2] = s["xs"][2], s["xs"][1]
+    with pytest.raises(ValueError):
+        holdout_compute(s)
+    s = _fake_holdout_sim()
+    s["xs"][2]["start"] = "20170824"
+    with pytest.raises(ValueError):
+        holdout_compute(s)
 
 
 def test_select_q1_all_has_no_cap_or_buffer():

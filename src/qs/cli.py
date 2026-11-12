@@ -182,11 +182,11 @@ def cmd_bt_coverage(args) -> dict:
 
 
 def cmd_bt_holdout(args) -> dict:
-    """미사용 구간 H1·H2 1회 판정 (ADDENDUM_H2 3판, D-34). 이미 계산했으면 거부."""
+    """미사용 구간 H1·H2 1회 판정 (ADDENDUM_H2 4판, D-35). 워크플로 전용, 시도 기록이 있으면 거부."""
     from . import backtest
     r = backtest.holdout_test()
-    return {"H1": {k: r["H1"][k] for k in ("verdict", "mean", "se", "upper_bound", "negative_intervals")},
-            "H2": {k: r["H2"][k] for k in ("verdict", "ann_excess", "mean", "se", "lower_bound", "positive_intervals")}}
+    return {"H1": {k: r["H1"][k] for k in ("verdict", "per_day", "se_per_day", "upper_bound_per_day", "negative_intervals")},
+            "H2": {k: r["H2"][k] for k in ("verdict", "ann_excess", "per_day", "se_per_day", "lower_bound_per_day", "positive_intervals")}}
 
 
 def cmd_bt_variants(args) -> dict:

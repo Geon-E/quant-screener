@@ -1098,45 +1098,65 @@ def diagnose(start: str, end: str, mode: str, adj_policy: str = "confirmed_only"
 
 # ── 미사용 구간 커버리지 (수익률 계산 없음) — 5차 추가 안건 ──
 HOLDOUT = ("2016-05-01", "2018-03-31")
-# ADDENDUM_H2 3판(D-34)에서 고정: 커버리지로 확정한 4개 신호일. 다르면 수익률 계산 전에 멈춘다.
+# ADDENDUM_H2 4판(D-35)에서 고정: 커버리지로 확정한 4개 신호일. 다르면 수익률 계산 전에 멈춘다.
 HOLDOUT_USE = ("2017-04-01", HOLDOUT[1])
 HOLDOUT_SIGNALS = ("20170407", "20170522", "20170822", "20171121")
 T_CRIT = 3.182446          # Student-t 자유도 3, 단측 2.5% (H1·H2 Bonferroni)
 HOLDOUT_OUT = "holdout_H1H2"
+HOLDOUT_FROZEN_MARK = "고정 (D-35"
 
 
-def _t_stats(v: list[float]) -> dict:
-    n = len(v)
-    m = float(np.mean(v)) if n else None
-    se = float(np.std(v, ddof=1) / math.sqrt(n)) if n >= 2 else None
-    return {"n": n, "mean": m, "se": se, "t": (m / se) if se else None}
+def gls_stats(x: list[float], days: list[int]) -> dict:
+    """길이가 다른 구간의 상대성과 → 하루 평균. 모형: x_k = μ·d_k + ε_k, Var(ε_k) = σ²·d_k (일별 독립 가정).
+    μ̂ = Σx / Σd, σ̂² = Σ(x_k − μ̂·d_k)²/d_k ÷ (n−1), SE(μ̂) = √(σ̂² / Σd). 자유도 n−1."""
+    n, D = len(x), float(sum(days))
+    if n < 2 or D <= 0:
+        return {"n": n, "per_day": None, "se_per_day": None, "t": None}
+    mu = sum(x) / D
+    s2 = sum((a - mu * d) ** 2 / d for a, d in zip(x, days)) / (n - 1)
+    se = math.sqrt(s2 / D)
+    return {"n": n, "per_day": mu, "se_per_day": se, "t": (mu / se) if se > 0 else None,
+            "per_year_simple": mu * 365, "total_days": int(D)}
 
 
-def judge_h1(h: list[float]) -> dict:
-    """하위 20% 상대부진 신호. h: 구간별 (하위 20% 종목의 f − 사업군 평균)의 종목 동일비중 평균."""
-    st = _t_stats(h)
+def _ref_stats(x: list[float], days: list[int]) -> dict:
+    """참고용(판정에 안 씀): 구간 동일가중 t, 구간별 하루 환산 동일가중 t."""
+    def t(v):
+        se = float(np.std(v, ddof=1) / math.sqrt(len(v)))
+        return {"mean": float(np.mean(v)), "se": se, "t": float(np.mean(v)) / se if se > 0 else None}
+    return {"equal_weight_raw": t(x), "per_day_equal_weight": t([a / d for a, d in zip(x, days)])}
+
+
+def judge_h1(h: list[float], days: list[int]) -> dict:
+    """하위 20% 상대부진 신호. h: 구간별 (하위 20% 종목의 f − 사업군 평균)의 종목 동일비중 평균, days: 구간 달력일."""
+    st = gls_stats(h, days)
     neg = sum(1 for x in h if x < 0)
-    m, se = st["mean"], st["se"]
-    c1, c2, c3 = m is not None and m < 0, neg >= 3, se is not None and m + T_CRIT * se < 0
+    m, se = st["per_day"], st["se_per_day"]
+    c1 = m is not None and m < 0
+    c2 = neg >= 3
+    c3 = se is not None and m + T_CRIT * se < 0
     verdict = "통과" if c1 and c2 and c3 else ("미판정" if c1 else "실패")
-    return {**st, "negative_intervals": neg, "upper_bound": (m + T_CRIT * se) if se is not None else None,
-            "checks": {"평균<0": c1, "4개 중 3개 이상 음수": c2, "평균+t*·SE<0": c3}, "verdict": verdict}
+    return {**st, "negative_intervals": neg, "upper_bound_per_day": (m + T_CRIT * se) if se is not None else None,
+            "checks": {"하루 평균<0": c1, "4개 중 3개 이상 음수": c2, "하루 평균+t*·SE<0": c3},
+            "reference_only": _ref_stats(h, days), "verdict": verdict}
 
 
-def judge_h2(r: list[float], b: list[float], days: int) -> dict:
-    """상위 20% 진단 포트폴리오. r: 비용 차감 구간 수익률, b: 비교 대상(비용 미차감) 구간 수익률, days: 실제 경과 달력일."""
+def judge_h2(r: list[float], b: list[float], days: list[int], total_days: int) -> dict:
+    """상위 20% 진단 포트폴리오. r: 비용 차감 구간 수익률, b: 비교 대상(비용 미차감), days: 구간 달력일,
+    total_days: 첫 체결일 ~ 마지막 거래일 경과 달력일(연환산용)."""
     x = [a - c for a, c in zip(r, b)]
-    st = _t_stats(x)
-    a_s = float(np.prod([1 + v for v in r])) ** (365 / days) - 1
-    a_b = float(np.prod([1 + v for v in b])) ** (365 / days) - 1
+    st = gls_stats(x, days)
+    a_s = float(np.prod([1 + v for v in r])) ** (365 / total_days) - 1
+    a_b = float(np.prod([1 + v for v in b])) ** (365 / total_days) - 1
     ex = a_s - a_b
     pos = sum(1 for v in x if v > 0)
-    m, se = st["mean"], st["se"]
+    m, se = st["per_day"], st["se_per_day"]
     c1, c2, c3 = ex >= 0.03, pos >= 3, se is not None and m - T_CRIT * se > 0
     verdict = "통과" if c1 and c2 and c3 else ("미판정" if ex > 0 else "실패")
     return {**st, "ann_strategy": a_s, "ann_benchmark": a_b, "ann_excess": ex, "positive_intervals": pos,
-            "lower_bound": (m - T_CRIT * se) if se is not None else None, "days": days, "excess_by_interval": x,
-            "checks": {"연환산 초과≥3%p": c1, "4개 중 3개 이상 초과": c2, "평균−t*·SE>0": c3}, "verdict": verdict}
+            "lower_bound_per_day": (m - T_CRIT * se) if se is not None else None, "elapsed_days": total_days,
+            "excess_by_interval": x, "checks": {"연환산 초과≥3%p": c1, "4개 중 3개 이상 초과": c2, "하루 평균−t*·SE>0": c3},
+            "reference_only": _ref_stats(x, days), "verdict": verdict}
 
 
 def h1_values(xs: list[dict]) -> list[dict]:
@@ -1155,48 +1175,87 @@ def h1_values(xs: list[dict]) -> list[dict]:
     return out
 
 
-def holdout_test(force: bool = False) -> dict:
-    """ADDENDUM_H2 3판(D-34) 미사용 구간 1회 판정. 결과 파일이 이미 있으면 다시 계산하지 않는다."""
-    out_dir = REPORTS / "backtest" / HOLDOUT_OUT
-    if (out_dir / "result.json").exists() and not force:
-        raise ValueError("미사용 구간은 이미 한 번 계산됨 (ADDENDUM_H2: 1회만)")
-    doc = (ROOT / "reviews" / "round5" / "ADDENDUM_H2.md").read_text(encoding="utf-8")
-    if "고정 (D-34" not in doc:
-        raise ValueError("ADDENDUM_H2가 고정(D-34) 상태가 아님")
-    strat = guard("validation", *HOLDOUT_USE)          # frozen 확인
-    P = prepare(*HOLDOUT_USE)
-    sigs = tuple(S["R"] for S in P["signals"])
-    if sigs != HOLDOUT_SIGNALS:
-        raise ValueError(f"신호일이 등록안과 다름: {sigs} — 수익률 계산 전에 중단")
-    sim = simulate(P, {}, "base", pick="q1_all")
-    h1 = h1_values(sim["xs"])
+def _ymd(s: str) -> dt.date:
+    return dt.datetime.strptime(s, "%Y%m%d").date()
+
+
+def holdout_compute(sim: dict, strategy: str | None = None) -> dict:
+    """simulate 결과 → H1·H2 판정 (순수 함수). 구간 수·순서가 등록안과 다르면 판정하지 않고 멈춘다."""
+    hold, xs, bench = sim["holdings"], sim["xs"], sim["bench_ew"]
+    want = list(HOLDOUT_SIGNALS)
+    if [h["rebalance"] for h in hold] != want or [x["rebalance"] for x in xs] != want or len(bench) != len(want):
+        raise ValueError("구간 수·순서가 등록안(4개)과 다름 — 판정 중단")
+    for h, x, bk in zip(hold, xs, bench):
+        if not (h["exec"] == x["start"] == bk[0] and x["end"] == bk[1]):
+            raise ValueError(f"구간 날짜 불일치: {h['rebalance']}")
+    for a, c in zip(xs, xs[1:]):
+        if a["end"] != c["start"]:
+            raise ValueError(f"구간이 이어지지 않음: {a['rebalance']} → {c['rebalance']}")
+    if xs[-1]["end"] != sim["nav_days"][-1]:
+        raise ValueError("마지막 구간 끝이 평가 마지막 날과 다름")
+    h1 = h1_values(xs)
     hv = [x["h"] for x in h1]
     if any(v is None for v in hv):
         raise ValueError("H1 구간 값이 비어 있음")
-    vals = [h["value_before"] for h in sim["holdings"]] + [sim["nav"][-1]]
-    r = [vals[k + 1] / vals[k] - 1 for k in range(len(vals) - 1)]
-    b = [x[2] for x in sim["bench_ew"]]
-    d0 = dt.datetime.strptime(sim["holdings"][0]["exec"], "%Y%m%d").date()
-    d1 = dt.datetime.strptime(sim["nav_days"][-1], "%Y%m%d").date()
-    days = (d1 - d0).days
-    lens = [(dt.datetime.strptime(x["end"], "%Y%m%d") - dt.datetime.strptime(x["start"], "%Y%m%d")).days for x in h1]
-    res = {"rule": "reviews/round5/ADDENDUM_H2.md 3판 (D-34)", "strategy": strat.get("version"), "window": list(HOLDOUT_USE),
-           "t_crit": T_CRIT, "scenario": "base",
-           "intervals": [{"rebalance": x["rebalance"], "start": x["start"], "end": x["end"], "days": L, "ranked_with_return": x["n"],
-                          "q5": x.get("q5"), "h1": x["h"], "h2_net": rk, "benchmark_ew": bk,
-                          "h2_n": hh["n"], "h2_turnover": hh["turnover"], "h2_cost": hh["cost"]}
-                         for x, L, rk, bk, hh in zip(h1, lens, r, b, sim["holdings"])],
-           "H1": {**judge_h1(hv), "holding_day_weighted_mean_ref": float(np.average(hv, weights=lens))},
-           "H2": judge_h2(r, b, days),
-           "delistings": len(sim["delistings"]), "unverified_held_events": len(sim["unverified_held"]),
-           "limitations": ["구간 4개·길이 불균등(t 검정과 '4개 중 3개'는 길이 차이를 보정하지 않음)",
-                           "영업이익증가율 100%·PBR-ROE 잔차 약 84% 결측(v1 최소 요건은 충족)",
-                           "업종 분류·관리종목 이력은 현재 자료 기준", "배당 미포함",
-                           "Bonferroni 보정은 H1·H2 두 개만 — 가설을 만든 진단 탐색은 보정하지 않음",
-                           "H2는 진단 포트폴리오(비교 대상은 비용 미차감 — H2에 불리한 비대칭)"],
-           "next": "통과해도 실시간 기록(D-32)에서 다시 확인되기 전에는 매매 신호로 쓰지 않음"}
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "result.json").write_text(json.dumps(res, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    vals = [h["value_before"] for h in hold] + [sim["nav"][-1]]
+    r = [vals[k + 1] / vals[k] - 1 for k in range(len(want))]
+    b = [x[2] for x in bench]
+    lens = [(_ymd(x["end"]) - _ymd(x["start"])).days for x in xs]
+    total = (_ymd(sim["nav_days"][-1]) - _ymd(hold[0]["exec"])).days
+    return {"rule": "reviews/round5/ADDENDUM_H2.md 4판 (D-35)", "strategy": strategy, "window": list(HOLDOUT_USE),
+            "t_crit": T_CRIT, "scenario": "base",
+            "intervals": [{"rebalance": x["rebalance"], "start": x["start"], "end": x["end"], "days": L,
+                           "ranked_with_return": x["n"], "q5": x.get("q5"), "h1": x["h"], "h2_net": rk, "benchmark_ew": bk,
+                           "h2_n": hh["n"], "h2_turnover": hh["turnover"], "h2_cost": hh["cost"]}
+                          for x, L, rk, bk, hh in zip(h1, lens, r, b, hold)],
+            "H1": judge_h1(hv, lens), "H2": judge_h2(r, b, lens, total),
+            "delistings": len(sim.get("delistings") or []), "unverified_held_events": len(sim.get("unverified_held") or []),
+            "limitations": ["구간 4개(자유도 3). 길이 차이는 '분산이 기간에 비례' 가정으로 보정했지만 그 가정 자체가 근사",
+                            "영업이익증가율 100%·PBR-ROE 잔차 약 84% 결측(v1 최소 요건은 충족)",
+                            "업종 분류·관리종목 이력은 현재 자료 기준", "배당 미포함",
+                            "Bonferroni 보정은 H1·H2 두 개만 — 가설을 만든 진단 탐색은 보정하지 않음",
+                            "H2는 진단 포트폴리오(비교 대상은 비용 미차감 — H2에 불리한 비대칭)"],
+            "next": "통과해도 실시간 기록(D-32)에서 다시 확인되기 전에는 매매 신호로 쓰지 않음"}
+
+
+def _hstatus(out_dir, run_id: str, stage: str) -> None:
+    (out_dir / "STATUS.json").write_text(json.dumps({"run_id": run_id, "stage": stage,
+                                                     "at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")},
+                                                    ensure_ascii=False), encoding="utf-8")
+
+
+def holdout_test() -> dict:
+    """ADDENDUM_H2 4판(D-35) 미사용 구간 1회 판정. 다시 계산하는 경로는 없다.
+    실행 조건: GitHub Actions의 'Claim holdout' 단계가 이번 실행 번호로 CLAIM.json을 먼저 커밋·push 해 두었을 것.
+    단계 기록(STATUS.json)은 'Commit holdout' 단계가 실패·시간 초과 때도 커밋한다."""
+    import os
+    out_dir = REPORTS / "backtest" / HOLDOUT_OUT
+    run_id = os.environ.get("GITHUB_RUN_ID", "")
+    if (out_dir / "result.json").exists():
+        raise ValueError("미사용 구간은 이미 한 번 계산됨 (ADDENDUM_H2: 1회만)")
+    if (out_dir / "STATUS.json").exists():
+        raise ValueError("이전 시도 기록(STATUS.json)이 있음 — 재실행 여부는 사용자 결정 (ADDENDUM_H2 5장)")
+    claim = out_dir / "CLAIM.json"
+    if not run_id or not claim.exists() or json.loads(claim.read_text(encoding="utf-8")).get("run_id") != run_id:
+        raise ValueError("이번 실행의 사전 기록(CLAIM.json)이 없음 — 워크플로 bt-holdout으로만 실행")
+    doc = (ROOT / "reviews" / "round5" / "ADDENDUM_H2.md").read_text(encoding="utf-8")
+    if HOLDOUT_FROZEN_MARK not in doc:
+        raise ValueError("ADDENDUM_H2가 고정(D-35) 상태가 아님")
+    strat = guard("validation", *HOLDOUT_USE)          # frozen 확인
+    _hstatus(out_dir, run_id, "prepare")              # 여기까지는 수익률 없음
+    P = prepare(*HOLDOUT_USE)
+    sigs = tuple(S["R"] for S in P["signals"])
+    if sigs != HOLDOUT_SIGNALS:
+        _hstatus(out_dir, run_id, "stopped_signal_mismatch")
+        raise ValueError(f"신호일이 등록안과 다름: {sigs} — 수익률 계산 전에 중단")
+    _hstatus(out_dir, run_id, "simulate")             # 이 뒤로는 수익률이 메모리에 있음 (출력은 result.json 저장 뒤)
+    sim = simulate(P, {}, "base", pick="q1_all")
+    res = holdout_compute(sim, strat.get("version"))
+    res["run_id"] = run_id
+    tmp = out_dir / "result.json.tmp"
+    tmp.write_text(json.dumps(res, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    tmp.replace(out_dir / "result.json")
+    _hstatus(out_dir, run_id, "written")
     log(f"미사용 구간 판정: H1 {res['H1']['verdict']} · H2 {res['H2']['verdict']}")
     return res
 

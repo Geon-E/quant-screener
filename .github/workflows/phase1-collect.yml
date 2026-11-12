@@ -42,6 +42,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Claim holdout
+        id: claim
+        # 미사용 구간 1회 판정(D-35): 수익률을 계산하기 전에 '이번 실행이 시도한다'는 기록을 먼저 커밋·push.
+        # 이미 시도 기록(폴더)이 있으면 여기서 멈춘다 → 다시 계산하는 경로 없음. 해제는 사용자 결정 + DECISIONS 기록 후 수동.
+        if: github.event.inputs.command == 'bt-holdout'
+        run: |
+          set -e
+          d=reports/backtest/holdout_H1H2
+          if [ -e "$d" ]; then echo "미사용 구간 시도 기록이 이미 있음 — 실행 중단"; ls -la "$d"; exit 1; fi
+          mkdir -p "$d"
+          printf '{"run_id": "%s", "claimed_at": "%s", "rule": "ADDENDUM_H2 4판 (D-35)"}\n' "${{ github.run_id }}" "$(date -u +%FT%TZ)" > "$d/CLAIM.json"
+          git config user.name "Geon-E"
+          git config user.email "326496254+Geon-E@users.noreply.github.com"
+          git add "$d/CLAIM.json"
+          git commit -m "미사용 구간 시도 기록 (run ${{ github.run_id }}, 수익률 계산 전)"
+          ok=0
+          for i in 1 2 3; do
+            if git pull --rebase -q && git push -q; then ok=1; break; fi
+            git rebase --abort 2>/dev/null || true
+            sleep 5
+          done
+          if [ "$ok" != "1" ]; then echo "시도 기록 push 실패 — 계산하지 않음"; exit 1; fi
+          if [ "$(ls "$d")" != "CLAIM.json" ]; then echo "pull 후 다른 시도 기록 발견 — 중단"; exit 1; fi
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -74,6 +98,24 @@ jobs:
           code=$?
           echo "code=$code" >> "$GITHUB_OUTPUT"
           echo "exit code $code"
+
+      - name: Commit holdout
+        # 미사용 구간: 실패·시간 초과여도 단계 기록(STATUS.json)과 결과를 반드시 남긴다
+        if: always() && github.event.inputs.command == 'bt-holdout' && steps.claim.outcome == 'success'
+        run: |
+          d=reports/backtest/holdout_H1H2
+          git config user.name "Geon-E"
+          git config user.email "326496254+Geon-E@users.noreply.github.com"
+          rm -f "$d/result.json.tmp"
+          git add "$d"
+          if git diff --cached --quiet; then echo "no changes"; exit 0; fi
+          git commit -m "미사용 구간 판정 기록 (run ${{ github.run_id }}, $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M') KST)"
+          for i in 1 2 3 4 5; do
+            if git pull --rebase --autostash -q && git push -q; then exit 0; fi
+            git rebase --abort 2>/dev/null || true
+            sleep 10
+          done
+          echo "미사용 구간 기록 push 실패"; exit 1
 
       - name: Save data-store
         id: save
