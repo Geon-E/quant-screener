@@ -162,6 +162,17 @@ def cmd_exp_admin_rules(args) -> dict:
     return exp_admin_rules.run()
 
 
+def cmd_bt_diag(args) -> dict:
+    """5차 RESULT Q1 원인 진단 (diagnostic_only): 개발·검증 구간 각각 v1을 다시 돌려 분해만 계산."""
+    from . import backtest
+    out = {}
+    wins = {"dev": backtest.DEV, "validation": (backtest.VALIDATION_START, "2099-12-31")}
+    for mode in ([args.bt_mode] if args.bt_mode in wins else list(wins)):     # 한 실행에 한 구간씩 (시간 제한)
+        out[mode] = backtest.diagnose(*wins[mode], mode)
+    return {k: {kk: v.get(kk) for kk in ("universe_ew_ann", "portfolios_no_cost_no_cap", "by_size_tercile", "by_year",
+                                           "with_cost", "zero_cost")} for k, v in out.items()}
+
+
 def cmd_bt_variants(args) -> dict:
     from . import backtest
     if args.bt_mode == "smoke":
@@ -192,7 +203,7 @@ COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [c
             "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory],
             "evaluate": [cmd_evaluate], "determinism": [cmd_determinism], "adjust": [cmd_adjust],
             "xcheck": [cmd_xcheck], "exp-listing": [cmd_exp_listing],
-            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "us": [cmd_us], "backtest": [cmd_backtest], "forward": [cmd_forward], "bt-variants": [cmd_bt_variants], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
+            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "us": [cmd_us], "backtest": [cmd_backtest], "forward": [cmd_forward], "bt-variants": [cmd_bt_variants], "bt-diag": [cmd_bt_diag], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
             "desc-sample": [cmd_desc_sample],
             "phase1": [cmd_krx, cmd_kind, cmd_dart, cmd_universe, cmd_desc, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_xcheck,
                        cmd_screen, cmd_forward, cmd_determinism]}

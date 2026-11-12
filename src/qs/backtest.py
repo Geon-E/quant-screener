@@ -658,7 +658,7 @@ def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None 
                 p0, p1 = adj_open[e, J[c]], last_px(c, t12)
                 f12 = float(p1 / p0 - 1) if p0 > 0 and not np.isnan(p1) else None
             rows.append({"c": c, "s": r["composite"], "f": float(fwd[c]), "g": gmean[r["score_group"]], "u": umean,
-                         "h": c in held_now, "f12": f12})
+                         "h": c in held_now, "f12": f12, "rk": r.get("rank"), "m": r.get("mcap"), "gid": r.get("group_id")})
         xs_log.append({"rebalance": R, "start": store.days[e], "end": store.days[nxt], "rows": rows,
                        "nav0": None, "nav1": None})
         ic_log[-1]["ic_sector"] = spearman([x["s"] for x in rows], [x["f"] - x["g"] for x in rows])
@@ -1012,3 +1012,80 @@ def run_robustness(start: str = DEV[0], end: str = DEV[1], scenario: str = "base
     d.mkdir(parents=True, exist_ok=True)
     (d / f"{mode}_{start}_{end}.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")
     return out
+
+
+# ── 원인 진단 (5차 RESULT Q1, diagnostic_only) ──
+def diagnose_xs(xs: list[dict], index_days: dict | None = None) -> dict:
+    """규칙을 바꾸지 않는 진단. 같은 점수로:
+    ① 상위 N(20·50·100)·상위 5분위 동일비중 (사업군 한도·비용 없음) 대 순위 대상 전체 동일비중
+    ② 시총 3분위(분기마다 순위 대상 안에서)별 상위 5분위·하위 5분위의 사업군 대비 초과
+    ③ 연도별 IC·상위 20 초과
+    ※ '하위 제외 후 나머지 보유'는 계산하지 않는다 — 다음 가설(미사용 구간에서 판정)이라 미리 보지 않음."""
+    out = {"diagnostic_only": True, "quarters": len(xs)}
+    tops = {"top20": 20, "top50": 50, "top100": 100}
+    port = {k: [] for k in list(tops) + ["q1"]}
+    uni, by_year = [], defaultdict(lambda: {"ic": [], "top20_ex": []})
+    size = {b: {"q1_sec": [], "q5_sec": [], "n": 0} for b in ("대", "중", "소")}
+    for X in xs:
+        rows = [x for x in X["rows"] if x.get("rk")]
+        if len(rows) < 20:
+            continue
+        rows.sort(key=lambda x: x["rk"])
+        u = float(np.mean([x["f"] for x in rows]))
+        uni.append(u)
+        for k, n in tops.items():
+            port[k].append(float(np.mean([x["f"] for x in rows[:n]])))
+        q = len(rows) // 5
+        port["q1"].append(float(np.mean([x["f"] for x in rows[:q]])))
+        y = X["start"][:4]
+        by_year[y]["ic"].append(spearman([-x["rk"] for x in rows], [x["f"] - x["g"] for x in rows]))
+        by_year[y]["top20_ex"].append(port["top20"][-1] - u)
+        ms = sorted([x for x in rows if x.get("m")], key=lambda x: x["m"])
+        for bi, b in enumerate(("소", "중", "대")):
+            sub = ms[bi * len(ms) // 3:(bi + 1) * len(ms) // 3]
+            if len(sub) < 15:
+                continue
+            sub.sort(key=lambda x: x["rk"])
+            k5 = max(1, len(sub) // 5)
+            size[b]["q1_sec"].append(float(np.mean([x["f"] - x["g"] for x in sub[:k5]])))
+            size[b]["q5_sec"].append(float(np.mean([x["f"] - x["g"] for x in sub[-k5:]])))
+            size[b]["n"] += len(sub)
+
+    def ann(v):        # 분기 수익률 → 연환산 복리
+        if not v:
+            return None
+        g = float(np.prod([1 + x for x in v]))
+        return g ** (4 / len(v)) - 1
+
+    out["universe_ew_ann"] = ann(uni)
+    out["portfolios_no_cost_no_cap"] = {k: {"ann": ann(v), "excess_vs_universe_ann": (ann(v) - ann(uni)) if v else None,
+                                            "quarters_beating_universe": sum(1 for a, b in zip(v, uni) if a > b)}
+                                        for k, v in port.items()}
+    out["by_size_tercile"] = {b: {"q1_vs_sector_qtr": float(np.mean(v["q1_sec"])) if v["q1_sec"] else None,
+                                  "q5_vs_sector_qtr": float(np.mean(v["q5_sec"])) if v["q5_sec"] else None,
+                                  "obs": v["n"]} for b, v in size.items()}
+    out["by_year"] = {y: {"ic": float(np.mean(v["ic"])), "top20_excess_qtr": float(np.mean(v["top20_ex"])),
+                          "quarters": len(v["ic"])} for y, v in sorted(by_year.items())}
+    return out
+
+
+def diagnose(start: str, end: str, mode: str, adj_policy: str = "confirmed_only") -> dict:
+    """v1 그대로 다시 돌려 진단만 계산 (판정·실행 기록에 넣지 않음). 결과: reports/backtest/diagnostics/."""
+    guard(mode, start, end)
+    P = prepare(start, end, adj_policy)
+    sim = simulate(P, {}, "base")
+    zero = simulate(P, {}, "zero") if "zero" in (load_costs().get("scenarios") or {}) else None
+    res = {"window": [start, end], "mode": mode, "variant": "v1", **diagnose_xs(sim.get("xs") or [])}
+    days = sim["nav_days"]
+    res["with_cost"] = perf(sim["nav"], days)
+    if zero:
+        res["zero_cost"] = perf(zero["nav"], zero["nav_days"])
+    costs = [h.get("cost") for h in sim["holdings"] if isinstance(h, dict) and h.get("cost") is not None]
+    res["cost_per_rebalance_avg"] = float(np.mean(costs)) if costs else None
+    res["survivorship_check"] = _survivorship(sim["structure"])
+    res["delisted_held"] = len(sim["delistings"])
+    out = REPORTS / "backtest" / "diagnostics"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / f"{mode}_{start}_{end}.json").write_text(json.dumps(res, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    log(f"원인 진단({mode}): {json.dumps({k: res[k] for k in ('portfolios_no_cost_no_cap',)}, ensure_ascii=False, default=str)[:600]}")
+    return res

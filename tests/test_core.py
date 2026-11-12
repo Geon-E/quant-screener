@@ -1052,3 +1052,18 @@ def test_forward_snapshot_and_stats(tmp_path, monkeypatch):
     st = F.period_stats(snap, ret)
     assert abs(st["universe_ew"]) < 1e-12 and abs(st["top20_v1_excess"]) < 1e-12
     assert abs(st["quintile_vs_sector"]["1"]) < 1e-12           # 같은 사업군 안에서는 차이 없음
+
+
+def test_diagnose_xs_basic():
+    from qs.backtest import diagnose_xs
+    xs = []
+    for q in range(4):
+        rows = [{"c": f"{i:06d}", "rk": i, "s": 100 - i, "f": (0.05 if i <= 20 else 0.0), "g": 0.01, "u": 0.0,
+                 "m": 1e9 * i, "gid": "G01"} for i in range(1, 121)]
+        xs.append({"start": f"2023{q * 3 + 1:02d}05", "rows": rows})
+    d = diagnose_xs(xs)
+    assert d["diagnostic_only"] and d["quarters"] == 4
+    p = d["portfolios_no_cost_no_cap"]
+    assert p["top20"]["ann"] > p["top50"]["ann"] > p["top100"]["ann"] > d["universe_ew_ann"] - 1e-12
+    assert p["top20"]["quarters_beating_universe"] == 4
+    assert set(d["by_size_tercile"]) == {"대", "중", "소"} and "2023" in d["by_year"]

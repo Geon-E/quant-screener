@@ -33,3 +33,4 @@ scenarios:
   optimistic: [sell_tax, commission]
   base: [sell_tax, commission, spread_half]
   conservative: [sell_tax, commission, spread_half, impact]
+  zero: []          # 진단 전용 (2026-11-12, 5차 Q1): 비용이 결과를 얼마나 깎았는지 비교
