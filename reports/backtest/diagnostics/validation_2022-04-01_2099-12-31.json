@@ -1,0 +1,99 @@
+{
+ "window": [
+  "2022-04-01",
+  "2099-12-31"
+ ],
+ "mode": "validation",
+ "variant": "v1",
+ "diagnostic_only": true,
+ "quarters": 19,
+ "universe_ew_ann": -0.010938975911180093,
+ "portfolios_no_cost_no_cap": {
+  "top20": {
+   "ann": -0.03096788599201339,
+   "excess_vs_universe_ann": -0.020028910080833295,
+   "quarters_beating_universe": 7
+  },
+  "top50": {
+   "ann": -0.013387110594030749,
+   "excess_vs_universe_ann": -0.0024481346828506556,
+   "quarters_beating_universe": 12
+  },
+  "top100": {
+   "ann": -0.000450919427465557,
+   "excess_vs_universe_ann": 0.010488056483714536,
+   "quarters_beating_universe": 11
+  },
+  "q1": {
+   "ann": 0.019962388627552174,
+   "excess_vs_universe_ann": 0.030901364538732268,
+   "quarters_beating_universe": 13
+  }
+ },
+ "by_size_tercile": {
+  "대": {
+   "q1_vs_sector_qtr": 0.01442362641754219,
+   "q5_vs_sector_qtr": -0.010816843736782643,
+   "obs": 4639
+  },
+  "중": {
+   "q1_vs_sector_qtr": 0.006101033982608709,
+   "q5_vs_sector_qtr": -0.014335668538315402,
+   "obs": 4630
+  },
+  "소": {
+   "q1_vs_sector_qtr": -0.0027233473773829657,
+   "q5_vs_sector_qtr": -0.03043165816293102,
+   "obs": 4625
+  }
+ },
+ "by_year": {
+  "2022": {
+   "ic": 0.04278185565844443,
+   "top20_excess_qtr": 0.019003032342937248,
+   "quarters": 4
+  },
+  "2023": {
+   "ic": 0.11720616093373623,
+   "top20_excess_qtr": 0.015447734875653058,
+   "quarters": 4
+  },
+  "2024": {
+   "ic": 0.12229909782879123,
+   "top20_excess_qtr": -0.00729933218840601,
+   "quarters": 4
+  },
+  "2025": {
+   "ic": 0.02363371962269383,
+   "top20_excess_qtr": -0.015786985722549926,
+   "quarters": 4
+  },
+  "2026": {
+   "ic": 0.11974523352430834,
+   "top20_excess_qtr": -0.04850685704404337,
+   "quarters": 3
+  }
+ },
+ "with_cost": {
+  "total_return": -0.2139568743108753,
+  "cagr": -0.051112619902137335,
+  "mdd": -0.41844333027069935,
+  "vol": 0.28501450204569423,
+  "sharpe_rf0": -0.046707658704654306
+ },
+ "zero_cost": {
+  "total_return": -0.16427061111346397,
+  "cagr": -0.03835272764627706,
+  "mdd": -0.4140797785557051,
+  "vol": 0.28520715673787755,
+  "sharpe_rf0": 0.0018614989694357641
+ },
+ "cost_per_rebalance_avg": 0.003344263157894737,
+ "survivorship_check": {
+  "missing_delisted_later": 58,
+  "missing_alive": 433,
+  "evaluated": 45434,
+  "no_snapshot_rounds": 0
+ },
+ "delisted_held": 0
+}
