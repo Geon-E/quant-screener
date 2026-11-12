@@ -29,7 +29,7 @@ from .pipeline import company_periods, evaluate_company
 from .score.metrics import Metric, merge_preferred_mcap
 from .screen import filter_and_score, load_groups
 from .storage import L0, L1, load_l0
-from .util import CONFIG, REPORTS, log
+from .util import CONFIG, REPORTS, ROOT, log
 
 DEV = ("2018-04-01", "2022-03-31")
 VALIDATION_START = "2022-04-01"
@@ -547,8 +547,9 @@ def rebalance_step(units: dict[str, float], cash: float, p_open: dict[str, float
 
 
 def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None = None,
-             delist_policy: str = "design", unver_hold: str = "price") -> dict:
-    """unver_hold: price(관측 가격 그대로 — 4차 Q3 Claude A) / freeze(잔여 미확인 사건이 걸린 보유 기간은 진입가로 고정 — GPT B 근사)."""
+             delist_policy: str = "design", unver_hold: str = "price", pick: str = "v1") -> dict:
+    """unver_hold: price(관측 가격 그대로 — 4차 Q3 Claude A) / freeze(잔여 미확인 사건이 걸린 보유 기간은 진입가로 고정 — GPT B 근사).
+    pick: v1(상위 20·버퍼 30·사업군 3종목) / q1_all(상위 20% 전체, 버퍼·사업군 한도 없음 — ADDENDUM_H2 H2 진단 포트폴리오)."""
     store, adj_close, adj_open, unver = P["store"], P["adj_close"], P["adj_open"], P["unver"]
     groups, costs = load_groups(), load_costs()
     capital = float(capital or costs["capital_krw"])
@@ -572,7 +573,10 @@ def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None 
             kk = store.last_valid[upto, J[c]]
             return adj_close[kk, J[c]] if kk >= 0 else np.nan
         untradable = {c for c in units if np.isnan(adj_open[e, J[c]])}
-        target = select(ranked, prev, untradable=untradable) if ranked else list(untradable)
+        if pick == "q1_all":
+            target = select(ranked, prev, n=len(ranked) // 5, buffer=0, cap=10 ** 9, untradable=untradable) if ranked else list(untradable)
+        else:
+            target = select(ranked, prev, untradable=untradable) if ranked else list(untradable)
         targets = [c for c in target if c not in untradable and not np.isnan(adj_open[e, J[c]])]
         p_open = {c: adj_open[e, J[c]] for c in set(units) | set(targets) if c not in untradable}
         p_hold = {c: last_px(c, e) for c in untradable}
@@ -592,6 +596,7 @@ def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None 
         held_now = set(units)
         entry = {c: (p_open.get(c) if c in p_open else p_hold.get(c)) for c in units}
         holdings_log.append({"rebalance": R, "exec": store.days[e], "n": len(units), "turnover": round(st["turnover"], 4),
+                             "value_before": st["value"],
                              "cost": round(st["cost"] / max(st["value"], 1e-12), 6), "liquidity_capped": st["capped"],
                              "cash_weight": round(cash / max(st["value"], 1e-12), 4),
                              "holdings": [{"c": c, "n": store.names.get(c), "rank": (info.get(c) or {}).get("rank"),
@@ -1093,6 +1098,107 @@ def diagnose(start: str, end: str, mode: str, adj_policy: str = "confirmed_only"
 
 # ── 미사용 구간 커버리지 (수익률 계산 없음) — 5차 추가 안건 ──
 HOLDOUT = ("2016-05-01", "2018-03-31")
+# ADDENDUM_H2 3판(D-34)에서 고정: 커버리지로 확정한 4개 신호일. 다르면 수익률 계산 전에 멈춘다.
+HOLDOUT_USE = ("2017-04-01", HOLDOUT[1])
+HOLDOUT_SIGNALS = ("20170407", "20170522", "20170822", "20171121")
+T_CRIT = 3.182446          # Student-t 자유도 3, 단측 2.5% (H1·H2 Bonferroni)
+HOLDOUT_OUT = "holdout_H1H2"
+
+
+def _t_stats(v: list[float]) -> dict:
+    n = len(v)
+    m = float(np.mean(v)) if n else None
+    se = float(np.std(v, ddof=1) / math.sqrt(n)) if n >= 2 else None
+    return {"n": n, "mean": m, "se": se, "t": (m / se) if se else None}
+
+
+def judge_h1(h: list[float]) -> dict:
+    """하위 20% 상대부진 신호. h: 구간별 (하위 20% 종목의 f − 사업군 평균)의 종목 동일비중 평균."""
+    st = _t_stats(h)
+    neg = sum(1 for x in h if x < 0)
+    m, se = st["mean"], st["se"]
+    c1, c2, c3 = m is not None and m < 0, neg >= 3, se is not None and m + T_CRIT * se < 0
+    verdict = "통과" if c1 and c2 and c3 else ("미판정" if c1 else "실패")
+    return {**st, "negative_intervals": neg, "upper_bound": (m + T_CRIT * se) if se is not None else None,
+            "checks": {"평균<0": c1, "4개 중 3개 이상 음수": c2, "평균+t*·SE<0": c3}, "verdict": verdict}
+
+
+def judge_h2(r: list[float], b: list[float], days: int) -> dict:
+    """상위 20% 진단 포트폴리오. r: 비용 차감 구간 수익률, b: 비교 대상(비용 미차감) 구간 수익률, days: 실제 경과 달력일."""
+    x = [a - c for a, c in zip(r, b)]
+    st = _t_stats(x)
+    a_s = float(np.prod([1 + v for v in r])) ** (365 / days) - 1
+    a_b = float(np.prod([1 + v for v in b])) ** (365 / days) - 1
+    ex = a_s - a_b
+    pos = sum(1 for v in x if v > 0)
+    m, se = st["mean"], st["se"]
+    c1, c2, c3 = ex >= 0.03, pos >= 3, se is not None and m - T_CRIT * se > 0
+    verdict = "통과" if c1 and c2 and c3 else ("미판정" if ex > 0 else "실패")
+    return {**st, "ann_strategy": a_s, "ann_benchmark": a_b, "ann_excess": ex, "positive_intervals": pos,
+            "lower_bound": (m - T_CRIT * se) if se is not None else None, "days": days, "excess_by_interval": x,
+            "checks": {"연환산 초과≥3%p": c1, "4개 중 3개 이상 초과": c2, "평균−t*·SE>0": c3}, "verdict": verdict}
+
+
+def h1_values(xs: list[dict]) -> list[dict]:
+    """구간마다 모집단(순위 대상 중 수익률 있는 종목)을 순위로 정렬해 마지막 ⌊n/5⌋개의 (f − g) 동일비중 평균.
+    g는 같은 score_group 전체(본인 포함) f의 단순평균 — simulate의 xs 기록과 같다."""
+    out = []
+    for X in xs:
+        rows = sorted([x for x in X["rows"] if x.get("rk")], key=lambda x: x["rk"])
+        q = len(rows) // 5
+        if q < 1:
+            out.append({"rebalance": X["rebalance"], "start": X["start"], "end": X["end"], "n": len(rows), "h": None})
+            continue
+        low = rows[-q:]
+        out.append({"rebalance": X["rebalance"], "start": X["start"], "end": X["end"], "n": len(rows), "q5": q,
+                    "h": float(np.mean([x["f"] - x["g"] for x in low]))})
+    return out
+
+
+def holdout_test(force: bool = False) -> dict:
+    """ADDENDUM_H2 3판(D-34) 미사용 구간 1회 판정. 결과 파일이 이미 있으면 다시 계산하지 않는다."""
+    out_dir = REPORTS / "backtest" / HOLDOUT_OUT
+    if (out_dir / "result.json").exists() and not force:
+        raise ValueError("미사용 구간은 이미 한 번 계산됨 (ADDENDUM_H2: 1회만)")
+    doc = (ROOT / "reviews" / "round5" / "ADDENDUM_H2.md").read_text(encoding="utf-8")
+    if "고정 (D-34" not in doc:
+        raise ValueError("ADDENDUM_H2가 고정(D-34) 상태가 아님")
+    strat = guard("validation", *HOLDOUT_USE)          # frozen 확인
+    P = prepare(*HOLDOUT_USE)
+    sigs = tuple(S["R"] for S in P["signals"])
+    if sigs != HOLDOUT_SIGNALS:
+        raise ValueError(f"신호일이 등록안과 다름: {sigs} — 수익률 계산 전에 중단")
+    sim = simulate(P, {}, "base", pick="q1_all")
+    h1 = h1_values(sim["xs"])
+    hv = [x["h"] for x in h1]
+    if any(v is None for v in hv):
+        raise ValueError("H1 구간 값이 비어 있음")
+    vals = [h["value_before"] for h in sim["holdings"]] + [sim["nav"][-1]]
+    r = [vals[k + 1] / vals[k] - 1 for k in range(len(vals) - 1)]
+    b = [x[2] for x in sim["bench_ew"]]
+    d0 = dt.datetime.strptime(sim["holdings"][0]["exec"], "%Y%m%d").date()
+    d1 = dt.datetime.strptime(sim["nav_days"][-1], "%Y%m%d").date()
+    days = (d1 - d0).days
+    lens = [(dt.datetime.strptime(x["end"], "%Y%m%d") - dt.datetime.strptime(x["start"], "%Y%m%d")).days for x in h1]
+    res = {"rule": "reviews/round5/ADDENDUM_H2.md 3판 (D-34)", "strategy": strat.get("version"), "window": list(HOLDOUT_USE),
+           "t_crit": T_CRIT, "scenario": "base",
+           "intervals": [{"rebalance": x["rebalance"], "start": x["start"], "end": x["end"], "days": L, "ranked_with_return": x["n"],
+                          "q5": x.get("q5"), "h1": x["h"], "h2_net": rk, "benchmark_ew": bk,
+                          "h2_n": hh["n"], "h2_turnover": hh["turnover"], "h2_cost": hh["cost"]}
+                         for x, L, rk, bk, hh in zip(h1, lens, r, b, sim["holdings"])],
+           "H1": {**judge_h1(hv), "holding_day_weighted_mean_ref": float(np.average(hv, weights=lens))},
+           "H2": judge_h2(r, b, days),
+           "delistings": len(sim["delistings"]), "unverified_held_events": len(sim["unverified_held"]),
+           "limitations": ["구간 4개·길이 불균등(t 검정과 '4개 중 3개'는 길이 차이를 보정하지 않음)",
+                           "영업이익증가율 100%·PBR-ROE 잔차 약 84% 결측(v1 최소 요건은 충족)",
+                           "업종 분류·관리종목 이력은 현재 자료 기준", "배당 미포함",
+                           "Bonferroni 보정은 H1·H2 두 개만 — 가설을 만든 진단 탐색은 보정하지 않음",
+                           "H2는 진단 포트폴리오(비교 대상은 비용 미차감 — H2에 불리한 비대칭)"],
+           "next": "통과해도 실시간 기록(D-32)에서 다시 확인되기 전에는 매매 신호로 쓰지 않음"}
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "result.json").write_text(json.dumps(res, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    log(f"미사용 구간 판정: H1 {res['H1']['verdict']} · H2 {res['H2']['verdict']}")
+    return res
 
 
 def coverage(start: str = HOLDOUT[0], end: str = HOLDOUT[1]) -> dict:

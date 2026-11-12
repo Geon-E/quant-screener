@@ -1067,3 +1067,26 @@ def test_diagnose_xs_basic():
     assert p["top20"]["ann"] > p["top50"]["ann"] > p["top100"]["ann"] > d["universe_ew_ann"] - 1e-12
     assert p["top20"]["quarters_beating_universe"] == 4
     assert set(d["by_size_tercile"]) == {"대", "중", "소"} and "2023" in d["by_year"]
+
+
+def test_holdout_judges_and_h1_values():
+    from qs.backtest import judge_h1, judge_h2, h1_values, T_CRIT, HOLDOUT_SIGNALS
+    assert abs(T_CRIT - 3.182) < 1e-3 and len(HOLDOUT_SIGNALS) == 4
+    assert judge_h1([-0.02, -0.021, -0.019, -0.02])["verdict"] == "통과"
+    assert judge_h1([-0.05, 0.01, -0.01, -0.02])["verdict"] == "미판정"      # 평균 음수, 3개 음수, 신뢰구간 미달
+    assert judge_h1([-0.01, 0.02, 0.0, -0.005])["verdict"] == "실패"
+    b = [0.01, 0.02, 0.01, 0.03]
+    ok = judge_h2([x + 0.02 for x in b], b, 355)
+    assert ok["verdict"] == "통과" and ok["positive_intervals"] == 4 and ok["ann_excess"] > 0.03
+    assert judge_h2([x + 0.002 for x in b], b, 355)["verdict"] == "미판정"    # 초과 양수지만 3%p 미만
+    assert judge_h2([x - 0.01 for x in b], b, 355)["verdict"] == "실패"
+    rows = [{"c": f"{i:06d}", "rk": i, "f": -0.1 if i > 80 else 0.0, "g": -0.02} for i in range(1, 101)]
+    v = h1_values([{"rebalance": "20170407", "start": "20170410", "end": "20170523", "rows": rows}])
+    assert v[0]["q5"] == 20 and abs(v[0]["h"] - (-0.08)) < 1e-12
+
+
+def test_select_q1_all_has_no_cap_or_buffer():
+    from qs.backtest import select
+    ranked = [{"stock_code": f"{i:06d}", "rank": i, "group_id": "G01"} for i in range(1, 101)]
+    out = select(ranked, ["000050"], n=20, buffer=0, cap=10 ** 9)
+    assert out == [f"{i:06d}" for i in range(1, 21)]                          # 사업군 한도·버퍼 없이 상위 20%

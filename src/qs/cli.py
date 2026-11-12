@@ -181,6 +181,14 @@ def cmd_bt_coverage(args) -> dict:
                                                   for x in r["rebalances"]]}
 
 
+def cmd_bt_holdout(args) -> dict:
+    """미사용 구간 H1·H2 1회 판정 (ADDENDUM_H2 3판, D-34). 이미 계산했으면 거부."""
+    from . import backtest
+    r = backtest.holdout_test()
+    return {"H1": {k: r["H1"][k] for k in ("verdict", "mean", "se", "upper_bound", "negative_intervals")},
+            "H2": {k: r["H2"][k] for k in ("verdict", "ann_excess", "mean", "se", "lower_bound", "positive_intervals")}}
+
+
 def cmd_bt_variants(args) -> dict:
     from . import backtest
     if args.bt_mode == "smoke":
@@ -211,7 +219,7 @@ COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [c
             "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory],
             "evaluate": [cmd_evaluate], "determinism": [cmd_determinism], "adjust": [cmd_adjust],
             "xcheck": [cmd_xcheck], "exp-listing": [cmd_exp_listing],
-            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "us": [cmd_us], "backtest": [cmd_backtest], "forward": [cmd_forward], "bt-variants": [cmd_bt_variants], "bt-diag": [cmd_bt_diag], "bt-coverage": [cmd_bt_coverage], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
+            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "us": [cmd_us], "backtest": [cmd_backtest], "forward": [cmd_forward], "bt-variants": [cmd_bt_variants], "bt-diag": [cmd_bt_diag], "bt-coverage": [cmd_bt_coverage], "bt-holdout": [cmd_bt_holdout], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
             "desc-sample": [cmd_desc_sample],
             "phase1": [cmd_krx, cmd_kind, cmd_dart, cmd_universe, cmd_desc, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_xcheck,
                        cmd_screen, cmd_forward, cmd_determinism]}
