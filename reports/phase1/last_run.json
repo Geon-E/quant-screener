@@ -1,98 +1,93 @@
 {
  "command": "bt-diag",
- "started": "2026-11-12T10:33:27.141016+09:00",
- "finished": "2026-11-12T10:54:30.546231+09:00",
+ "started": "2026-11-12T11:02:19.419315+09:00",
+ "finished": "2026-11-12T11:20:02.829307+09:00",
  "ok": true,
  "secret_scan_hits": [],
  "results": {
   "cmd_bt_diag": {
-   "validation": {
-    "universe_ew_ann": -0.010938975911180093,
+   "dev": {
+    "universe_ew_ann": 0.08700720656410699,
     "portfolios_no_cost_no_cap": {
      "top20": {
-      "ann": -0.03096788599201339,
-      "excess_vs_universe_ann": -0.020028910080833295,
-      "quarters_beating_universe": 7
+      "ann": 0.1744801410736192,
+      "excess_vs_universe_ann": 0.08747293450951221,
+      "quarters_beating_universe": 8
      },
      "top50": {
-      "ann": -0.013387110594030749,
-      "excess_vs_universe_ann": -0.0024481346828506556,
-      "quarters_beating_universe": 12
+      "ann": 0.13466269338796244,
+      "excess_vs_universe_ann": 0.04765548682385545,
+      "quarters_beating_universe": 10
      },
      "top100": {
-      "ann": -0.000450919427465557,
-      "excess_vs_universe_ann": 0.010488056483714536,
-      "quarters_beating_universe": 11
+      "ann": 0.12551891132321802,
+      "excess_vs_universe_ann": 0.03851170475911103,
+      "quarters_beating_universe": 9
      },
      "q1": {
-      "ann": 0.019962388627552174,
-      "excess_vs_universe_ann": 0.030901364538732268,
-      "quarters_beating_universe": 13
+      "ann": 0.10015030684794368,
+      "excess_vs_universe_ann": 0.013143100283836695,
+      "quarters_beating_universe": 10
      }
     },
     "by_size_tercile": {
      "대": {
-      "q1_vs_sector_qtr": 0.01442362641754219,
-      "q5_vs_sector_qtr": -0.010816843736782643,
-      "obs": 4639
+      "q1_vs_sector_qtr": -0.011183117258306247,
+      "q5_vs_sector_qtr": -0.018916218867058708,
+      "obs": 3925
      },
      "중": {
-      "q1_vs_sector_qtr": 0.006101033982608709,
-      "q5_vs_sector_qtr": -0.014335668538315402,
-      "obs": 4630
+      "q1_vs_sector_qtr": 0.0036661826465820757,
+      "q5_vs_sector_qtr": -0.027162110274156485,
+      "obs": 3921
      },
      "소": {
-      "q1_vs_sector_qtr": -0.0027233473773829657,
-      "q5_vs_sector_qtr": -0.03043165816293102,
-      "obs": 4625
+      "q1_vs_sector_qtr": 0.018008329312914455,
+      "q5_vs_sector_qtr": 0.019080052488491504,
+      "obs": 3914
      }
     },
     "by_year": {
-     "2022": {
-      "ic": 0.04278185565844443,
-      "top20_excess_qtr": 0.019003032342937248,
+     "2018": {
+      "ic": 0.0695359377869809,
+      "top20_excess_qtr": -0.0030182917687458025,
       "quarters": 4
      },
-     "2023": {
-      "ic": 0.11720616093373623,
-      "top20_excess_qtr": 0.015447734875653058,
+     "2019": {
+      "ic": 0.03931032987484181,
+      "top20_excess_qtr": -0.006914153946450593,
       "quarters": 4
      },
-     "2024": {
-      "ic": 0.12229909782879123,
-      "top20_excess_qtr": -0.00729933218840601,
+     "2020": {
+      "ic": 0.05730646164827518,
+      "top20_excess_qtr": 0.062230595568950116,
       "quarters": 4
      },
-     "2025": {
-      "ic": 0.02363371962269383,
-      "top20_excess_qtr": -0.015786985722549926,
+     "2021": {
+      "ic": 0.06070897324157423,
+      "top20_excess_qtr": 0.0433328824259752,
       "quarters": 4
-     },
-     "2026": {
-      "ic": 0.11974523352430834,
-      "top20_excess_qtr": -0.04850685704404337,
-      "quarters": 3
      }
     },
     "with_cost": {
-     "total_return": -0.2139568743108753,
-     "cagr": -0.051112619902137335,
-     "mdd": -0.41844333027069935,
-     "vol": 0.28501450204569423,
-     "sharpe_rf0": -0.046707658704654306
+     "total_return": 0.7690393361283843,
+     "cagr": 0.1542988506373113,
+     "mdd": -0.551153868394098,
+     "vol": 0.28422835536872393,
+     "sharpe_rf0": 0.6606979648745601
     },
     "zero_cost": {
-     "total_return": -0.16427061111346397,
-     "cagr": -0.03835272764627706,
-     "mdd": -0.4140797785557051,
-     "vol": 0.28520715673787755,
-     "sharpe_rf0": 0.0018614989694357641
+     "total_return": 0.8769305117698043,
+     "cagr": 0.17161731209154585,
+     "mdd": -0.5377679833366231,
+     "vol": 0.28440106652299524,
+     "sharpe_rf0": 0.714140014204438
     }
    }
   }
  },
  "log": [
-  "[10:38:43] 백테스트 준비: 리밸런싱 19회 ['20220407', '20220520']…",
-  "[10:53:38] 원인 진단(validation): {\"portfolios_no_cost_no_cap\": {\"top20\": {\"ann\": -0.03096788599201339, \"excess_vs_universe_ann\": -0.020028910080833295, \"quarters_beating_universe\": 7}, \"top50\": {\"ann\": -0.013387110594030749, \"excess_vs_universe_ann\": -0.0024481346828506556, \"quarters_beating_universe\": 12}, \"top100\": {\"ann\": -0.000450919427465557, \"excess_vs_universe_ann\": 0.010488056483714536, \"quarters_beating_universe\": 11}, \"q1\": {\"ann\": 0.019962388627552174, \"excess_vs_universe_ann\": 0.030901364538732268, \"quarters_beating_universe\": 13}}}"
+  "[11:03:36] 백테스트 준비: 리밸런싱 16회 ['20180406', '20180523']…",
+  "[11:19:09] 원인 진단(dev): {\"portfolios_no_cost_no_cap\": {\"top20\": {\"ann\": 0.1744801410736192, \"excess_vs_universe_ann\": 0.08747293450951221, \"quarters_beating_universe\": 8}, \"top50\": {\"ann\": 0.13466269338796244, \"excess_vs_universe_ann\": 0.04765548682385545, \"quarters_beating_universe\": 10}, \"top100\": {\"ann\": 0.12551891132321802, \"excess_vs_universe_ann\": 0.03851170475911103, \"quarters_beating_universe\": 9}, \"q1\": {\"ann\": 0.10015030684794368, \"excess_vs_universe_ann\": 0.013143100283836695, \"quarters_beating_universe\": 10}}}"
  ]
 }

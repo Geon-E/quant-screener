@@ -1,0 +1,94 @@
+{
+ "window": [
+  "2018-04-01",
+  "2022-03-31"
+ ],
+ "mode": "dev",
+ "variant": "v1",
+ "diagnostic_only": true,
+ "quarters": 16,
+ "universe_ew_ann": 0.08700720656410699,
+ "portfolios_no_cost_no_cap": {
+  "top20": {
+   "ann": 0.1744801410736192,
+   "excess_vs_universe_ann": 0.08747293450951221,
+   "quarters_beating_universe": 8
+  },
+  "top50": {
+   "ann": 0.13466269338796244,
+   "excess_vs_universe_ann": 0.04765548682385545,
+   "quarters_beating_universe": 10
+  },
+  "top100": {
+   "ann": 0.12551891132321802,
+   "excess_vs_universe_ann": 0.03851170475911103,
+   "quarters_beating_universe": 9
+  },
+  "q1": {
+   "ann": 0.10015030684794368,
+   "excess_vs_universe_ann": 0.013143100283836695,
+   "quarters_beating_universe": 10
+  }
+ },
+ "by_size_tercile": {
+  "대": {
+   "q1_vs_sector_qtr": -0.011183117258306247,
+   "q5_vs_sector_qtr": -0.018916218867058708,
+   "obs": 3925
+  },
+  "중": {
+   "q1_vs_sector_qtr": 0.0036661826465820757,
+   "q5_vs_sector_qtr": -0.027162110274156485,
+   "obs": 3921
+  },
+  "소": {
+   "q1_vs_sector_qtr": 0.018008329312914455,
+   "q5_vs_sector_qtr": 0.019080052488491504,
+   "obs": 3914
+  }
+ },
+ "by_year": {
+  "2018": {
+   "ic": 0.0695359377869809,
+   "top20_excess_qtr": -0.0030182917687458025,
+   "quarters": 4
+  },
+  "2019": {
+   "ic": 0.03931032987484181,
+   "top20_excess_qtr": -0.006914153946450593,
+   "quarters": 4
+  },
+  "2020": {
+   "ic": 0.05730646164827518,
+   "top20_excess_qtr": 0.062230595568950116,
+   "quarters": 4
+  },
+  "2021": {
+   "ic": 0.06070897324157423,
+   "top20_excess_qtr": 0.0433328824259752,
+   "quarters": 4
+  }
+ },
+ "with_cost": {
+  "total_return": 0.7690393361283843,
+  "cagr": 0.1542988506373113,
+  "mdd": -0.551153868394098,
+  "vol": 0.28422835536872393,
+  "sharpe_rf0": 0.6606979648745601
+ },
+ "zero_cost": {
+  "total_return": 0.8769305117698043,
+  "cagr": 0.17161731209154585,
+  "mdd": -0.5377679833366231,
+  "vol": 0.28440106652299524,
+  "sharpe_rf0": 0.714140014204438
+ },
+ "cost_per_rebalance_avg": 0.0038203125,
+ "survivorship_check": {
+  "missing_delisted_later": 57,
+  "missing_alive": 326,
+  "evaluated": 33074,
+  "no_snapshot_rounds": 0
+ },
+ "delisted_held": 0
+}
