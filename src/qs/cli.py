@@ -173,6 +173,14 @@ def cmd_bt_diag(args) -> dict:
                                            "with_cost", "zero_cost")} for k, v in out.items()}
 
 
+def cmd_bt_coverage(args) -> dict:
+    """미사용 구간(2016-05~2018-03) 순위 대상 수·결측만 확인 (수익률 미계산)."""
+    from . import backtest
+    r = backtest.coverage()
+    return {"usable": r["usable"], "rebalances": [{k: v for k, v in x.items() if k in ("rebalance", "ranked", "missing_fin", "no_snapshot")}
+                                                  for x in r["rebalances"]]}
+
+
 def cmd_bt_variants(args) -> dict:
     from . import backtest
     if args.bt_mode == "smoke":
@@ -203,7 +211,7 @@ COMMANDS = {"krx-backfill": [cmd_krx], "sample": [cmd_sample], "dart-sample": [c
             "inventory": [cmd_inventory], "collect-all": [cmd_krx, cmd_sample, cmd_dart, cmd_inventory],
             "evaluate": [cmd_evaluate], "determinism": [cmd_determinism], "adjust": [cmd_adjust],
             "xcheck": [cmd_xcheck], "exp-listing": [cmd_exp_listing],
-            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "us": [cmd_us], "backtest": [cmd_backtest], "forward": [cmd_forward], "bt-variants": [cmd_bt_variants], "bt-diag": [cmd_bt_diag], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
+            "universe": [cmd_universe], "kind": [cmd_kind], "screen": [cmd_screen], "us": [cmd_us], "backtest": [cmd_backtest], "forward": [cmd_forward], "bt-variants": [cmd_bt_variants], "bt-diag": [cmd_bt_diag], "bt-coverage": [cmd_bt_coverage], "bt-robust": [cmd_bt_robust], "exp-admin-rules": [cmd_exp_admin_rules],
             "desc-sample": [cmd_desc_sample],
             "phase1": [cmd_krx, cmd_kind, cmd_dart, cmd_universe, cmd_desc, cmd_inventory, cmd_adjust, cmd_evaluate, cmd_xcheck,
                        cmd_screen, cmd_forward, cmd_determinism]}

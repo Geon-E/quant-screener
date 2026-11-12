@@ -1089,3 +1089,39 @@ def diagnose(start: str, end: str, mode: str, adj_policy: str = "confirmed_only"
     (out / f"{mode}_{start}_{end}.json").write_text(json.dumps(res, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     log(f"원인 진단({mode}): {json.dumps({k: res[k] for k in ('portfolios_no_cost_no_cap',)}, ensure_ascii=False, default=str)[:600]}")
     return res
+
+
+# ── 미사용 구간 커버리지 (수익률 계산 없음) — 5차 추가 안건 ──
+HOLDOUT = ("2016-05-01", "2018-03-31")
+
+
+def coverage(start: str = HOLDOUT[0], end: str = HOLDOUT[1]) -> dict:
+    """리밸런싱마다 순위 대상 수·재무 결측·지표 결측만 센다. 다음 기간 수익률은 계산하지 않는다(simulate 호출 없음)."""
+    if end >= DEV[0]:
+        raise ValueError("미사용 구간 커버리지는 개발 구간 시작 전까지만")
+    P = prepare(start, end)
+    groups = load_groups()
+    rows = []
+    for S in P["signals"]:
+        if S.get("no_snapshot"):
+            rows.append({"rebalance": S["R"], "no_snapshot": True})
+            continue
+        evals = [{**r, "metrics": dict(r.get("metrics") or {})} for r in S["evals"]]
+        out, ranked, _ = filter_and_score(evals, S["meta"], dt.datetime.strptime(S["R"], "%Y%m%d").date(), S["tv"],
+                                          S["halted"], groups, {})
+        miss = Counter()
+        for r in ranked:
+            for k, v in (r.get("metrics") or {}).items():
+                if v is None:
+                    miss[k] += 1
+        excl = Counter(x for r in out if not r.get("rank") for x in (r.get("exclude") or [])[:1])
+        rows.append({"rebalance": S["R"], "listed_common": len(S["meta"]) + S["missing_fin"], "evaluated": len(S["evals"]),
+                     "missing_fin": S["missing_fin"], "ranked": len(ranked),
+                     "metric_missing_pct": {k: round(v / max(len(ranked), 1) * 100, 1) for k, v in miss.most_common(8)},
+                     "top_exclusions": dict(excl.most_common(6))})
+    res = {"window": [start, end], "note": "수익률 미계산 (커버리지 전용)", "rebalances": rows,
+           "usable": [r["rebalance"] for r in rows if (r.get("ranked") or 0) >= 300]}
+    out_p = REPORTS / "backtest" / "holdout_coverage.json"
+    out_p.write_text(json.dumps(res, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    log(f"미사용 구간 커버리지: {[(r['rebalance'], r.get('ranked')) for r in rows]}")
+    return res
