@@ -1,27 +1,58 @@
 {
- "command": "krx-backfill",
- "started": "2026-11-12T19:38:59.694048+09:00",
- "finished": "2026-11-12T20:15:09.628241+09:00",
+ "command": "bt-coverage",
+ "started": "2026-11-12T20:24:32.671833+09:00",
+ "finished": "2026-11-12T20:38:13.049257+09:00",
  "ok": true,
  "secret_scan_hits": [],
  "results": {
-  "cmd_krx": {
-   "start": "2015-01-01",
-   "end": "2026-11-12",
-   "saved": 2059,
-   "skipped": 10023,
-   "trading_days_touched": 2910,
-   "stopped": null,
-   "kept_nonempty": [],
-   "suspicious_empty_days": [],
-   "fetch_errors": 0,
-   "fetch_error_samples": [],
-   "calls": 2059,
-   "errors": 0,
-   "budget": 6000
+  "cmd_bt_coverage": {
+   "usable": [
+    "20170407",
+    "20170522",
+    "20170822",
+    "20171121"
+   ],
+   "rebalances": [
+    {
+     "rebalance": "20160520",
+     "missing_fin": 35,
+     "ranked": 0
+    },
+    {
+     "rebalance": "20160822",
+     "missing_fin": 32,
+     "ranked": 0
+    },
+    {
+     "rebalance": "20161121",
+     "missing_fin": 27,
+     "ranked": 0
+    },
+    {
+     "rebalance": "20170407",
+     "missing_fin": 23,
+     "ranked": 537
+    },
+    {
+     "rebalance": "20170522",
+     "missing_fin": 23,
+     "ranked": 565
+    },
+    {
+     "rebalance": "20170822",
+     "missing_fin": 22,
+     "ranked": 526
+    },
+    {
+     "rebalance": "20171121",
+     "missing_fin": 22,
+     "ranked": 591
+    }
+   ]
   }
  },
  "log": [
-  "[20:14:16] KRX 백필 결과: {'start': '2015-01-01', 'end': '2026-11-12', 'saved': 2059, 'skipped': 10023, 'trading_days_touched': 2910, 'stopped': None, 'kept_nonempty': [], 'suspicious_empty_days': [], 'fetch_errors': 0, 'fetch_error_samples': [], 'calls': 2059, 'errors': 0, 'budget': 6000}"
+  "[20:25:49] 백테스트 준비: 리밸런싱 7회 ['20160520', '20160822']…",
+  "[20:37:27] 미사용 구간 커버리지: [('20160520', 0), ('20160822', 0), ('20161121', 0), ('20170407', 537), ('20170522', 565), ('20170822', 526), ('20171121', 591)]"
  ]
 }
