@@ -386,7 +386,7 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
       <input type="search" id="q" placeholder="종목명 또는 코드" aria-label="종목 검색">
       <select id="mk" aria-label="시장"><option value="">전체 시장</option><option value="KOSPI">코스피</option><option value="KOSDAQ">코스닥</option></select>
       <select id="grp" aria-label="사업군"><option value="">전체 사업군</option></select>
-      <select id="basis" aria-label="순위 기준"><option value="v2">순위 기준: v2 (진짜인가 거름 적용)</option><option value="g">순위 기준: v1 (거름 없음)</option><option value="m">순위 기준: 시장 전체 비교 (참고)</option></select>
+      <select id="basis" aria-label="순위 기준"><option value="v2">순위: v2 (거름 적용)</option><option value="g">순위: v1 (거름 없음)</option><option value="m">순위: 시장 전체 (참고)</option></select>
       <label><input type="checkbox" id="showx"> 순위 제외 종목 보기</label>
       <button class="ghost" id="csv">CSV 받기</button>
       <span class="count" id="count"></span>
