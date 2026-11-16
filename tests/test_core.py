@@ -1244,3 +1244,31 @@ def test_v2_rank_is_v1_rank_minus_gated():
     assert {"900003", "900007"} <= gated
     assert [r["stock_code"] for r in r2] == [r["stock_code"] for r in r1 if r["stock_code"] not in gated]
     assert [r["composite"] for r in r2] == [r["composite"] for r in r1 if r["stock_code"] not in gated]
+
+
+def test_forward_v2_supplement_same_day(tmp_path, monkeypatch):
+    """D-37: v2가 없던 v1 스냅샷과 같은 시세 기준일이면 v2 보충 파일을 붙이고, 원래 스냅샷 파일은 바꾸지 않는다."""
+    import json, hashlib
+    from qs import forward as F
+    monkeypatch.setattr(F, "DIR", tmp_path / "fw")
+    monkeypatch.setattr(F, "MIN_RANKED", 5)
+    out = [{"stock_code": f"{i:06d}", "rank": i, "close": 1000.0, "composite": 100 - i, "mkt_composite": 50,
+            "group_id": "G01", "name": f"n{i}"} for i in range(1, 11)]
+    F.maybe_snapshot(out, "20261113")                                   # v2 정보 없는 v1 스냅샷
+    body0 = (tmp_path / "fw" / "snapshots" / "20261113.json").read_text(encoding="utf-8")
+    k = 0
+    for r in out:
+        r["truth"] = ["이익의 질 미달"] if r["rank"] in (2, 5) else []
+        if not r["truth"]:
+            k += 1; r["rank_v2"] = k
+    assert F.maybe_v2_supplement(out, "20261120") is None              # 기준일 다르면 붙이지 않음
+    sup = F.maybe_v2_supplement(out, "20261113")
+    assert sup == {"asof": "20261113", "ranked_v2": 8}
+    assert F.maybe_v2_supplement(out, "20261113") is None              # 한 번만
+    assert (tmp_path / "fw" / "snapshots" / "20261113.json").read_text(encoding="utf-8") == body0
+    idx = json.loads((tmp_path / "fw" / "index.json").read_text(encoding="utf-8"))
+    assert idx[0]["sha256"] == hashlib.sha256(body0.encode()).hexdigest() and idx[0]["v2_file"].endswith("_v2.json")
+    s = json.loads((tmp_path / "fw" / idx[0]["v2_file"]).read_text(encoding="utf-8"))
+    assert "000002" not in s["top"]["v2"] and s["top"]["v2"][:2] == ["000001", "000003"]
+    snap = F.make_snapshot(out, "20270210")                             # 다음 정기 스냅샷은 v2를 함께 담음
+    assert snap["top"]["v2"] == s["top"]["v2"] and "quintiles_v2" in snap

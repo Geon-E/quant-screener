@@ -433,6 +433,7 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
                 r["exclude"].append(f"비교 대상 부족(사업군 {len(rows)}개 < {MIN_GROUP_N}, D-26)")
             risk_flags(r, top10, opts.get("exclude_loss", True), opts.get("exclude_fscore", True))
             r["truth"] = truth_gates(r, acc10)                 # 화면용: v1에서도 늘 계산 (v2 거름 사유)
+            r["accrual"], r["accrual_top10"] = accrual_ratio(r), acc10
             if opts.get("truth_gates"):
                 r["exclude"].extend("v2 거름: " + x for x in r["truth"])
     # 순위
@@ -503,6 +504,8 @@ def run() -> dict:
     for i, r in enumerate(sorted([x for x in ranked if x.get("mkt_composite") is not None],
                                  key=lambda x: (-x["mkt_composite"], x["stock_code"])), 1):
         r["mkt_rank"] = i
+    for i, r in enumerate([x for x in ranked if not x.get("truth")], 1):     # v2 (D-37): v1 순서에서 거름 해당 종목만 뺌
+        r["rank_v2"] = i
     for r in out:
         r["dividend"] = dividend_info(r.get("corp_code"), r.get("close")) if r.get("status") == "ok" else None
         r["company"] = company_info(r.get("corp_code"), r.get("induty_code"))
@@ -512,7 +515,7 @@ def run() -> dict:
     # 실전 추적 (DESIGN 7.6): 날짜별 점수 기록 — 백테스트와 별개로 실제 사후 성과를 확인하는 근거. 시세 기준일별 1개 파일
     hist = [{"c": r["stock_code"], "n": r.get("name"), "g": r.get("group_id"), "sc": r.get("composite"), "rk": r.get("rank"),
              "grk": r.get("group_rank"), "b": r.get("buckets"), "x": r["exclude"], "px": r.get("close"), "mc": r.get("mcap"),
-             "pd": r.get("period")} for r in out]
+             "pd": r.get("period"), "rk2": r.get("rank_v2"), "tg": r.get("truth") or []} for r in out]
     # 전날(직전 시세 기준일) 순위 — 화면의 순위 변화 표시용
     prev_files = sorted(f for f in (L2 / "screen_history").glob("*.json.gz") if f.name.split(".")[0] < last_bd) \
         if (L2 / "screen_history").exists() else []
@@ -528,7 +531,7 @@ def run() -> dict:
     exc = Counter(x for r in out for x in r["exclude"])
     res = {"asof_price": last_bd, "universe_collected": len(uni["rows"]), "universe_total": uni["total"],
            "collection_complete": uni.get("complete"), "evaluated": len(out), "build_status": dict(stat),
-           "ranked": len(ranked), "groups": {g: len(v) for g, v in sorted(by_g.items())},
+           "ranked": len(ranked), "ranked_v2": sum(1 for r in out if r.get("rank_v2")), "groups": {g: len(v) for g, v in sorted(by_g.items())},
            "exclusions": dict(exc.most_common()), "prev_asof": prev_asof, "fin_ranked": fin_n,
            "div_payers": sum(1 for r in out if (r.get("dividend") or {}).get("dps"))}
     # 데이터 상태 (DESIGN 8: 기준일·갱신 성공·품질 점검)

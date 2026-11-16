@@ -50,6 +50,10 @@ def compact(r: dict) -> dict:
         "fg": r.get("fin_group"), "fs2": r.get("fin_score"), "frk": r.get("fin_rank"), "fp": r.get("fin_pct"),
         "fx": r.get("fin_other_ex"),
         "co": r.get("company"),
+        "rk2": r.get("rank_v2"), "tg": r.get("truth") or [],
+        "tq": ({"ni": _r((r.get("ttm") or {}).get("ni_total"), 0), "cfo": _r((r.get("ttm") or {}).get("cfo"), 0),
+                "op": _r((r.get("ttm") or {}).get("op_income"), 0), "acc": _r(r.get("accrual")), "acc10": _r(r.get("accrual_top10"))}
+               if r.get("status") == "ok" else None),
     }
 
 
@@ -218,6 +222,14 @@ h1{font-size:26px;font-weight:700;line-height:1.3;margin:0;letter-spacing:-.02em
 .up{color:var(--up)} .down{color:var(--down)} .dash{color:var(--faint)}
 .chip{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;font-size:12px;padding:1px 8px;border-radius:999px;background:var(--warn-soft);color:var(--warn);font-weight:500}
 .chip.x{background:var(--bad-soft);color:var(--bad)}
+.v2note{display:block;margin-top:6px}
+.chip.tg{background:var(--bad-soft);color:var(--bad);opacity:.85}
+.truth{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.truth li{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border-radius:var(--r-md);background:var(--soft)}
+.truth li .ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700}
+.truth li.ok .ic{background:var(--accent);color:#fff} .truth li.bad .ic{background:var(--bad);color:#fff} .truth li.na .ic{background:var(--line,#ccc);color:var(--muted)}
+.truth li b{display:block;font-weight:600} .truth li small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px;font-variant-numeric:tabular-nums}
+h4 .pos{color:var(--accent)} h4 .neg{color:var(--bad)}
 .strip{display:block;width:132px;height:22px}
 .strip .base{stroke:var(--line)} .strip .tick{stroke:var(--faint);opacity:.55} .strip .me{fill:var(--accent);stroke:var(--surface);stroke-width:2}
 .strip .me.muted{fill:var(--faint)}
@@ -356,7 +368,7 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
   <section class="etfbox" id="etfbox" hidden><h2>관심 ETF</h2><div class="gwrap"><table class="gt"><thead><tr><th class="l">ETF</th><th class="l">구분</th><th>현재가 <span class="u">($)</span></th><th>1개월 <span class="u">(%)</span></th><th>1년 <span class="u">(%)</span></th><th>52주 고점 대비 <span class="u">(%)</span></th><th>분배금 수익률 <span class="u">(%)</span></th></tr></thead><tbody id="etftb"></tbody></table></div>
     <p class="pane-note" style="margin-top:6px">1개월·1년·고점 대비는 가격 기준(분배금 제외)입니다. 분배금 수익률은 최근 12개월 정기 분배금 합 ÷ 현재가입니다.</p></section>
   <div class="glance" id="glance">
-    <section><h2>오늘 점수 상위</h2><ol class="top5" id="top5"></ol></section>
+    <section><h2 id="top-title">오늘 점수 상위</h2><ol class="top5" id="top5"></ol></section>
     <section><h2 id="chg-title">어제 대비 변화</h2><div class="mini" id="chg"></div></section>
     <section><h2>관심 종목</h2><div class="mini" id="wsum"></div></section>
   </div>
@@ -374,7 +386,7 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
       <input type="search" id="q" placeholder="종목명 또는 코드" aria-label="종목 검색">
       <select id="mk" aria-label="시장"><option value="">전체 시장</option><option value="KOSPI">코스피</option><option value="KOSDAQ">코스닥</option></select>
       <select id="grp" aria-label="사업군"><option value="">전체 사업군</option></select>
-      <select id="basis" aria-label="순위 기준"><option value="g">순위 기준: 업종 안 비교</option><option value="m">순위 기준: 시장 전체 비교 (참고)</option></select>
+      <select id="basis" aria-label="순위 기준"><option value="v2">순위 기준: v2 (진짜인가 거름 적용)</option><option value="g">순위 기준: v1 (거름 없음)</option><option value="m">순위 기준: 시장 전체 비교 (참고)</option></select>
       <label><input type="checkbox" id="showx"> 순위 제외 종목 보기</label>
       <button class="ghost" id="csv">CSV 받기</button>
       <span class="count" id="count"></span>
@@ -499,7 +511,10 @@ const WKEY = US ? "qs-watch-us" : "qs-watch";
 let WATCH=new Set(); try{WATCH=new Set(JSON.parse(localStorage.getItem(WKEY)||"[]"));}catch(e){}
 function saveWatch(){try{localStorage.setItem(WKEY,JSON.stringify([...WATCH]));}catch(e){}}
 let BASIS="g";
-const RK = r => BASIS==="m" ? r.mrk : r.rk;
+const HAS_V2 = ROWS.some(r=>r.rk2);
+const RK = r => BASIS==="m" ? r.mrk : BASIS==="v2" ? r.rk2 : r.rk;
+const GATED = r => BASIS==="v2" && !r.x.length && (r.tg||[]).length>0;   // v2에서만 순위 밖
+const OUT = r => r.x.length>0 || GATED(r);
 const SC = r => BASIS==="m" ? r.msc : r.sc;
 const val = (r,k) => k==="rk" ? RK(r) : k==="sc" ? SC(r) : k==="roe"?r.m.ROE : k==="mom"?r.m["12-1모멘텀"] : k==="g"?(r.g||"") : k==="n"?(r.n||"") : r[k];
 
@@ -508,6 +523,8 @@ function marketSetup(){
   if(!ROWS.some(r=>r.dv&&r.dv.dps>0)) document.getElementById("tab-div").hidden=true;
   if(!ROWS.some(r=>r.fg)) document.getElementById("tab-fin").hidden=true;
   if(!ROWS.some(r=>r.mrk)) document.getElementById("basis").hidden=true;
+  if(HAS_V2 && !US){ BASIS="v2"; document.getElementById("basis").value="v2"; }
+  else { const o=document.querySelector('#basis option[value="v2"]'); if(o) o.remove(); }
   if(LITE){
     document.body.classList.add("lite");
     document.title="미국 ETF·배당";
@@ -535,7 +552,8 @@ function marketSetup(){
 function head(){
   const V=S.validation;   // 검증 구간 결과 (D-31, 5차 협의 Q4: 불합격을 첫 화면에 숫자로 공개)
   if(V&&!US){ const p=v=>(v>0?'+':'')+(v*100).toFixed(1)+'%';
-    document.getElementById("vres").innerHTML=`검증 결과 <b>기준 미통과</b> (${esc(V.from)}~${esc(V.to)}, 분기마다 상위 20종목 교체: 연 ${p(V.cagr)} · 전 종목 평균 ${p(V.ew)} · 코스피 ${p(V.kospi)}). 점수 순서에는 정보가 있었지만 상위 종목을 사는 방식은 이기지 못했습니다. 순위는 참고용 지표로만 보세요. <a href="backtest.html">자세히</a>`; }
+    document.getElementById("vres").innerHTML=`검증 결과 <b>기준 미통과</b> (${esc(V.from)}~${esc(V.to)}, 분기마다 상위 20종목 교체: 연 ${p(V.cagr)} · 전 종목 평균 ${p(V.ew)} · 코스피 ${p(V.kospi)}). 점수 순서에는 정보가 있었지만 상위 종목을 사는 방식은 이기지 못했습니다. 순위는 참고용 지표로만 보세요. <a href="backtest.html">자세히</a>`
+    if(HAS_V2) document.getElementById("vres").innerHTML+=`<span class="v2note"><b>v2</b>는 v1에 '진짜인가' 거름 4개(현금 없는 이익, 일회성 이익 등)를 더한 순위입니다. 과거 자료로 검증된 것이 아니며, 2026-11-13부터 v1과 나란히 실시간 기록해 1년 뒤 판정합니다.</span>`; }
   const d=S.asof_price, ds=d?dfmt(d):"";
   const st=S.status||{}, w=(st.warnings||[]).filter(x=>!x.startsWith("재무 수집 진행 중"));
   const h=st.history;
@@ -549,7 +567,7 @@ function head(){
     return;
   }
   document.getElementById("state").innerHTML = pill +
-    `<span>시세 기준 <b>${ds}</b></span><span>순위 <b>${S.ranked.toLocaleString()}</b>개 / 평가 ${S.evaluated.toLocaleString()}개사</span>` +
+    `<span>시세 기준 <b>${ds}</b></span><span>순위 <b>${S.ranked.toLocaleString()}</b>개${S.ranked_v2?` (v2 거름 통과 <b>${S.ranked_v2.toLocaleString()}</b>개)`:''} / 평가 ${S.evaluated.toLocaleString()}개사</span>` +
     (h&&h.targets&&!h.complete?`<span>과거 재무 수집 ${Math.round(100*h.processed/h.targets)}% (백테스트 준비)</span>`:"") +
     (w.length?`<span>${w.map(esc).join(" / ")}</span>`:"");
   const ka=st.kind_admin;
@@ -560,7 +578,9 @@ function head(){
 }
 function glance(){
   const ranked=ROWS.filter(r=>r.rk).sort((a,b)=>a.rk-b.rk);
-  document.getElementById("top5").innerHTML = ranked.slice(0,5).map(r=>`<li><span class="no">${r.rk}</span><button data-open="${r.c}">${esc(r.n)}</button><span class="s">${r.sc.toFixed(1)}</span><span>${chg(r)}</span></li>`).join("");
+  const topb=ROWS.filter(r=>RK(r)).sort((a,b)=>RK(a)-RK(b));
+  document.getElementById("top-title").textContent = BASIS==="v2" ? "오늘 점수 상위 (v2 거름 적용)" : BASIS==="m" ? "오늘 점수 상위 (시장 전체)" : "오늘 점수 상위 (v1)";
+  document.getElementById("top5").innerHTML = topb.slice(0,5).map(r=>`<li><span class="no">${RK(r)}</span><button data-open="${r.c}">${esc(r.n)}</button><span class="s">${SC(r).toFixed(1)}</span><span>${BASIS==="g"?chg(r):''}</span></li>`).join("");
   const box=document.getElementById("chg");
   if(!S.prev_asof){ document.getElementById("chg-title").textContent="순위 변화";
     box.innerHTML='<span class="empty-note">비교할 전날 기록이 쌓이면 여기에 새로 들어온 종목과 빠진 종목이 보입니다.</span>'; }
@@ -590,7 +610,7 @@ function header(){
 function filtered(){
   const q=document.getElementById("q").value.trim().toLowerCase(), mk=document.getElementById("mk").value,
         g=document.getElementById("grp").value, sx=document.getElementById("showx").checked;
-  let rs=ROWS.filter(r=>(view==="watch"? WATCH.has(r.c) : (sx? r.x.length>0 : r.x.length===0)) && (!mk||r.mk===mk) && (!g||r.g===g) &&
+  let rs=ROWS.filter(r=>(view==="watch"? WATCH.has(r.c) : (sx? OUT(r) : !OUT(r))) && (!mk||r.mk===mk) && (!g||r.g===g) &&
     (!q || (r.n||"").toLowerCase().includes(q) || r.c.includes(q)));
   rs.sort((a,b)=>{const x=val(a,sortK), y=val(b,sortK);
     if(x==null&&y==null) return 0; if(x==null) return 1; if(y==null) return -1;
@@ -598,12 +618,14 @@ function filtered(){
   return rs;
 }
 function flag(r){
+  const tg=r.tg||[];
+  if(!r.x.length && tg.length) return `<span class="chip ${BASIS==="v2"?"x":"tg"}" title="${esc(tg.join(' · '))}">${BASIS==="v2"?"거름":"v2 거름"} ${tg.length}</span>`;
   return r.x.length ? `<span class="chip x" title="${esc(r.x.join(' · '))}">${esc(r.xp||r.x[0])}${r.x.length>1?` +${r.x.length-1}`:''}</span>`
        : r.w.length ? `<span class="chip" title="${esc(r.w.join(' · '))}">경고 ${r.w.length}</span>` : '';
 }
 function row(r){
   return `<div class="grid row ${openCode===r.c?'sel':''}" role="row" tabindex="0" data-c="${r.c}">
-    <div class="g-rk rk" role="cell">${RK(r)?`<b>${RK(r)}</b>${BASIS==="g"?chg(r):''}`:(r.x.length?'<span class="xr">제외</span>':D)}</div>
+    <div class="g-rk rk" role="cell">${RK(r)?`<b>${RK(r)}</b>${BASIS==="g"?chg(r):''}`:(OUT(r)?'<span class="xr">제외</span>':D)}</div>
     <div class="g-nm nm" role="cell"><button class="star ${WATCH.has(r.c)?'on':''}" data-w="${r.c}" aria-label="관심 종목 ${WATCH.has(r.c)?'해제':'추가'}" aria-pressed="${WATCH.has(r.c)}">★</button><span class="t"><span class="n">${esc(r.n)}</span><span class="cd">${r.c} · ${mkname(r.mk)}</span></span></div>
     <div class="g-grp grp" role="cell" title="${esc(r.g||'')}${r.gn?` · 비교 대상 ${r.gn}개`:''}">${esc(r.g||'미배정')}${r.gn?`<small class="${r.rel==='낮음'?'low':''}">${r.gn}</small>`:''}${flag(r)?`<span class="m-flag"> ${flag(r)}</span>`:''}</div>
     <div class="g-sc sc ${r.rk?'':'muted'}" role="cell">${num(SC(r),1)}</div>
@@ -634,7 +656,8 @@ function why(r){
   const bi=r.b.map((v,i)=>[v,i]).filter(x=>x[0]!=null).sort((a,b)=>b[0]-a[0]);
   const nv=Object.keys(LABEL).filter(k=>r.m[k]!=null).length;
   const L=[];
-  L.push(r.rk ? `<b>전체 ${r.rk}위</b>, ${esc(r.g)} 사업군 ${r.gn}개 중 ${r.grk}위입니다.${r.mrk?` <span class="note">(업종 구분 없이 시장 전체로 비교하면 ${r.mrk}위, ${r.msc}점)</span>`:''}`
+  if(BASIS==="v2" && r.rk) L.push(r.rk2 ? `<b>v2 ${r.rk2}위</b> <span class="note">(진짜인가 거름 4개 모두 통과)</span>` : `<b>v2 순위 제외</b>: 진짜인가 거름 ${(r.tg||[]).length}개 해당 <span class="note">(v1 기준으로는 ${r.rk}위)</span>`);
+  L.push(r.rk ? `<b>${BASIS==="v2"?"v1 기준 ":"전체 "}${r.rk}위</b>, ${esc(r.g)} 사업군 ${r.gn}개 중 ${r.grk}위입니다.${r.mrk?` <span class="note">(업종 구분 없이 시장 전체로 비교하면 ${r.mrk}위, ${r.msc}점)</span>`:''}`
         : r.x.length ? `<b>순위 제외</b>: ${esc(r.xpf||r.x[0])}${r.x.length>1?` 외 ${r.x.length-1}건`:''}` : '<b>점수 없음</b>');
   if(bi.length) L.push(`가장 높은 묶음은 <b>${BK[bi[0][1]]}</b>(${bi[0][0].toFixed(0)}점)${bi.length>1?`, 가장 낮은 묶음은 <b>${BK[bi[bi.length-1][1]]}</b>(${bi[bi.length-1][0].toFixed(0)}점)`:''}입니다.`);
   if(strong.length) L.push(`<span class="pos">강점</span> ${strong.map(k=>`${LABEL[k]} 사업군 상위 ${Math.max(1,Math.round(100-r.p[k]))}%`).join(", ")}`);
@@ -644,6 +667,19 @@ function why(r){
   if(r.rel==="낮음") notes.push(`비교 대상이 ${r.gn}개뿐이라 백분위가 거칩니다`);
   L.push(`<span class="note">${esc(notes.join(" · "))}</span>`);
   return `<div class="why">${L.map(l=>`<div>${l}</div>`).join("")}</div>`;
+}
+function truthBox(r){
+  const q=r.tq; if(!q) return '';
+  const eok=v=>v==null?'–':(Math.abs(v)>=1e12?(v/1e12).toFixed(2)+'조':Math.round(v/1e8).toLocaleString()+'억')+'원';
+  const C=[
+    ["영업으로 현금이 들어오나", !(q.ni>0 && q.cfo!=null && q.cfo<0), `순이익 ${eok(q.ni)} · 영업현금흐름 ${eok(q.cfo)}`, q.ni==null||q.cfo==null],
+    ["이익이 영업에서 나오나", !(q.op>0 && q.ni!=null && q.ni>q.op*1.5), `순이익 ${eok(q.ni)} · 영업이익 ${eok(q.op)} (1.5배 넘으면 일회성 의심)`, q.ni==null||q.op==null],
+    ["영업적자인데 순이익 흑자 아닌가", !(q.op!=null && q.op<=0 && (r.tg||[]).some(x=>x.startsWith("영업적자"))), `영업이익 ${eok(q.op)}`, q.op==null],
+    ["현금 없는 이익이 과하지 않나", !(r.tg||[]).some(x=>x.startsWith("발생액")), `발생액 비율 ${q.acc==null?'–':(q.acc*100).toFixed(1)+'%'}${q.acc10!=null?` (사업군 상위 10% 기준 ${(q.acc10*100).toFixed(1)}%)`:''}`, q.acc==null||q.acc10==null]];
+  const n=(r.tg||[]).length;
+  return `<div><h4>진짜인가 점검 (v2 거름 · ${n?`<span class="neg">${n}개 해당 → v2 순위 제외</span>`:'<span class="pos">모두 통과</span>'})</h4>
+    <ul class="truth">${C.map(([t,ok,d,na])=>`<li class="${na?'na':ok?'ok':'bad'}"><span class="ic" aria-hidden="true">${na?'–':ok?'✓':'✕'}</span><span><b>${t}</b><small>${esc(d)}${na?' · 자료 부족(거르지 않음)':''}</small></span></li>`).join("")}</ul>
+    <p class="note" style="margin:6px 0 0">기준값은 v1 경고 기준을 그대로 썼습니다. v2는 과거 자료로 검증되지 않았고 실시간 기록으로 판정합니다.</p></div>`;
 }
 function openSheet(c){
   const r=BY[c]; if(!r) return;
@@ -657,7 +693,7 @@ function openSheet(c){
   const dsc=document.getElementById("sh-desc");
   dsc.hidden=!(co&&co.desc); if(co&&co.desc) dsc.innerHTML=`${esc(co.desc)}${co.desc_src?`<small>출처: ${esc(co.desc_src)} 사업의 개요</small>`:''}`;
   document.getElementById("sh-big").className="big"+(r.rk?"":" muted");
-  document.getElementById("sh-big").innerHTML = r.sc==null?'–':`${r.sc.toFixed(1)}<small>${r.rk?`전체 ${r.rk}위 ${chg(r)}`:'순위 제외'}</small>`;
+  document.getElementById("sh-big").innerHTML = r.sc==null?'–':`${r.sc.toFixed(1)}<small>${BASIS==="v2"?(r.rk2?`v2 ${r.rk2}위`:(r.rk?`v2 제외 · v1 ${r.rk}위`:'순위 제외')):(r.rk?`전체 ${r.rk}위 ${chg(r)}`:'순위 제외')}</small>`;
   const med=MED[r.gid]||{};
   const mrows=Object.keys(LABEL).map(k=>`<tr><td class="l">${LABEL[k]}<small>${BUCKET[k]}</small></td>
     <td${r.m[k]==null&&(r.mr||{})[k]?` title="${esc(r.mr[k])}"`:''}>${fmtMetric(k,r.m[k])}</td>
@@ -670,6 +706,7 @@ function openSheet(c){
     <div><h4>업종 내 위치 (같은 사업군 순위 대상 ${(PEERS[r.gid]||[]).length}개, 왼쪽이 최저점·오른쪽이 최고점)</h4>${strip(r,560,28)}</div>
     <div><h4>지표별 비교 (이 종목 · 사업군 중앙값 · 백분위)</h4><table class="mt"><thead><tr><th class="l">지표</th><th>이 종목</th><th>중앙값</th><th>백분위</th></tr></thead><tbody>${mrows}</tbody></table></div>
     ${r.x.length?`<div><h4>순위 제외 사유</h4>${list(r.x)}</div>`:''}
+    ${truthBox(r)}
     <div><h4>경고</h4>${list(r.w)}</div>
     ${r.dv?`<div><h4>배당 (${r.dv.year} 사업연도 보고서)</h4><dl class="kv"><dt>주당배당금</dt><dd>${r.dv.dps==null?'–':Math.round(r.dv.dps).toLocaleString()+'원'} ${r.dv.trend?`(${r.dv.trend})`:''}</dd>
       <dt>배당수익률(현재가)</dt><dd>${r.dv.yield_now==null?'–':r.dv.yield_now.toFixed(2)+'%'}</dd><dt>배당성향</dt><dd>${r.dv.payout==null?'–':r.dv.payout.toFixed(0)+'%'}</dd>
@@ -756,7 +793,7 @@ document.addEventListener("click",e=>{const o=e.target.closest("[data-open]"); i
 document.getElementById("sh-close").addEventListener("click",closeSheet);
 document.getElementById("scrim").addEventListener("click",closeSheet);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && openCode) closeSheet(); });
-document.getElementById("basis").addEventListener("input",e=>{BASIS=e.target.value; sortK="rk"; sortDir=1; limit=150; render();});
+document.getElementById("basis").addEventListener("input",e=>{BASIS=e.target.value; sortK="rk"; sortDir=1; limit=150; render(); glance();});
 ["q","mk","grp","showx"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{limit=150;
   if(id==="showx"){const x=document.getElementById("showx").checked; sortK=x?"mc":"rk"; sortDir=x?-1:1;} render();}));
 document.getElementById("more").addEventListener("click",()=>{limit+=300; render();});

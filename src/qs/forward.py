@@ -35,6 +35,17 @@ def _index() -> list[dict]:
     return json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
 
 
+def _v2_part(ranked: list[dict]) -> dict | None:
+    """v2(D-37): v1 순서에서 '진짜인가' 거름 해당 종목을 뺀 순위. 상위 20과 v2 순위 대상 5분위."""
+    v2 = sorted([r for r in ranked if r.get("rank_v2")], key=lambda r: r["rank_v2"])
+    if not v2:
+        return None
+    n = len(v2)
+    return {"top": [r["stock_code"] for r in v2[:TOP_N]],
+            "quintiles": {str(q + 1): [r["stock_code"] for r in v2[q * n // 5:(q + 1) * n // 5]] for q in range(5)},
+            "ranked_v2": n, "gated": {r["stock_code"]: r.get("truth") or [] for r in ranked if r.get("truth")}}
+
+
 def make_snapshot(out: list[dict], asof: str) -> dict:
     ranked = [r for r in out if r.get("rank") and r.get("close")]
     v1 = sorted(ranked, key=lambda r: r["rank"])
@@ -42,11 +53,48 @@ def make_snapshot(out: list[dict], asof: str) -> dict:
                 key=lambda r: (-(HYBRID_W * r["composite"] + (1 - HYBRID_W) * r["mkt_composite"]), r["stock_code"]))
     n = len(v1)
     quint = {str(q + 1): [r["stock_code"] for r in v1[q * n // 5:(q + 1) * n // 5]] for q in range(5)}
-    return {"asof": asof, "strategy": "v1 (frozen, D-30)", "ranked": n,
+    snap = {"asof": asof, "strategy": "v1 (frozen, D-30)", "ranked": n,
             "top": {"v1": [r["stock_code"] for r in v1[:TOP_N]], "hybrid": [r["stock_code"] for r in hy[:TOP_N]]},
             "quintiles_v1": quint,
             "rows": {r["stock_code"]: {"g": r.get("group_id"), "px": r["close"], "sc": r.get("composite"),
                                        "n": r.get("name")} for r in ranked}}
+    v2 = _v2_part(ranked)
+    if v2:
+        snap["top"]["v2"] = v2["top"]
+        snap["quintiles_v2"] = v2["quintiles"]
+        snap["v2_meta"] = {"rule": "config/strategy_v2.yaml (D-37)", "ranked_v2": v2["ranked_v2"], "gated": v2["gated"]}
+    return snap
+
+
+def maybe_v2_supplement(out: list[dict], asof: str) -> dict | None:
+    """D-37: 이미 있는 마지막 v1 스냅샷에 v2가 없고, 이번 화면의 시세 기준일이 그 스냅샷과 같으면
+    같은 날 v2 목록을 보충 파일로 붙인다(v1·v2가 같은 시작점에서 비교되도록). 기존 스냅샷 파일은 바꾸지 않는다."""
+    idx = _index()
+    if not idx or idx[-1]["asof"] != asof or idx[-1].get("v2_file"):
+        return None
+    base = json.loads((DIR / idx[-1]["file"]).read_text(encoding="utf-8"))
+    if "v2" in base.get("top", {}):
+        return None
+    ranked = [r for r in out if r.get("rank") and r.get("close")]
+    v2 = _v2_part(ranked)
+    if not v2:
+        return None
+    if {r["stock_code"] for r in ranked} != set(base["rows"]):
+        log("!! 실시간 기록: 순위 대상이 v1 스냅샷과 달라 v2 보충 생략")
+        return None
+    sup = {"asof": asof, "strategy": "v2 (D-37)", "supplement_of": idx[-1]["file"], "top": {"v2": v2["top"]},
+           "quintiles_v2": v2["quintiles"], "v2_meta": {"rule": "config/strategy_v2.yaml (D-37)", "ranked_v2": v2["ranked_v2"],
+                                                       "gated": v2["gated"]}}
+    body = json.dumps(sup, ensure_ascii=False, sort_keys=True, indent=0)
+    p = DIR / "snapshots" / f"{asof}_v2.json"
+    if p.exists():
+        return None
+    p.write_text(body, encoding="utf-8")
+    idx[-1]["v2_file"] = f"snapshots/{asof}_v2.json"
+    idx[-1]["v2_sha256"] = hashlib.sha256(body.encode()).hexdigest()
+    (DIR / "index.json").write_text(json.dumps(idx, ensure_ascii=False, indent=1), encoding="utf-8")
+    log(f"실시간 기록: v2 보충 {asof} (v2 순위 대상 {v2['ranked_v2']}개)")
+    return {"asof": asof, "ranked_v2": v2["ranked_v2"]}
 
 
 def maybe_snapshot(out: list[dict], asof: str) -> dict | None:
@@ -92,6 +140,8 @@ def period_stats(snap: dict, ret: dict[str, float | None]) -> dict:
         out[f"top20_{k}_excess"] = None if m is None or uni is None else m - uni
     out["quintile_vs_sector"] = {q: _mean([rel.get(c) for c in codes]) for q, codes in snap["quintiles_v1"].items()}
     out["quintile_ret"] = {q: _mean([ret.get(c) for c in codes]) for q, codes in snap["quintiles_v1"].items()}
+    if snap.get("quintiles_v2"):
+        out["quintile_v2_vs_sector"] = {q: _mean([rel.get(c) for c in codes]) for q, codes in snap["quintiles_v2"].items()}
     return out
 
 
@@ -122,6 +172,10 @@ def evaluate() -> dict:
     periods = []
     for i, s in enumerate(idx):
         snap = json.loads((DIR / s["file"]).read_text(encoding="utf-8"))
+        if s.get("v2_file"):                                  # D-37 보충 (같은 날 v2 목록)
+            sup = json.loads((DIR / s["v2_file"]).read_text(encoding="utf-8"))
+            snap["top"] = {**snap["top"], **sup["top"]}
+            snap["quintiles_v2"] = sup.get("quintiles_v2")
         end = idx[i + 1]["asof"] if i + 1 < len(idx) else last_day
         ret = {}
         for c in snap["rows"]:
@@ -144,7 +198,8 @@ def run() -> dict:
         return {"skipped": "시세 기준일 기록 없음"}
     asof = hist[-1].name[:8]                       # 이번 실행의 screen이 쓴 시세 기준일
     snap = maybe_snapshot(out, asof)
+    sup = maybe_v2_supplement(out, asof)
     ev = evaluate()
-    res = {"snapshot": snap, **ev}
+    res = {"snapshot": snap, "v2_supplement": sup, **ev}
     log(f"실시간 기록: {json.dumps({'snapshot': snap, 'snapshots': ev.get('snapshots')}, ensure_ascii=False)}")
     return res
