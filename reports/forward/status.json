@@ -1,0 +1,34 @@
+{
+ "snapshots": 1,
+ "periods": [
+  {
+   "from": "20261113",
+   "to": "20261113",
+   "complete": false,
+   "universe_ew": 0.0,
+   "priced": 573,
+   "ranked": 573,
+   "top20_hybrid": 0.0,
+   "top20_hybrid_excess": 0.0,
+   "top20_v1": 0.0,
+   "top20_v1_excess": 0.0,
+   "quintile_vs_sector": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0
+   },
+   "quintile_ret": {
+    "1": 0.0,
+    "2": 0.0,
+    "3": 0.0,
+    "4": 0.0,
+    "5": 0.0
+   }
+  }
+ ],
+ "rule": "docs/DECISIONS.md D-32",
+ "updated": "20261113",
+ "note": "비용·배당 미반영. 판정은 스냅샷 4회·1년 이상 쌓인 뒤"
+}
