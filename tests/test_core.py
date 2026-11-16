@@ -1207,3 +1207,40 @@ def test_select_q1_all_has_no_cap_or_buffer():
     ranked = [{"stock_code": f"{i:06d}", "rank": i, "group_id": "G01"} for i in range(1, 101)]
     out = select(ranked, ["000050"], n=20, buffer=0, cap=10 ** 9)
     assert out == [f"{i:06d}" for i in range(1, 21)]                          # 사업군 한도·버퍼 없이 상위 20%
+
+
+def test_truth_gates_rules():
+    from qs.screen import truth_gates, accrual_ratio
+    base = {"ttm": {"op_income": 100.0, "ni_total": 80.0, "ni_owners": 80.0, "cfo": 90.0},
+            "stock": {"assets": 1000.0}, "stock_prev": {"assets": 1000.0}}
+    assert truth_gates(base, 0.5) == []
+    assert abs(accrual_ratio(base) - (-0.01)) < 1e-12
+    r = {**base, "ttm": {**base["ttm"], "cfo": -5.0}}
+    assert any("이익의 질" in x for x in truth_gates(r, None))
+    r = {**base, "ttm": {**base["ttm"], "ni_total": 200.0, "ni_owners": 200.0}}
+    assert any("일회성" in x for x in truth_gates(r, None))
+    r = {**base, "ttm": {**base["ttm"], "op_income": -10.0}}
+    assert any("영업적자" in x for x in truth_gates(r, None))
+    r = {**base, "ttm": {**base["ttm"], "ni_total": 150.0, "cfo": 10.0}}       # 발생액 0.14
+    assert any("발생액" in x for x in truth_gates(r, 0.10)) and not any("발생액" in x for x in truth_gates(r, 0.2))
+    assert truth_gates({"ttm": {}}, 0.1) == []                                  # 자료 없으면 거르지 않음
+
+
+def test_v2_rank_is_v1_rank_minus_gated():
+    """v2는 점수가 같고 거름만 추가 → v2 순위 = v1 순위에서 거른 종목만 뺀 순서."""
+    import copy
+    from qs.screen import filter_and_score, load_groups
+    def ev(code, i, cfo):
+        m = {"E/P": 0.05 + i * 0.01, "B/P": 0.5 + i * 0.1, "EBIT/EV": 0.05 + i * 0.01, "ROE": 0.05 + i * 0.01, "GP/A": 0.1 + i * 0.01,
+             "CFO/NI": 1.0, "12-1모멘텀": 0.1 * i, "영업이익증가율": 0.1, "이자보상배율": 5.0}
+        return {"stock_code": code, "name": code, "status": "ok", "induty_code": "264", "mcap": 1e12, "metrics": m,
+                "stock": {"equity_owners": 1e11, "assets": 1e12}, "stock_prev": {"assets": 1e12},
+                "ttm": {"ni_owners": 1e10, "ni_total": 1e10, "op_income": 1.2e10, "cfo": cfo}}
+    evs = [ev(f"9{i:05d}", i, -1e9 if i in (3, 7) else 1.1e10) for i in range(15)]
+    tv = {r["stock_code"]: [1e10] * 20 for r in evs}
+    _, r1, _ = filter_and_score(copy.deepcopy(evs), {}, dt.date(2026, 11, 13), tv, set(), load_groups())
+    _, r2, _ = filter_and_score(copy.deepcopy(evs), {}, dt.date(2026, 11, 13), tv, set(), load_groups(), {"truth_gates": True})
+    gated = {r["stock_code"] for r in r1 if r["truth"]}
+    assert {"900003", "900007"} <= gated
+    assert [r["stock_code"] for r in r2] == [r["stock_code"] for r in r1 if r["stock_code"] not in gated]
+    assert [r["composite"] for r in r2] == [r["composite"] for r in r1 if r["stock_code"] not in gated]

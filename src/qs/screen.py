@@ -309,6 +309,36 @@ def risk_flags(r: dict, debt_top10: float | None, exclude_loss: bool = True, exc
         r["warn"].append("이자보상배율이 금융원가 대용으로 계산됨")
 
 
+# ── v2 '진짜인가' 거름 (D-37, 2026-11-16) ──
+# v1에서 '경고'로만 보여주던 이익의 질 신호를 순위 제외로 올린다. 기준값(1.5배·상위 10%)은 v1 경고 기준(2026-10-24)을
+# 그대로 쓰고 새로 고르지 않는다. 점수 계산은 v1과 같고 거름만 추가 → v2 순위 = v1 순위에서 거른 종목을 뺀 순서.
+def accrual_ratio(r: dict) -> float | None:
+    """발생액 비율 = (TTM 순이익 − TTM 영업현금흐름) ÷ 평균 총자산. 클수록 이익 중 현금이 아닌 부분이 큼."""
+    t, s, sp = r.get("ttm") or {}, r.get("stock") or {}, r.get("stock_prev") or {}
+    ni, cfo, a1, a0 = t.get("ni_total"), t.get("cfo"), s.get("assets"), sp.get("assets")
+    if ni is None or cfo is None or not a1:
+        return None
+    avg = (a1 + a0) / 2 if a0 else a1
+    return (ni - cfo) / avg if avg > 0 else None
+
+
+def truth_gates(r: dict, accrual_top10: float | None) -> list[str]:
+    """v2 거름 사유 목록 (없으면 통과)."""
+    t = r.get("ttm") or {}
+    op, ni, nio, cfo = t.get("op_income"), t.get("ni_total"), t.get("ni_owners"), t.get("cfo")
+    out = []
+    if ni is not None and ni > 0 and cfo is not None and cfo < 0:
+        out.append("이익의 질 미달(순이익 흑자, 영업현금흐름 적자)")
+    if op is not None and op > 0 and ni is not None and ni > op * 1.5:
+        out.append("일회성 이익 의존(순이익 > 영업이익×1.5)")
+    if op is not None and op <= 0 and nio is not None and nio > 0:
+        out.append("영업적자인데 순이익 흑자(영업 외 이익 의존)")
+    a = accrual_ratio(r)
+    if a is not None and accrual_top10 is not None and a >= accrual_top10:
+        out.append("발생액 비율 사업군 상위 10%(현금 없는 이익 비중 큼)")
+    return out
+
+
 HYBRID_W = 0.7   # 혼합 방식: 업종 안 점수 70% + 시장 전체 점수 30% (결과 보기 전 2026-10-31 사전 등록, EXPERIMENTS #4)
 
 
@@ -389,6 +419,8 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
     for gid, rows in by_g.items():
         drs = sorted(x["debt_ratio"] for x in rows if x["debt_ratio"] is not None)
         top10 = drs[int(len(drs) * 0.9)] if len(drs) >= 10 else None
+        acs = sorted(a for a in (accrual_ratio(x) for x in rows) if a is not None)
+        acc10 = acs[int(len(acs) * 0.9)] if len(acs) >= 10 else None
         score_group(rows, opts.get("weights"))
         for r in rows:
             r["mkt_composite"] = mkt.get(r["stock_code"])
@@ -400,6 +432,9 @@ def filter_and_score(evals: list[dict], meta: dict[str, dict], asof: dt.date, tv
             if len(rows) < MIN_GROUP_N:
                 r["exclude"].append(f"비교 대상 부족(사업군 {len(rows)}개 < {MIN_GROUP_N}, D-26)")
             risk_flags(r, top10, opts.get("exclude_loss", True), opts.get("exclude_fscore", True))
+            r["truth"] = truth_gates(r, acc10)                 # 화면용: v1에서도 늘 계산 (v2 거름 사유)
+            if opts.get("truth_gates"):
+                r["exclude"].extend("v2 거름: " + x for x in r["truth"])
     # 순위
     ranked = sorted([r for r in out if not r["exclude"] and r.get("composite") is not None],
                     key=lambda r: (-r["composite"], r["stock_code"]))

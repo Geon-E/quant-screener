@@ -334,6 +334,7 @@ def confirm_events(d, until_min: float = 95) -> dict:
 V1 = {"value": 0.40, "quality": 0.30, "trend": 0.20, "safety": 0.10}
 VARIANTS = {
     "v1": {},
+    "v2": {"truth_gates": True},          # D-37: v1 + '진짜인가' 거름 (참고 백테스트·실시간 기록용)
     "동일가중": {"weights": {"value": .25, "quality": .25, "trend": .25, "safety": .25}},
     "가치중심": {"weights": {"value": .60, "quality": .20, "trend": .10, "safety": .10}},
     "가치+퀄리티": {"weights": {"value": .50, "quality": .50, "trend": 0, "safety": 0}},
@@ -354,7 +355,7 @@ VARIANTS = {
 VARIANT_ALIAS = {"hybrid": "혼합(업종70·시장30)"}          # 명령줄용 (괄호·한글 없이)
 # D-30 (2026-11-11, 사용자 결정 B): 검증 구간에 들고 가는 후보 — 검증 결과를 보기 전 고정
 VALIDATION_CANDIDATES = ("v1", "혼합(업종70·시장30)")
-KEEP = ("stock_code", "corp_code", "name", "status", "error", "induty_code", "mcap", "close", "metrics", "ttm", "stock",
+KEEP = ("stock_code", "corp_code", "name", "status", "error", "induty_code", "mcap", "close", "metrics", "ttm", "stock", "stock_prev",
         "fscore", "fscore_items", "interest_basis", "period", "flags", "fs_div", "audit")
 
 
@@ -980,6 +981,44 @@ def run_variants(start: str = DEV[0], end: str = DEV[1], scenario: str = "base",
     if mode != "smoke" and "v1" in table:
         from .backtest_view import build
         build(d / "v1", d / "comparison.json", P["index"])
+    return out
+
+
+REFERENCE_NOTE = ("참고용(오염된 자료): 2018~2026 전 구간은 v1 설계·검증·원인 진단에서 이미 본 자료다. "
+                  "이 결과로 v2를 '검증됐다'고 말하지 않는다. v2 판정은 실시간 기록(D-37)으로만.")
+
+
+def run_reference(names: tuple[str, ...] = ("v1", "v2"), scenario: str = "base") -> dict:
+    """D-37 참고 백테스트: 개발·검증 구간 각각 v1·v2를 같은 엔진으로. 결과는 reference_v2/summary.json."""
+    wins = {"개발(2018-04~2022-03)": DEV, "검증(2022-04~)": (VALIDATION_START, "2099-12-31")}
+    table = {}
+    for label, (a, b) in wins.items():
+        P = prepare(a, b)
+        for name in names:
+            sim = simulate(P, VARIANTS[name], scenario)
+            res = summarize(sim, P)
+            p, ew = res["perf"], res["benchmark_universe_ew"]["total_return"]
+            nd = sim["nav_days"]
+            yrs = (dt.datetime.strptime(nd[-1], "%Y%m%d") - dt.datetime.strptime(nd[0], "%Y%m%d")).days / 365.25 if len(nd) > 1 else None
+            ew_ann = (1 + ew) ** (1 / yrs) - 1 if ew is not None and yrs else None
+            kos = (res.get("benchmark_KOSPI") or {}).get("cagr")
+            cs = res.get("cross_section") or {}
+            table.setdefault(label, {})[name] = {
+                "cagr": p.get("cagr"), "mdd": p.get("mdd"), "universe_ew_ann": ew_ann, "kospi_cagr": kos,
+                "excess_vs_ew": (p["cagr"] - ew_ann) if p.get("cagr") is not None and ew_ann is not None else None,
+                "excess_vs_kospi": (p["cagr"] - kos) if p.get("cagr") is not None and kos is not None else None,
+                "ic_mean": res["ic"]["mean"], "hit_rate": res["hit_rate"], "turnover": res["avg_turnover"],
+                "avg_ranked": float(np.mean([x["ranked"] for x in sim["structure"]])) if sim["structure"] else None,
+                "quintiles": cs.get("quintiles"),
+                "judgement": {k: v for k, v in (res.get("judgement") or {}).items() if k in ("passed", "status", "checks")},
+                "yearly": res.get("yearly")}
+            _write(REPORTS / "backtest" / "reference_v2" / f"{label[:2]}_{name}", P, sim, res | {"variant": name}, "reference", False)
+    out = {"note": REFERENCE_NOTE, "scenario": scenario, "windows": {k: list(v) for k, v in wins.items()}, "table": table,
+           "run_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")}
+    d = REPORTS / "backtest" / "reference_v2"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "summary.json").write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
+    log(f"참고 백테스트 v1 대 v2: {json.dumps({k: {n: round(v[n]['cagr'] or 0, 4) for n in v} for k, v in table.items()}, ensure_ascii=False)}")
     return out
 
 
