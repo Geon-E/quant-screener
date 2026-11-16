@@ -3,6 +3,8 @@
   "asof": "20261113",
   "file": "snapshots/20261113.json",
   "sha256": "660ce2e3bb56df702a4ac3860af9b4ecd9e05004079a210f91aec0201f48030a",
-  "ranked": 573
+  "ranked": 573,
+  "v2_file": "snapshots/20261113_v2.json",
+  "v2_sha256": "66709ea0e991e48493d2ff3240a0bef7d160e0233139c7661524eaeb42298577"
  }
 ]

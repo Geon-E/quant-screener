@@ -9,6 +9,7 @@
   "no_financials": 4
  },
  "ranked": 573,
+ "ranked_v2": 401,
  "groups": {
   "G02": 16,
   "G03": 6,
@@ -76,7 +77,7 @@
  "fin_ranked": 44,
  "div_payers": 1091,
  "status": {
-  "built_at": "2026-11-16T10:32+09:00",
+  "built_at": "2026-11-16T16:34+09:00",
   "warnings": [],
   "history": {
    "processed": 2840,
