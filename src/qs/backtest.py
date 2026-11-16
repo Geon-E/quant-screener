@@ -97,9 +97,12 @@ class PriceStore:
         self.days = cal_days
         self.day_idx = {d: i for i, d in enumerate(cal_days)}
         codes, names, mkt = {}, {}, {}
-        per_day = []
-        for d in cal_days:
-            rows = []
+        # 메모리 절약 (2026-11-16): 원본 행(dict)을 모두 들고 있지 않고 숫자만 압축 배열에 쌓은 뒤 한 번에 채운다. 값은 같다.
+        from array import array
+        num = lambda v: float(str(v).replace(",", "")) if v not in (None, "", "-") else np.nan   # noqa: E731
+        di, dj, adm = array("i"), array("i"), array("b")
+        cols = {k: array("d") for k in ("TDD_CLSPRC", "TDD_OPNPRC", "CMPPREVDD_PRC", "MKTCAP", "ACC_TRDVAL", "LIST_SHRS")}
+        for i, d in enumerate(cal_days):
             for api, mk in (("sto_stk_bydd_trd", "KOSPI"), ("sto_ksq_bydd_trd", "KOSDAQ")):
                 p = L0 / "krx" / api / f"{d}.json.gz"
                 if p.exists():
@@ -108,8 +111,12 @@ class PriceStore:
                         if c not in codes:
                             codes[c] = len(codes)
                         names[c], mkt[c] = r.get("ISU_NM"), mk
-                        rows.append((codes[c], r))
-            per_day.append(rows)
+                        di.append(i)
+                        dj.append(codes[c])
+                        for k, arr in cols.items():
+                            arr.append(num(r.get(k)))
+                        sect = r.get("SECT_TP_NM") or ""
+                        adm.append(1 if "관리종목" in sect else (2 if "투자주의환기" in sect else 0))
         self.codes = codes
         self.code_list = sorted(codes, key=codes.get)
         self.names, self.mkt = names, mkt
@@ -117,17 +124,12 @@ class PriceStore:
         f = lambda: np.full((D, M), np.nan)   # noqa: E731
         self.close, self.open, self.cmp, self.mcap, self.tv, self.shares = f(), f(), f(), f(), f(), f()
         self.admin = np.zeros((D, M), dtype=np.int8)   # 코스닥 소속부: 1 관리종목, 2 투자주의환기
-        num = lambda v: float(str(v).replace(",", "")) if v not in (None, "", "-") else np.nan   # noqa: E731
-        for i, rows in enumerate(per_day):
-            for j, r in rows:
-                self.close[i, j] = num(r.get("TDD_CLSPRC"))
-                self.open[i, j] = num(r.get("TDD_OPNPRC"))
-                self.cmp[i, j] = num(r.get("CMPPREVDD_PRC"))
-                self.mcap[i, j] = num(r.get("MKTCAP"))
-                self.tv[i, j] = num(r.get("ACC_TRDVAL"))
-                self.shares[i, j] = num(r.get("LIST_SHRS"))
-                sect = r.get("SECT_TP_NM") or ""
-                self.admin[i, j] = 1 if "관리종목" in sect else (2 if "투자주의환기" in sect else 0)
+        I, J = np.frombuffer(di, dtype=np.int32), np.frombuffer(dj, dtype=np.int32)
+        for attr, k in (("close", "TDD_CLSPRC"), ("open", "TDD_OPNPRC"), ("cmp", "CMPPREVDD_PRC"), ("mcap", "MKTCAP"),
+                        ("tv", "ACC_TRDVAL"), ("shares", "LIST_SHRS")):
+            getattr(self, attr)[I, J] = np.frombuffer(cols[k], dtype=np.float64)
+        self.admin[I, J] = np.frombuffer(adm, dtype=np.int8)
+        del di, dj, adm, cols
         self.close[self.close <= 0] = np.nan
         self.open[self.open <= 0] = np.nan
         valid = ~np.isnan(self.close)
@@ -548,7 +550,8 @@ def rebalance_step(units: dict[str, float], cash: float, p_open: dict[str, float
 
 
 def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None = None,
-             delist_policy: str = "design", unver_hold: str = "price", pick: str = "v1") -> dict:
+             delist_policy: str = "design", unver_hold: str = "price", pick: str = "v1",
+             n: int = N, buffer: int = BUFFER, cap: int = GROUP_CAP, score_cache: dict | None = None) -> dict:
     """unver_hold: price(관측 가격 그대로 — 4차 Q3 Claude A) / freeze(잔여 미확인 사건이 걸린 보유 기간은 진입가로 고정 — GPT B 근사).
     pick: v1(상위 20·버퍼 30·사업군 3종목) / q1_all(상위 20% 전체, 버퍼·사업군 한도 없음 — ADDENDUM_H2 H2 진단 포트폴리오)."""
     store, adj_close, adj_open, unver = P["store"], P["adj_close"], P["adj_open"], P["unver"]
@@ -564,9 +567,15 @@ def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None 
     sig = P["signals"]
     for k, S in enumerate(sig):
         R, i = S["R"], S["i"]
-        evals = [{**r, "metrics": dict(r.get("metrics") or {})} for r in S["evals"]]
-        out, ranked, by_g = filter_and_score(evals, S["meta"], dt.datetime.strptime(R, "%Y%m%d").date(), S["tv"],
-                                             S["halted"], groups, opts)
+        ck = (json.dumps(opts, sort_keys=True, ensure_ascii=False), R)
+        if score_cache is not None and ck in score_cache:          # 같은 전략·같은 날 점수는 한 번만 (격자 실험용)
+            out, ranked, by_g = score_cache[ck]
+        else:
+            evals = [{**r, "metrics": dict(r.get("metrics") or {})} for r in S["evals"]]
+            out, ranked, by_g = filter_and_score(evals, S["meta"], dt.datetime.strptime(R, "%Y%m%d").date(), S["tv"],
+                                                 S["halted"], groups, opts)
+            if score_cache is not None:
+                score_cache[ck] = (out, ranked, by_g)
         info = {r["stock_code"]: r for r in out}
         e = i + 1
         J = store.codes
@@ -577,7 +586,7 @@ def simulate(P: dict, opts: dict, scenario: str = "base", capital: float | None 
         if pick == "q1_all":
             target = select(ranked, prev, n=len(ranked) // 5, buffer=0, cap=10 ** 9, untradable=untradable) if ranked else list(untradable)
         else:
-            target = select(ranked, prev, untradable=untradable) if ranked else list(untradable)
+            target = select(ranked, prev, n=n, buffer=buffer, cap=cap, untradable=untradable) if ranked else list(untradable)
         targets = [c for c in target if c not in untradable and not np.isnan(adj_open[e, J[c]])]
         p_open = {c: adj_open[e, J[c]] for c in set(units) | set(targets) if c not in untradable}
         p_hold = {c: last_px(c, e) for c in untradable}
@@ -1019,6 +1028,60 @@ def run_reference(names: tuple[str, ...] = ("v1", "v2"), scenario: str = "base")
     d.mkdir(parents=True, exist_ok=True)
     (d / "summary.json").write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     log(f"참고 백테스트 v1 대 v2: {json.dumps({k: {n: round(v[n]['cagr'] or 0, 4) for n in v} for k, v in table.items()}, ensure_ascii=False)}")
+    return out
+
+
+GRID_SIZES = (10, 20, 30, 50, "q1")          # q1 = 상위 20% 전체
+GRID_FREQ = {"분기": None, "반기": ("04", "08"), "연1회": ("04",)}   # 신호일 달(사업보고서 4월·반기보고서 8월)
+
+
+def _grid_rules(size) -> dict:
+    """종목 수별 규칙: 유지선 = 1.5배, 같은 사업군 한도 = 15%(v1의 20개·3종목 비율). 상위 20%는 한도·유지선 없음."""
+    if size == "q1":
+        return {"pick": "q1_all"}
+    return {"n": size, "buffer": int(size * 1.5), "cap": max(2, math.ceil(size * 0.15))}
+
+
+def run_grid(scenario: str = "base", windows: dict | None = None, strategies: tuple = ("v1", "v2")) -> dict:
+    """참고용 격자 실험 (2026-11-16 사용자 요청): 종목 수 × 교체 주기 × v1·v2. 이미 본 자료 — 가장 좋은 칸을 고르는 용도가 아님."""
+    windows = windows or {"개발(2018-04~2022-03)": DEV, "검증(2022-04~)": (VALIDATION_START, "2099-12-31")}
+    table = []
+    for label, (a, b) in windows.items():
+        P = prepare(a, b)
+        cache: dict = {}
+        base_ew = None
+        for strat in strategies:
+            for fname, months in GRID_FREQ.items():
+                P2 = P if months is None else {**P, "signals": [S for S in P["signals"] if S["R"][4:6] in months]}
+                for size in GRID_SIZES:
+                    rules = _grid_rules(size)
+                    sim = simulate(P2, VARIANTS[strat], scenario, score_cache=cache, **rules)
+                    pf = perf(sim["nav"], sim["nav_days"])
+                    nd = sim["nav_days"]
+                    yrs = (dt.datetime.strptime(nd[-1], "%Y%m%d") - dt.datetime.strptime(nd[0], "%Y%m%d")).days / 365.25
+                    ew = float(np.prod([1 + x[2] for x in sim["bench_ew"]])) ** (1 / yrs) - 1 if sim["bench_ew"] and yrs else None
+                    if strat == "v1" and fname == "분기" and size == 20:
+                        base_ew = ew
+                    kos = P["index"].get("KOSPI", {})
+                    kcagr = (kos[nd[-1]] / kos[nd[0]]) ** (1 / yrs) - 1 if nd and nd[0] in kos and nd[-1] in kos and yrs else None
+                    hs = sim["holdings"]
+                    table.append({"window": label, "strategy": strat, "freq": fname, "size": "상위20%" if size == "q1" else size,
+                                  "rules": rules, "cagr": pf.get("cagr"), "mdd": pf.get("mdd"), "vol": pf.get("vol"),
+                                  "kospi_cagr": kcagr, "ew_cagr": ew,
+                                  "avg_held": float(np.mean([h["n"] for h in hs])) if hs else None,
+                                  "avg_turnover": float(np.mean([h["turnover"] for h in hs])) if hs else None,
+                                  "cost_per_year": (sum(h["cost"] for h in hs) / yrs) if hs and yrs else None,
+                                  "rebalances": len(hs)})
+        for row in table:
+            if row["window"] == label:
+                row["ew_v1_quarterly"] = base_ew
+        log(f"격자 실험 {label}: {sum(1 for r in table if r['window'] == label)}개")
+    out = {"note": "참고용(이미 본 자료). 칸이 많아 가장 좋은 칸은 운일 수 있음 — 경향만 볼 것. 판정은 실시간 기록.",
+           "scenario": scenario, "rules": "유지선 = 종목 수×1.5, 사업군 한도 = 종목 수×15%(최소 2), 상위 20%는 한도·유지선 없음. 반기 = 4·8월 신호, 연1회 = 4월 신호",
+           "rows": table, "run_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")}
+    d = REPORTS / "backtest" / "grid"
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "summary.json").write_text(json.dumps(out, ensure_ascii=False, indent=1, default=str), encoding="utf-8")
     return out
 
 
