@@ -101,7 +101,34 @@ h1{font-size:26px;font-weight:700;line-height:1.3;margin:0;letter-spacing:-.02em
 
 /* 목록: PC는 표처럼 줄, 휴대폰은 카드 */
 .list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden}
-.grid{display:grid;grid-template-columns:58px minmax(170px,1fr) 150px 62px 132px 58px 58px 64px 68px 84px 104px;align-items:center;column-gap:10px;padding:0 14px}
+.grid{display:grid;grid-template-columns:minmax(190px,1fr) 150px 86px 132px 58px 58px 64px 68px 84px 104px;align-items:center;column-gap:10px;padding:0 14px}
+/* 종목 찾기 */
+.finder{display:grid;gap:10px}
+.finder input[type=search]{font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r-lg);padding:12px 16px;min-height:52px;width:100%;box-shadow:0 1px 2px rgba(18,32,28,.04);transition:border-color 120ms var(--ease-out)}
+.finder input[type=search]:focus{border-color:var(--accent);outline:none}
+.gchips{display:flex;flex-wrap:wrap;gap:6px}
+.gchips button{background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 12px;min-height:34px;font-size:13px;color:var(--muted);cursor:pointer;transition:background-color 120ms var(--ease-out),color 120ms var(--ease-out)}
+.gchips button:hover{color:var(--ink);border-color:var(--faint)}
+.gchips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.gchips small{color:inherit;opacity:.7;margin-left:3px}
+.watchbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px 16px}
+.watchbox h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 10px}
+.watchbox .cnt{color:var(--faint);font-weight:500}
+.wcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.wcard{display:grid;gap:4px;text-align:left;background:var(--soft);border:0;border-radius:var(--r-md);padding:10px 12px;cursor:pointer;transition:background-color 120ms var(--ease-out)}
+.wcard:hover{background:var(--accent-soft)}
+.wcard .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.wcard .top b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wcard .sub{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:2px 10px}
+.wcard .sub b{color:var(--ink);font-weight:500}
+.wcard .neg{color:var(--warn);font-weight:600}
+.qp{display:inline-block;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.qp.q1{background:var(--accent);color:var(--accent-ink)} .qp.q2{background:var(--accent-soft);color:var(--accent)}
+.qp.q3{background:var(--soft);color:var(--muted)} .qp.q4{background:var(--warn-soft);color:var(--warn)} .qp.q5{background:var(--bad-soft);color:var(--bad)}
+.qp.qx{background:none;color:var(--faint);font-weight:500;padding:2px 0}
+.qcell{text-align:center}
+.searching #glance{display:none}
+.sh-head .big .qp{font-size:14px;padding:4px 12px}
 .hrow{background:var(--soft);font-size:12.5px;color:var(--muted);font-weight:600;min-height:40px;line-height:1.3;position:sticky;top:0;z-index:var(--z-sticky)}
 .hrow .u{font-weight:400;color:var(--faint)}
 .hrow button{background:none;border:0;padding:0;cursor:pointer;color:inherit;font-weight:inherit;text-align:inherit}
@@ -240,9 +267,11 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
   .controls select{flex:1 1 40%}
   .controls input[type=search]{flex-basis:100%}
   .count{margin-left:0}
-  .grid{grid-template-columns:30px 1fr auto;grid-template-areas:"rk nm sc" "rk meta strip" "rk nums nums";column-gap:10px;row-gap:3px;padding:11px 12px}
+  .grid{grid-template-columns:1fr auto;grid-template-areas:"nm sc" "meta strip" "nums nums";column-gap:10px;row-gap:4px;padding:12px 14px}
   .grid>*{min-width:0}
-  .g-rk{grid-area:rk;align-self:start;padding-top:2px}
+  .nm .n{font-size:15.5px}
+  .gchips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+  .gchips button{flex:none}
   .g-nm{grid-area:nm} .g-sc{grid-area:sc}
   .g-grp{grid-area:meta;font-size:12.5px}
   .g-strip{grid-area:strip;justify-self:end}
@@ -256,7 +285,7 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
   .sh-head{position:relative;padding-top:18px}
   .bk{grid-template-columns:repeat(4,1fr);gap:6px} .bk div{padding:6px 8px} .bk b{font-size:16px}
   .mt .pc{display:none} .mt td small{display:block;margin-left:0}
-  .g-nums{gap:2px 10px;font-size:12px}
+  .g-nums{gap:2px 12px;font-size:13px}
 }
 .g-nums{display:none}
 .lite .col-po,.lite .col-sc{display:none}
@@ -268,46 +297,48 @@ footer{color:var(--muted);font-size:12.5px;display:grid;gap:4px;max-width:90ch}
 <div class="wrap">
   <header class="head">
     <div class="title-row">
-      <h1>업종 대비 저평가 후보</h1>
-      <a href="backtest.html" id="bt-link">과거 성과 검증 보기</a>
+      <h1>업종 비교 종목 조사</h1>
+      <a href="backtest.html" id="bt-link">과거 성과 검증</a>
       <a href="us.html" id="other-mkt">미국 보기</a>
     </div>
-    <p class="lede">같은 업종 회사들과 비교해 싸고, 실적이 괜찮고, 흐름이 좋은 종목을 찾는 후보 목록입니다.</p>
+    <p class="lede">종목을 찾아서, 같은 업종 회사들과 숫자를 나란히 놓고 봅니다.</p>
     <div class="state" id="state"></div>
-    <div class="caution"><strong>점수는 가설이며 매수 목록이 아닙니다.</strong> <span id="vres">과거 성과로 아직 검증되지 않았습니다.</span>
-      <details><summary>점수 계산 방법</summary><span class="more" id="method"></span></details></div>
+    <div class="caution"><strong>업종 안 위치(점수)는 검증 전 가설이며, 매수 추천이 아닙니다.</strong>
+      <details><summary>왜?</summary><span class="more" id="vres">과거 성과로 아직 검증되지 않았습니다.</span><span class="more" id="method"></span></details></div>
   </header>
+
+  <div class="finder" id="finder">
+    <input type="search" id="q" placeholder="종목명 또는 코드로 찾기 (예: 삼성전자, 005930)" aria-label="종목 검색" autocomplete="off">
+    <div class="gchips" id="gchips" aria-label="사업군 바로 가기"></div>
+  </div>
 
   <section class="etfbox" id="etfbox" hidden><h2>관심 ETF</h2><div class="gwrap"><table class="gt"><thead><tr><th class="l">ETF</th><th class="l">구분</th><th>현재가 <span class="u">($)</span></th><th>1개월 <span class="u">(%)</span></th><th>1년 <span class="u">(%)</span></th><th>52주 고점 대비 <span class="u">(%)</span></th><th>분배금 수익률 <span class="u">(%)</span></th></tr></thead><tbody id="etftb"></tbody></table></div>
     <p class="pane-note" style="margin-top:6px">1개월·1년·고점 대비는 가격 기준(분배금 제외)입니다. 분배금 수익률은 최근 12개월 정기 분배금 합 ÷ 현재가입니다.</p></section>
-  <div class="glance" id="glance">
-    <section><h2 id="top-title">오늘 점수 상위</h2><ol class="top5" id="top5"></ol></section>
-    <section><h2 id="chg-title">어제 대비 변화</h2><div class="mini" id="chg"></div></section>
-    <section><h2>관심 종목</h2><div class="mini" id="wsum"></div></section>
-  </div>
+  <section class="watchbox" id="glance">
+    <h2>관심 종목 <span class="cnt" id="wcnt2"></span></h2>
+    <div class="wcards" id="wsum"></div>
+  </section>
 
   <div class="tabs" role="tablist">
-    <button role="tab" id="tab-all" aria-selected="true">전체 순위</button>
+    <button role="tab" id="tab-all" aria-selected="true">전체 종목</button>
     <button role="tab" id="tab-watch" aria-selected="false">관심 종목<span class="cnt" id="wcnt"></span></button>
+    <button role="tab" id="tab-grp" aria-selected="false">사업군</button>
     <button role="tab" id="tab-div" aria-selected="false">배당</button>
     <button role="tab" id="tab-fin" aria-selected="false">금융업</button>
-    <button role="tab" id="tab-grp" aria-selected="false">사업군</button>
   </div>
 
   <div id="pane-list">
     <div class="controls">
-      <input type="search" id="q" placeholder="종목명 또는 코드" aria-label="종목 검색">
       <select id="mk" aria-label="시장"><option value="">전체 시장</option><option value="KOSPI">코스피</option><option value="KOSDAQ">코스닥</option></select>
       <select id="grp" aria-label="사업군"><option value="">전체 사업군</option></select>
-      <select id="basis" aria-label="순위 기준"><option value="v2">순위 기준: v2 (진짜인가 거름 적용)</option><option value="g">순위 기준: v1 (거름 없음)</option><option value="m">순위 기준: 시장 전체 비교 (참고)</option></select>
-      <label><input type="checkbox" id="showx"> 순위 제외 종목 보기</label>
-      <button class="ghost" id="csv">CSV 받기</button>
+      <select id="basis" aria-label="순위 기준" hidden><option value="v2">v2</option><option value="g">v1</option><option value="m">시장 전체</option></select>
+      <label hidden><input type="checkbox" id="showx"></label>
       <span class="count" id="count"></span>
+      <button class="ghost" id="csv">CSV 받기</button>
     </div>
     <div class="legend" style="margin:10px 0 8px">
-      <span><svg width="46" height="14" aria-hidden="true"><line x1="2" y1="7" x2="44" y2="7" stroke="currentColor" opacity=".3"/><line x1="10" y1="3" x2="10" y2="11" stroke="currentColor" opacity=".5"/><line x1="20" y1="3" x2="20" y2="11" stroke="currentColor" opacity=".5"/><line x1="27" y1="3" x2="27" y2="11" stroke="currentColor" opacity=".5"/><circle cx="37" cy="7" r="4.5" fill="var(--accent)"/></svg>업종 내 위치: 눈금은 같은 사업군 종목들의 종합점수(왼쪽 최저·오른쪽 최고), 점이 이 종목</span>
-      <span>사업군 옆 숫자는 비교 대상 수</span>
-      <span>PER·PBR은 지배주주 기준</span>
+      <span><b class="qp q1">상위 20%</b> 업종 안 위치: 같은 사업군 안에서 가치·실적·흐름 점수가 어디쯤인지 다섯 구간으로 (가설)</span>
+      <span>사업군 옆 숫자는 비교 대상 수 · PER·PBR은 지배주주 기준</span>
     </div>
     <div class="list" role="table" aria-label="종목 순위">
       <div class="grid hrow" role="row" id="hdr"></div>
@@ -371,8 +402,8 @@ const PCTM = new Set(["E/P","B/P","EBIT/EV","ROE","GP/A","12-1모멘텀","영업
 const CHANGE = new Set(["12-1모멘텀","영업이익증가율"]);   // 상승 빨강·하락 파랑은 변화율에만
 const BK = ["가치","퀄리티","추세","안정성"];
 const COLS = [
-  {k:"rk",t:"순위",cls:"c g-rk"},{k:"n",t:"종목",cls:"g-nm"},{k:"g",t:"사업군",cls:"g-grp"},{k:"sc",t:"종합",cls:"r g-sc"},
-  {k:"strip",t:"업종 내 위치",cls:"g-strip",ns:1},{k:"per",t:"PER",u:"배",cls:"r g-per"},{k:"pbr",t:"PBR",u:"배",cls:"r g-pbr"},
+  {k:"n",t:"종목",cls:"g-nm"},{k:"g",t:"사업군",cls:"g-grp"},{k:"q",t:"업종 안 위치",cls:"qcell g-sc"},
+  {k:"strip",t:"사업군 점수 분포",cls:"g-strip",ns:1},{k:"per",t:"PER",u:"배",cls:"r g-per"},{k:"pbr",t:"PBR",u:"배",cls:"r g-pbr"},
   {k:"roe",t:"ROE",u:"%",cls:"r g-roe"},{k:"mom",t:"모멘텀",u:"%",cls:"r g-mom"},{k:"mc",t:"시총",u:"억원",cls:"r g-mc"},{k:"flag",t:"비고",cls:"c g-flag",ns:1}
 ];
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -401,6 +432,10 @@ function fmtMetric(k,v){
 // 같은 사업군 종합점수 (순위 대상 기준): 업종 내 위치 띠
 const PEERS = {};
 ROWS.forEach(r=>{ if(r.rk && r.gid){ (PEERS[r.gid]=PEERS[r.gid]||[]).push(r.sc); } });
+// 업종 안 위치 = 같은 사업군 순위 대상 안에서 다섯 구간 (6차 협의 Q1: 순위 대신 거친 구간, 판정된 신호 아님)
+const QL=["","상위 20%","상위 40%","중간","하위 40%","하위 20%"];
+function quint(r){ const n=(PEERS[r.gid]||[]).length; if(!r.rk||!r.grk||!n) return null; return Math.min(5,Math.max(1,Math.ceil(5*r.grk/n))); }
+function qpill(r){ const q=quint(r); return q?`<span class="qp q${q}">${QL[q]}</span>`:`<span class="qp qx">${r.x.length?'비교 제외':'–'}</span>`; }
 function strip(r, W=132, H=22){
   // 가로축 = 같은 사업군 순위 대상 종목의 최저~최고 종합점수 (이 종목 포함)
   const peers=PEERS[r.gid]||[], pad=6, all=peers.concat(r.sc==null?[]:[r.sc]);
@@ -419,7 +454,7 @@ function chg(r){
   const d=r.prk-r.rk;
   return d>0?`<span class="chg up">▲${d}</span>`:d<0?`<span class="chg down">▼${-d}</span>`:`<span class="chg flat">–</span>`;
 }
-let sortK="rk", sortDir=1, limit=150, view="all", openCode=null, lastFocus=null;
+let sortK="mc", sortDir=-1, limit=100, view="all", openCode=null, lastFocus=null;
 const WKEY = US ? "qs-watch-us" : "qs-watch";
 let WATCH=new Set(); try{WATCH=new Set(JSON.parse(localStorage.getItem(WKEY)||"[]"));}catch(e){}
 function saveWatch(){try{localStorage.setItem(WKEY,JSON.stringify([...WATCH]));}catch(e){}}
@@ -429,7 +464,7 @@ const RK = r => BASIS==="m" ? r.mrk : BASIS==="v2" ? r.rk2 : r.rk;
 const GATED = r => BASIS==="v2" && !r.x.length && (r.tg||[]).length>0;   // v2에서만 순위 밖
 const OUT = r => r.x.length>0 || GATED(r);
 const SC = r => BASIS==="m" ? r.msc : r.sc;
-const val = (r,k) => k==="rk" ? RK(r) : k==="sc" ? SC(r) : k==="roe"?r.m.ROE : k==="mom"?r.m["12-1모멘텀"] : k==="g"?(r.g||"") : k==="n"?(r.n||"") : r[k];
+const val = (r,k) => k==="q" ? quint(r) : k==="rk" ? RK(r) : k==="sc" ? SC(r) : k==="roe"?r.m.ROE : k==="mom"?r.m["12-1모멘텀"] : k==="g"?(r.g||"") : k==="n"?(r.n||"") : r[k];
 
 function marketSetup(){
   // 자료가 아직 없는 기능은 감춘다 (다음 갱신에서 자동으로 나타남)
@@ -441,7 +476,7 @@ function marketSetup(){
   if(LITE){
     document.body.classList.add("lite");
     document.title="미국 ETF·배당";
-    ["tab-all","tab-watch","tab-grp","tab-fin","glance"].forEach(id=>document.getElementById(id).hidden=true);
+    ["tab-all","tab-watch","tab-grp","tab-fin","glance","finder"].forEach(id=>document.getElementById(id).hidden=true);
     ["dstreak","dsafe"].forEach(id=>document.getElementById(id).closest("label").hidden=true);
     document.getElementById("dg-h").textContent="배당 주기";
     document.getElementById("dtr-h").textContent="2년 추이";
@@ -480,7 +515,7 @@ function head(){
     return;
   }
   document.getElementById("state").innerHTML = pill +
-    `<span>시세 기준 <b>${ds}</b></span><span>순위 <b>${S.ranked.toLocaleString()}</b>개${S.ranked_v2?` (v2 거름 통과 <b>${S.ranked_v2.toLocaleString()}</b>개)`:''} / 평가 ${S.evaluated.toLocaleString()}개사</span>` +
+    `<span>시세 기준 <b>${ds}</b></span><span>전체 <b>${S.evaluated.toLocaleString()}</b>개사 · 업종 비교 가능 ${S.ranked.toLocaleString()}개사</span>` +
     (h&&h.targets&&!h.complete?`<span>과거 재무 수집 ${Math.round(100*h.processed/h.targets)}% (백테스트 준비)</span>`:"") +
     (w.length?`<span>${w.map(esc).join(" / ")}</span>`:"");
   const ka=st.kind_admin;
@@ -490,32 +525,19 @@ function head(){
   const sel=document.getElementById("grp"); gs.forEach(g=>{const o=document.createElement("option");o.textContent=g;sel.append(o);});
 }
 function glance(){
-  const ranked=ROWS.filter(r=>r.rk).sort((a,b)=>a.rk-b.rk);
-  const topb=ROWS.filter(r=>RK(r)).sort((a,b)=>RK(a)-RK(b));
-  document.getElementById("top-title").textContent = BASIS==="v2" ? "오늘 점수 상위 (v2 거름 적용)" : BASIS==="m" ? "오늘 점수 상위 (시장 전체)" : "오늘 점수 상위 (v1)";
-  document.getElementById("top5").innerHTML = topb.slice(0,5).map(r=>`<li><span class="no">${RK(r)}</span><button data-open="${r.c}">${esc(r.n)}</button><span class="s">${SC(r).toFixed(1)}</span><span>${BASIS==="g"?chg(r):''}</span></li>`).join("");
-  const box=document.getElementById("chg");
-  if(!S.prev_asof){ document.getElementById("chg-title").textContent="순위 변화";
-    box.innerHTML='<span class="empty-note">비교할 전날 기록이 쌓이면 여기에 새로 들어온 종목과 빠진 종목이 보입니다.</span>'; }
-  else {
-    document.getElementById("chg-title").textContent=`${dfmt(S.prev_asof)} 대비 변화`;
-    const top=ranked.filter(r=>r.rk<=30), neu=top.filter(r=>r.pk===false||r.prk==null||r.prk>30);
-    const out=ROWS.filter(r=>r.prk!=null&&r.prk<=30&&(!r.rk||r.rk>30));
-    const up=ranked.filter(r=>r.prk!=null).sort((a,b)=>(b.prk-b.rk)-(a.prk-a.rk))[0];
-    box.innerHTML = `<div class="r"><span class="lab">30위 안 새로 진입</span><span>${neu.length?neu.slice(0,3).map(r=>`<button data-open="${r.c}">${esc(r.n)}</button>`).join(", ")+(neu.length>3?` 외 ${neu.length-3}`:""):"없음"}</span></div>`+
-      `<div class="r"><span class="lab">30위 밖으로</span><span>${out.length?out.slice(0,3).map(r=>`<button data-open="${r.c}">${esc(r.n)}</button>`).join(", ")+(out.length>3?` 외 ${out.length-3}`:""):"없음"}</span></div>`+
-      (up&&up.prk-up.rk>0?`<div class="r"><span class="lab">가장 많이 오름</span><span><button data-open="${up.c}">${esc(up.n)}</button> <span class="chg up">▲${up.prk-up.rk}</span></span></div>`:"");
-  }
   const ws=[...WATCH].map(c=>BY[c]).filter(Boolean);
   document.getElementById("wcnt").textContent = ws.length?ws.length:"";
+  document.getElementById("wcnt2").textContent = ws.length?ws.length+"개":"";
   const wb=document.getElementById("wsum");
-  if(!ws.length){ wb.innerHTML='<span class="empty-note">종목 옆 ★를 누르면 여기 모입니다. 순위가 바뀌면 바로 보입니다.</span>'; return; }
-  const best=ws.filter(r=>r.rk).sort((a,b)=>a.rk-b.rk)[0];
-  const mv=S.prev_asof?ws.filter(r=>r.rk&&r.prk!=null&&r.prk!==r.rk).sort((a,b)=>Math.abs(b.prk-b.rk)-Math.abs(a.prk-a.rk))[0]:null;
-  const xs=ws.filter(r=>r.x.length).length;
-  wb.innerHTML = `<div class="r"><span class="lab">모아 둔 종목</span><span>${ws.length}개${xs?` (순위 제외 ${xs})`:""}</span></div>`+
-    (best?`<div class="r"><span class="lab">가장 높은 순위</span><span><button data-open="${best.c}">${esc(best.n)}</button> ${best.rk}위</span></div>`:"")+
-    (mv?`<div class="r"><span class="lab">가장 크게 움직임</span><span><button data-open="${mv.c}">${esc(mv.n)}</button> ${chg(mv)}</span></div>`:"");
+  if(!ws.length){ wb.innerHTML='<span class="empty-note">목록에서 종목 이름 옆 ★를 누르면 여기에 모여, 들어올 때마다 바로 확인할 수 있습니다.</span>'; return; }
+  wb.innerHTML = ws.map(r=>`<button class="wcard" data-open="${r.c}"><span class="top"><b>${esc(r.n)}</b>${qpill(r)}</span>
+    <span class="sub"><span>${esc(r.g||r.fg||'')}</span><span>PER <b>${r.per==null?'–':num(r.per,1)}</b></span><span>ROE <b>${r.m.ROE==null?'–':(r.m.ROE*100).toFixed(1)+'%'}</b></span>${(r.w.length||(r.tg||[]).length)?`<span class="neg">경고 ${r.w.length+(r.tg||[]).length}</span>`:''}</span></button>`).join("");
+}
+function gchips(){
+  const cnt={}; ROWS.forEach(r=>{ if(r.g&&r.gid!=="EX"&&r.rk) cnt[r.g]=(cnt[r.g]||0)+1; });
+  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const cur=document.getElementById("grp").value;
+  document.getElementById("gchips").innerHTML = top.map(([g,n])=>`<button data-g="${esc(g)}" aria-pressed="${cur===g}">${esc(g)}<small>${n}</small></button>`).join("");
 }
 function header(){
   document.getElementById("hdr").innerHTML = COLS.map(c=>{const u=c.u?` <span class="u">(${c.k==="mc"&&US?"$B":c.u})</span>`:''; return `<div class="${c.cls}" role="columnheader">${c.ns?c.t:`<button data-k="${c.k}" ${sortK===c.k?`aria-sort="${sortDir>0?'ascending':'descending'}"`:''}>${c.t}${u}</button>`}</div>`;}).join("");
@@ -523,7 +545,7 @@ function header(){
 function filtered(){
   const q=document.getElementById("q").value.trim().toLowerCase(), mk=document.getElementById("mk").value,
         g=document.getElementById("grp").value, sx=document.getElementById("showx").checked;
-  let rs=ROWS.filter(r=>(view==="watch"? WATCH.has(r.c) : (sx? OUT(r) : !OUT(r))) && (!mk||r.mk===mk) && (!g||r.g===g) &&
+  let rs=ROWS.filter(r=>(view==="watch"? WATCH.has(r.c) : true) && (!mk||r.mk===mk) && (!g||r.g===g) &&
     (!q || (r.n||"").toLowerCase().includes(q) || r.c.includes(q)));
   rs.sort((a,b)=>{const x=val(a,sortK), y=val(b,sortK);
     if(x==null&&y==null) return 0; if(x==null) return 1; if(y==null) return -1;
@@ -538,10 +560,9 @@ function flag(r){
 }
 function row(r){
   return `<div class="grid row ${openCode===r.c?'sel':''}" role="row" tabindex="0" data-c="${r.c}">
-    <div class="g-rk rk" role="cell">${RK(r)?`<b>${RK(r)}</b>${BASIS==="g"?chg(r):''}`:(OUT(r)?'<span class="xr">제외</span>':D)}</div>
     <div class="g-nm nm" role="cell"><button class="star ${WATCH.has(r.c)?'on':''}" data-w="${r.c}" aria-label="관심 종목 ${WATCH.has(r.c)?'해제':'추가'}" aria-pressed="${WATCH.has(r.c)}">★</button><span class="t"><span class="n">${esc(r.n)}</span><span class="cd">${r.c} · ${mkname(r.mk)}</span></span></div>
     <div class="g-grp grp" role="cell" title="${esc(r.g||'')}${r.gn?` · 비교 대상 ${r.gn}개`:''}">${esc(r.g||'미배정')}${r.gn?`<small class="${r.rel==='낮음'?'low':''}">${r.gn}</small>`:''}${flag(r)?`<span class="m-flag"> ${flag(r)}</span>`:''}</div>
-    <div class="g-sc sc ${r.rk?'':'muted'}" role="cell">${num(SC(r),1)}</div>
+    <div class="g-sc qcell" role="cell">${qpill(r)}</div>
     <div class="g-strip" role="cell">${strip(r)}</div>
     <div class="g-per r" role="cell">${r.per==null?D:num(r.per,1)}</div><div class="g-pbr r" role="cell">${r.pbr==null?D:num(r.pbr,2)}</div>
     <div class="g-roe r" role="cell">${pctc(r.m.ROE)}</div><div class="g-mom r" role="cell">${pctc(r.m["12-1모멘텀"],0,true)}</div>
@@ -555,11 +576,11 @@ function render(){
   const box=document.getElementById("rows");
   if(!rs.length){
     box.innerHTML = view==="watch" && !WATCH.size
-      ? '<div class="emptybox"><b>아직 관심 종목이 없습니다</b>전체 순위에서 종목 이름 옆 ★를 누르면 여기에 모입니다.</div>'
+      ? '<div class="emptybox"><b>아직 관심 종목이 없습니다</b>전체 종목에서 종목 이름 옆 ★를 누르면 여기에 모입니다.</div>'
       : '<div class="emptybox"><b>조건에 맞는 종목이 없습니다</b>검색어나 시장·사업군 선택을 바꿔 보세요.</div>';
   } else box.innerHTML = shown.map(row).join("");
-  document.getElementById("count").textContent = `${rs.length.toLocaleString()}개 종목`;
-  const more=document.getElementById("more"); more.hidden = rs.length<=limit; more.textContent=`더 보기 (${(rs.length-limit).toLocaleString()}개 남음)`;
+  document.getElementById("count").textContent = `${rs.length.toLocaleString()}개 종목${sortK==="mc"&&sortDir<0?" · 시총 큰 순":""}`;
+  const more=document.getElementById("more"); more.hidden = rs.length<=limit; more.textContent=`더 보기 (${(rs.length-limit).toLocaleString()}개 남음)`; gchips();
 }
 function why(r){
   const ks=Object.keys(LABEL).filter(k=>r.p[k]!=null);
@@ -569,9 +590,9 @@ function why(r){
   const bi=r.b.map((v,i)=>[v,i]).filter(x=>x[0]!=null).sort((a,b)=>b[0]-a[0]);
   const nv=Object.keys(LABEL).filter(k=>r.m[k]!=null).length;
   const L=[];
-  if(BASIS==="v2" && r.rk) L.push(r.rk2 ? `<b>v2 ${r.rk2}위</b> <span class="note">(진짜인가 거름 4개 모두 통과)</span>` : `<b>v2 순위 제외</b>: 진짜인가 거름 ${(r.tg||[]).length}개 해당 <span class="note">(v1 기준으로는 ${r.rk}위)</span>`);
-  L.push(r.rk ? `<b>${BASIS==="v2"?"v1 기준 ":"전체 "}${r.rk}위</b>, ${esc(r.g)} 사업군 ${r.gn}개 중 ${r.grk}위입니다.${r.mrk?` <span class="note">(업종 구분 없이 시장 전체로 비교하면 ${r.mrk}위, ${r.msc}점)</span>`:''}`
-        : r.x.length ? `<b>순위 제외</b>: ${esc(r.xpf||r.x[0])}${r.x.length>1?` 외 ${r.x.length-1}건`:''}` : '<b>점수 없음</b>');
+  const q=quint(r);
+  L.push(q ? `${esc(r.g)} 사업군에서 점수를 낼 수 있는 ${(PEERS[r.gid]||[]).length}개사 중 <b>${QL[q]}</b> 구간입니다. <span class="note">(검증 전 가설, 매수 신호 아님)</span>`
+        : r.x.length ? `<b>업종 비교 제외</b>: ${esc(r.xpf||r.x[0])}${r.x.length>1?` 외 ${r.x.length-1}건`:''}` : '<b>업종 비교 자료 없음</b>');
   if(bi.length) L.push(`가장 높은 묶음은 <b>${BK[bi[0][1]]}</b>(${bi[0][0].toFixed(0)}점)${bi.length>1?`, 가장 낮은 묶음은 <b>${BK[bi[bi.length-1][1]]}</b>(${bi[bi.length-1][0].toFixed(0)}점)`:''}입니다.`);
   if(strong.length) L.push(`<span class="pos">강점</span> ${strong.map(k=>`${LABEL[k]} 사업군 상위 ${Math.max(1,Math.round(100-r.p[k]))}%`).join(", ")}`);
   if(weak.length) L.push(`<span class="neg">약점</span> ${weak.map(k=>`${LABEL[k]} 사업군 하위 ${Math.max(1,Math.round(r.p[k]))}%`).join(", ")}`);
@@ -605,8 +626,8 @@ function openSheet(c){
     co.est?`<span>${esc(co.est)}년 설립</span>`:'', hm?`<a href="${esc(hm)}" target="_blank" rel="noopener noreferrer">홈페이지 ↗</a>`:''].filter(Boolean).join('<i aria-hidden="true">·</i>');
   const dsc=document.getElementById("sh-desc");
   dsc.hidden=!(co&&co.desc); if(co&&co.desc) dsc.innerHTML=`${esc(co.desc)}${co.desc_src?`<small>출처: ${esc(co.desc_src)} 사업의 개요</small>`:''}`;
-  document.getElementById("sh-big").className="big"+(r.rk?"":" muted");
-  document.getElementById("sh-big").innerHTML = r.sc==null?'–':`${r.sc.toFixed(1)}<small>${BASIS==="v2"?(r.rk2?`v2 ${r.rk2}위`:(r.rk?`v2 제외 · v1 ${r.rk}위`:'순위 제외')):(r.rk?`전체 ${r.rk}위 ${chg(r)}`:'순위 제외')}</small>`;
+  document.getElementById("sh-big").className="big";
+  document.getElementById("sh-big").innerHTML = `${qpill(r)}<small>업종 안 위치</small>`;
   const med=MED[r.gid]||{};
   const mrows=Object.keys(LABEL).map(k=>`<tr><td class="l">${LABEL[k]}<small>${BUCKET[k]}</small></td>
     <td${r.m[k]==null&&(r.mr||{})[k]?` title="${esc(r.mr[k])}"`:''}>${fmtMetric(k,r.m[k])}</td>
@@ -615,7 +636,7 @@ function openSheet(c){
   const fb = r.fb.length ? r.fb.map(x=>x.replace("ni_owners","지배주주 순이익").replace("equity_owners","지배주주 자본").replace("separate_only","별도재무제표만 제출 → 전체=지배").replace("no_nci","비지배지분 없음 → 전체=지배")).join(", ") : "표준 계정으로 확인";
   const list=a=>a.length?`<ul class="lst">${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:'<span class="dash">없음</span>';
   document.getElementById("sh-body").innerHTML = `${why(r)}
-    <div><h4>묶음 점수 (사업군 안 백분위 평균)</h4><div class="bk">${BK.map((b,i)=>`<div><span>${b}</span><b>${r.b[i]==null?'–':r.b[i].toFixed(0)}</b><div class="bar"><i style="width:${r.b[i]??0}%"></i></div></div>`).join("")}</div></div>
+    <div><h4>묶음 점수 (사업군 안 백분위 평균${r.sc!=null?` · 종합 ${r.sc.toFixed(1)}`:''})</h4><div class="bk">${BK.map((b,i)=>`<div><span>${b}</span><b>${r.b[i]==null?'–':r.b[i].toFixed(0)}</b><div class="bar"><i style="width:${r.b[i]??0}%"></i></div></div>`).join("")}</div></div>
     <div><h4>업종 내 위치 (같은 사업군 순위 대상 ${(PEERS[r.gid]||[]).length}개, 왼쪽이 최저점·오른쪽이 최고점)</h4>${strip(r,560,28)}</div>
     <div><h4>지표별 비교 (이 종목 · 사업군 중앙값 · 백분위)</h4><table class="mt"><thead><tr><th class="l">지표</th><th>이 종목</th><th>중앙값</th><th>백분위</th></tr></thead><tbody>${mrows}</tbody></table></div>
     ${r.x.length?`<div><h4>순위 제외 사유</h4>${list(r.x)}</div>`:''}
@@ -656,8 +677,7 @@ function tab(which){
   if(which==="all"||which==="watch") view=which;
   Object.keys(PANES).forEach(t=>document.getElementById("tab-"+t).setAttribute("aria-selected", t===which));
   new Set(Object.values(PANES)).forEach(id=>document.getElementById(id).hidden = id!==PANES[which]);
-  document.getElementById("showx").closest("label").hidden = which==="watch";
-  if(which==="grp") groupView(); else if(which==="div") divView(); else if(which==="fin") finView(); else { limit=150; render(); }
+  if(which==="grp") groupView(); else if(which==="div") divView(); else if(which==="fin") finView(); else { limit=100; render(); }
 }
 // ── 배당 탭 ──
 const HARD = ["관리종목","투자주의","거래정지","시가총액","거래대금","자본잠식","감사","시세 없음","재무 없음","상장 1년 미만"];
@@ -697,7 +717,7 @@ function finView(){
 }
 // 이벤트
 document.getElementById("hdr").addEventListener("click",e=>{const b=e.target.closest("button[data-k]"); if(!b) return;
-  const k=b.dataset.k; if(sortK===k) sortDir=-sortDir; else {sortK=k; sortDir=(k==="rk"||k==="n"||k==="g"||k==="per"||k==="pbr")?1:-1;} render();});
+  const k=b.dataset.k; if(sortK===k) sortDir=-sortDir; else {sortK=k; sortDir=(k==="q"||k==="rk"||k==="n"||k==="g"||k==="per"||k==="pbr")?1:-1;} render();});
 document.getElementById("rows").addEventListener("click",e=>{
   const st=e.target.closest(".star"); if(st){e.stopPropagation(); const c=st.dataset.w; WATCH.has(c)?WATCH.delete(c):WATCH.add(c); saveWatch(); render(); glance(); return;}
   const rw=e.target.closest(".row"); if(rw) openSheet(rw.dataset.c);});
@@ -706,10 +726,14 @@ document.addEventListener("click",e=>{const o=e.target.closest("[data-open]"); i
 document.getElementById("sh-close").addEventListener("click",closeSheet);
 document.getElementById("scrim").addEventListener("click",closeSheet);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape" && openCode) closeSheet(); });
-document.getElementById("basis").addEventListener("input",e=>{BASIS=e.target.value; sortK="rk"; sortDir=1; limit=150; render(); glance();});
-["q","mk","grp","showx"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{limit=150;
-  if(id==="showx"){const x=document.getElementById("showx").checked; sortK=x?"mc":"rk"; sortDir=x?-1:1;} render();}));
-document.getElementById("more").addEventListener("click",()=>{limit+=300; render();});
+document.getElementById("basis").addEventListener("input",e=>{BASIS=e.target.value; render(); glance();});
+["q","mk","grp"].forEach(id=>document.getElementById(id).addEventListener("input",()=>{limit=100;
+  document.body.classList.toggle("searching", document.getElementById("q").value.trim()!=="");
+  if(document.getElementById("pane-list").hidden || view!=="all") tab("all"); else render();}));
+document.getElementById("gchips").addEventListener("click",e=>{const b=e.target.closest("button[data-g]"); if(!b) return;
+  const sel=document.getElementById("grp"); sel.value = sel.value===b.dataset.g ? "" : b.dataset.g; limit=100;
+  if(document.getElementById("pane-list").hidden || view!=="all") tab("all"); else render();});
+document.getElementById("more").addEventListener("click",()=>{limit+=200; render();});
 document.getElementById("tab-all").addEventListener("click",()=>tab("all"));
 document.getElementById("tab-watch").addEventListener("click",()=>tab("watch"));
 document.getElementById("tab-grp").addEventListener("click",()=>tab("grp"));
