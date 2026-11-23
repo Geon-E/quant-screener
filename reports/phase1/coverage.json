@@ -17,7 +17,7 @@
   "lt_debt:zero_default": 8,
   "ni_owners:no_nci": 1,
   "ni_owners:separate_only": 4,
-  "st_fin:zero_default": 12
+  "st_fin:zero_default": 11
  },
  "interest_basis": {
   "이자지급(CF)": 23,
@@ -35,10 +35,10 @@
    "invalid_reasons": {}
   },
   "EBIT/EV": {
-   "valid": 24,
-   "rate": 0.96,
+   "valid": 23,
+   "rate": 0.92,
    "invalid_reasons": {
-    "EV 비정상": 1
+    "EV 비정상": 2
    }
   },
   "EBITDA/EV(실험)": {
@@ -61,10 +61,10 @@
    }
   },
   "CFO/NI": {
-   "valid": 14,
-   "rate": 0.56,
+   "valid": 15,
+   "rate": 0.6,
    "invalid_reasons": {
-    "순이익 ≤ 0": 11
+    "순이익 ≤ 0": 10
    }
   },
   "이자보상배율": {
@@ -150,8 +150,8 @@
    "id": 25
   },
   "st_fin": {
-   "id": 13,
-   "zero_default": 12
+   "id": 14,
+   "zero_default": 11
   },
   "debt": {
    "id": 24,
